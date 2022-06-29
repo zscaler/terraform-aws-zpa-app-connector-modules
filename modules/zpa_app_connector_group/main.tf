@@ -27,7 +27,6 @@ resource "zpa_provisioning_key" "this" {
   enrollment_cert_id = data.zpa_enrollment_cert.connector_cert.id
   zcomponent_id      = zpa_app_connector_group.this.id
   depends_on = [
-    # aws_instance.this,
     zpa_app_connector_group.this
   ]
 }
