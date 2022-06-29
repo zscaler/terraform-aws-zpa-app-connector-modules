@@ -1,4 +1,4 @@
-# Palo Alto Networks VPC Route Module for AWS
+# Zscaler Private Access (ZPA) VPC Route Module for AWS
 
 A Terraform module for deploying a VPC route in AWS cloud.
 

@@ -19,19 +19,6 @@
 
   > Existing Terraform modules should be tested against the latest Terraform releases using a test methodology to be defined later.
 
-### `1.1 Module Version`
-* All terraform modules should be versioned using Git tags. Git tag name should adhere to the following naming convention
-
-> Major.Minor.Patch => 0.1.0
-
-* Version should be pinned in the root module where the modules are called from using the `ref` argument
-
-      module "bootstrap_bucket" {
-        source          = "spring.paloaltonetworks.com/mekanayake/terraform-aws-panfw-bootstrap?ref=0.1.0"
-        bucket_prefix   = "GlobalProtect-bootstrap-"
-        local_directory = "vmseries-bootstrap-package"
-      }
-
 ## `2. Coding Practices`
 
 ### `2.1 Variables`

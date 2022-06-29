@@ -1,4 +1,4 @@
-# Palo Alto Networks NAT Gateway Set Module for AWS
+# Zscaler Private Access (ZPA) NAT Gateway Set Module for AWS
 
 A Terraform module for deploying a NAT Gateway set in AWS cloud. The "set" means that the module will create an identical/similar NAT Gateway in each specified Availability Zone.
 
