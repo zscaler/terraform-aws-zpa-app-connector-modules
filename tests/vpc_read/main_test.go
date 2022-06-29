@@ -26,7 +26,7 @@ package vpc_read
 import (
 	"testing"
 
-	"github.com/willguibr/terraform-aws-zpa-modules/tests/internal/generictt"
+	"github.com/zscaler/terraform-aws-zpa-modules/tests/internal/generictt"
 )
 
 // TestMain tests the main.tf as well as other *.tf files residing in this directory.
