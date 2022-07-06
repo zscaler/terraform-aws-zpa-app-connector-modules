@@ -11,26 +11,26 @@ on:
     - cron: '0 0 1 * *'
 
 jobs:
-  pre-commit:
-    name: Verify the pre-commit framework was used properly by developers
-    runs-on: ubuntu-latest
+  # pre-commit:
+  #   name: Verify the pre-commit framework was used properly by developers
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Check out source
-        uses: actions/checkout@v2
+  #   steps:
+  #     - name: Check out source
+  #       uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          # Semantic version range syntax (like 3.x) or the exact Python version
-          python-version: '3.9.4'
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v2
+  #       with:
+  #         # Semantic version range syntax (like 3.x) or the exact Python version
+  #         python-version: '3.9.4'
 
-      - name: Run pre-commit framework as the developer should run it
-        run: sudo ./scripts/install.sh && sudo ./scripts/run.sh
+  #     - name: Run pre-commit framework as the developer should run it
+  #       run: sudo ./scripts/install.sh && sudo ./scripts/run.sh
 
-      - name: The `git diff` showing whether the pre-commit mandated extra changes to the repository files
-        if: failure()
-        run: git diff
+  #     - name: The `git diff` showing whether the pre-commit mandated extra changes to the repository files
+  #       if: failure()
+  #       run: git diff
 
   validate:
     name: Validate
