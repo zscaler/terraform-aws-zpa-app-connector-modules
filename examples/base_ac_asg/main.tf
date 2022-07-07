@@ -13,10 +13,10 @@ resource "random_string" "suffix" {
 # Map default tags with values to be assigned to all tagged resources
 locals {
   global_tags = {
-    Owner       = var.owner_tag
-    ManagedBy   = "terraform"
-    Vendor      = "Zscaler"
-    "zs-edge-connector-cluster/${var.name_prefix}-cluster-${random_string.suffix.result}" = "shared"
+  Owner       = var.owner_tag
+  ManagedBy   = "terraform"
+  Vendor      = "Zscaler"
+  "zs-edge-connector-cluster/${var.name_prefix}-cluster-${random_string.suffix.result}" = "shared"
   }
 }
 
@@ -42,6 +42,7 @@ resource "aws_key_pair" "deployer" {
 EOF
   }
 }
+
 
 # 1. Network Creation
 # Identify availability zones available for region selected
@@ -81,7 +82,6 @@ resource "aws_subnet" "pubsubnet" {
         { Name = "${var.name_prefix}-vpc1-public-subnet-${count.index + 1}-${random_string.suffix.result}" }
   )
 }
-
 
 # Create a public Route Table towards IGW.
 resource "aws_route_table" "routetablepublic1" {
@@ -143,6 +143,7 @@ module "bastion" {
 }
 
 
+
 # 3. Create App Connector network, routing, and appliance
 # Create subnet for App Connector network in X availability zones per az_count variable
 resource "aws_subnet" "ac-subnet" {
@@ -180,34 +181,47 @@ resource "aws_route_table_association" "ac-rt-asssociation" {
   route_table_id = aws_route_table.ac-rt.*.id[count.index]
 }
 
+
 locals {
   iam_instance_profile  = try(module.ac-iam.iam_instance_profile_id, var.byo_iam_instance_profile_id)
   security_group_id     = try(module.ac-sg.security_group_id, var.byo_security_group_id)
 }
 
-# Create X AC VMs per ac_count which will span equally across designated availability zones per az_count
-# E.g. ac_count set to 4 and az_count set to 2 will create 2x App Connectors in AZ1 and 2x App Connectors in AZ2
-module "ac-vm" {
-  source                      = "../../modules/terraform-zsac-aws"
-  ac_count                    = var.ac_count
-  name_prefix                 = var.name_prefix
-  resource_tag                = random_string.suffix.result
-  global_tags                 = local.global_tags
-  vpc                         = aws_vpc.vpc1.id
-  ac_subnet_ids               = aws_subnet.ac-subnet.*.id
-  instance_key                = aws_key_pair.deployer.key_name
-  ac_prov_key                 = var.ac_prov_key
-  acvm_instance_type          = var.acvm_instance_type
-  iam_instance_profile        = local.iam_instance_profile
-  security_group_id           = local.security_group_id
-  associate_public_ip_address = var.associate_public_ip_address
+# Create X AC VMs per min_size / max_size which will span equally across designated availability zones per az_count
+# E.g. min_size set to 4 and az_count set to 2 will create 2x ACs in AZ1 and 2x ACs in AZ2
+module "ac-asg" {
+  source = "../../modules/terraform-zsacasg-aws"
+  name_prefix                           = var.name_prefix
+  resource_tag                          = random_string.suffix.result
+  global_tags                           = local.global_tags
+  vpc                                   = aws_vpc.vpc1.id
+  ac_subnet_ids                         = aws_subnet.ac-subnet.*.id
+  instance_key                          = aws_key_pair.deployer.key_name
+  ac_prov_key                           = var.ac_prov_key
+  acvm_instance_type                    = var.acvm_instance_type
+  iam_instance_profile                  = local.iam_instance_profile
+  security_group_id                     = local.security_group_id
+  associate_public_ip_address           = var.associate_public_ip_address
+  
+  max_size                              = var.max_size
+  min_size                              = var.min_size
+  target_value                          = var.target_value
+  health_check_grace_period             = var.health_check_grace_period
+  launch_template_version               = var.launch_template_version
+  target_tracking_metric                = var.target_tracking_metric
+  
+  warm_pool_enabled                     = false
+  ### only utilzed if warm_pool_enabled set to true ###
+  warm_pool_state                       = null
+  warm_pool_min_size                    = null
+  warm_pool_max_group_prepared_capacity = null
+  reuse_on_scale_in                     = false
+  ### only utilzed if warm_pool_enabled set to true ###  
 }
-
 
 module "ac-iam" {
   count         = var.byo_iam_instance_profile == true ? 0 : 1
   source        = "../../modules/terraform-zsac-iam-aws"
-  iam_count     = var.reuse_iam == false ? var.ac_count : 1
   name_prefix   = var.name_prefix
   resource_tag  = random_string.suffix.result
   global_tags   = local.global_tags
@@ -217,7 +231,6 @@ module "ac-iam" {
 module "ac-sg" {
   count         = var.byo_security_group == true ? 0 : 1
   source        = "../../modules/terraform-zsac-sg-aws"
-  sg_count      = var.reuse_security_group == false ? var.ac_count : 1
   name_prefix   = var.name_prefix
   resource_tag  = random_string.suffix.result
   global_tags   = local.global_tags

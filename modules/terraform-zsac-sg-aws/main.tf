@@ -4,8 +4,8 @@ data "aws_vpc" "selected" {
 
 # Create Security Group for App Connector
 resource "aws_security_group" "ac-sg" {
-  count       = var.ac_count
-  name        = var.ac_count > 1 ? "${var.name_prefix}-ac-${count.index + 1}-sg-${var.resource_tag}" : "${var.name_prefix}-ac-sg-${var.resource_tag}"
+  count       = var.sg_count
+  name        = var.sg_count > 1 ? "${var.name_prefix}-ac-${count.index + 1}-sg-${var.resource_tag}" : "${var.name_prefix}-ac-sg-${var.resource_tag}"
   description = "Security group for App Connector-${count.index + 1} interface"
   vpc_id      = var.vpc
 
@@ -22,7 +22,7 @@ resource "aws_security_group" "ac-sg" {
 }
 
 resource "aws_security_group_rule" "ac-node-ingress-ssh" {
-  count             = var.ac_count
+  count             = var.sg_count
   description       = "Allow SSH to App Connector VM"
   from_port         = 22
   to_port           = 22

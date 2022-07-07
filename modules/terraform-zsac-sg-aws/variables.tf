@@ -13,10 +13,11 @@ variable "vpc" {
 }
 
 variable "global_tags" {
+  type        = map
   description = "populate custom user provided tags"
 }
 
-variable "ac_count" {
-  description = "Default number of App Connector appliances to create"
-  default = 1
+variable "sg_count" {
+  description = "Default number of security groups to create"
+  default     = 1
 }

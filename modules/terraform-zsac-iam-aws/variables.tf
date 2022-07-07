@@ -8,6 +8,11 @@ variable "resource_tag" {
   default     = "cloud-connector"
 }
 
+variable "global_tags" {
+  type        = map
+  description = "populate custom user provided tags"
+}
+
 variable "iam_role_policy_smrw" {
   description = "Cloud Connector EC2 Instance IAM Role"
   default     = "SecretsManagerReadWrite"
@@ -18,7 +23,7 @@ variable "iam_role_policy_ssmcore" {
   default     = "AmazonSSMManagedInstanceCore"
 }
 
-variable "ac_count" {
-  description = "Default number of App Connector appliances to create"
+variable "iam_count" {
+  description = "Default number IAM roles/policies/profiles to create"
   default = 1
 }

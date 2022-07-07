@@ -1,28 +1,29 @@
 variable "name_prefix" {
-  description = "A prefix to associate to all the Cloud Connector module resources"
-  default     = "zscaler-cc"
+  description = "A prefix to associate to all the App Connector module resources"
+  default     = "zscaler-ac"
 }
 
 variable "resource_tag" {
-  description = "A tag to associate to all the Cloud Connector module resources"
-  default     = "cloud-connector"
+  description = "A tag to associate to all the App Connector module resources"
+  default     = "app-connector"
 }
 
 variable "vpc" {
-  description = "Cloud Connector VPC"
+  description = "App Connector VPC"
 }
 
-variable "subnet_id" {
+variable "ac_subnet_ids" {
   type        = list(string)
-  description = "App Connector EC2 Instance subnet id"
+  description = "App Connector EC2 Instance subnet ids"
 }
 
 variable "instance_key" {
-  description = "Cloud Connector Instance Key"
+  description = "App Connector Instance Key"
 }
 
-variable "user_data" {
-  description = "Cloud Init data"
+variable "ac_prov_key" {
+  description = "zpa app connector provisioning key"
+  type = string
 }
 
 variable "acvm_instance_type" {
@@ -38,6 +39,7 @@ variable "acvm_instance_type" {
 }
 
 variable "global_tags" {
+  type        = map
   description = "populate custom user provided tags"
 }
 
