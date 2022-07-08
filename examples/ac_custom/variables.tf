@@ -69,8 +69,32 @@ variable "associate_public_ip_address" {
   description = "enable/disable public IP addresses on App Connector instances"
 }
 
+variable "byo_iam_instance_profile" {
+  default     = false
+  type        = bool
+  description = "Bring your own IAM Instance Profile for App Connector"
+}
+
+variable "byo_iam_instance_profile_id" {
+  type = list(string)
+  default = null
+  description = "IAM Instance Profile ID for App Connector association"
+}
+
+variable "byo_security_group" {
+  default     = false
+  type        = bool
+  description = "Bring your own Security Group for App Connector"
+}
+
+variable "byo_security_group_id" {
+  type = list(string)
+  default = null
+  description = "Security Group ID for App Connector association"
+}
+
 variable "reuse_security_group" {
-  description = "Specifies whether the SG module should create 1:1 security groups per instance or 1 security group for all instances"
+  description = "Specifies whether the SG module should create 1:1 security groups per instance (default) or 1 security group for all instances"
   default     = "false"
   type        = bool
 }
@@ -79,4 +103,52 @@ variable "reuse_iam" {
   description = "Specifies whether the SG module should create 1:1 IAM per instance or 1 IAM for all instances"
   default     = "false"
   type        = bool
+}
+
+variable "byo_vpc" {
+  default     = false
+  type        = bool
+  description = "Bring your own AWS VPC for Cloud Connector"
+}
+
+variable "byo_vpc_id" {
+  default     = null
+  type        = string
+  description = "User provided existing AWS VPC ID"
+}
+
+variable "byo_subnets" {
+  default     = false
+  type        = bool
+  description = "Bring your own AWS Subnets for Cloud Connector"
+}
+
+variable "byo_subnet_ids" {
+  default     = null
+  type        = list(string)
+  description = "User provided existing AWS Subnet IDs"
+}
+
+variable "byo_igw" {
+  default     = false
+  type        = bool
+  description = "Bring your own AWS VPC for Cloud Connector"
+}
+
+variable "byo_igw_id" {
+  default     = null
+  type        = string
+  description = "User provided existing AWS Internet Gateway ID"
+}
+
+variable "byo_ngw" {
+  default     = false
+  type        = bool
+  description = "Bring your own AWS NAT Gateway(s) Cloud Connector"
+}
+
+variable "byo_ngw_ids" {
+  default     = null
+  type        = list(string)
+  description = "User provided existing AWS NAT Gateway IDs"
 }

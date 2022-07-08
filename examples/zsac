@@ -23,13 +23,13 @@ fi
 if [[ "$oper" == "up" || "destroy" ]]; then
     # shellcheck disable=SC2153
     if [ -z "$DTYPE" ]; then
-      read -rp "Deployment Type: ( base_ac | base_ac_asg ): " dtype
+      read -rp "Deployment Type: ( base_ac | base_ac_asg | ac_custom | ac_asg_custom ): " dtype
     else
       dtype=$DTYPE
     fi
 
     case $dtype in
-      base_ac|base_ac_asg)
+      base_ac|base_ac_asg|ac_custom|ac_asg_custom)
           echo "Deployment Type: ${dtype}"
       ;;
       *)

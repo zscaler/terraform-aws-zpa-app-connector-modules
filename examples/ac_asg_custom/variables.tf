@@ -16,6 +16,7 @@ variable "vpc_cidr" {
   default     = "10.1.0.0/16"
 }
 
+
 variable "az_count" {
   description = "Default number of subnets to create based on availability zone"
   type = number
@@ -27,6 +28,7 @@ variable "az_count" {
           error_message = "Input az_count must be set to a single value between 1 and 3. Note* some regions have greater than 3 AZs. Please modify az_count validation in variables.tf if you are utilizing more than 3 AZs in a region that supports it. https://aws.amazon.com/about-aws/global-infrastructure/regions_az/."
       }
 }
+
 
 variable "owner_tag" {
   description = "populate custom owner tag attribute"
@@ -145,4 +147,88 @@ variable "target_tracking_metric" {
           )
           error_message = "Input target_tracking_metric must be set to an approved predefined metric."
       }
+}
+
+variable "byo_iam_instance_profile" {
+  default     = false
+  type        = bool
+  description = "Bring your own IAM Instance Profile for App Connector"
+}
+
+variable "byo_iam_instance_profile_id" {
+  type = list(string)
+  default = null
+  description = "IAM Instance Profile ID for App Connector association"
+}
+
+variable "byo_security_group" {
+  default     = false
+  type        = bool
+  description = "Bring your own Security Group for App Connector"
+}
+
+variable "byo_security_group_id" {
+  type = list(string)
+  default = null
+  description = "Security Group ID for App Connector association"
+}
+
+variable "reuse_security_group" {
+  description = "Specifies whether the SG module should create 1:1 security groups per instance (default) or 1 security group for all instances"
+  default     = "false"
+  type        = bool
+}
+
+variable "reuse_iam" {
+  description = "Specifies whether the SG module should create 1:1 IAM per instance or 1 IAM for all instances"
+  default     = "false"
+  type        = bool
+}
+
+variable "byo_vpc" {
+  default     = false
+  type        = bool
+  description = "Bring your own AWS VPC for Cloud Connector"
+}
+
+variable "byo_vpc_id" {
+  default     = null
+  type        = string
+  description = "User provided existing AWS VPC ID"
+}
+
+variable "byo_subnets" {
+  default     = false
+  type        = bool
+  description = "Bring your own AWS Subnets for Cloud Connector"
+}
+
+variable "byo_subnet_ids" {
+  default     = null
+  type        = list(string)
+  description = "User provided existing AWS Subnet IDs"
+}
+
+variable "byo_igw" {
+  default     = false
+  type        = bool
+  description = "Bring your own AWS VPC for Cloud Connector"
+}
+
+variable "byo_igw_id" {
+  default     = null
+  type        = string
+  description = "User provided existing AWS Internet Gateway ID"
+}
+
+variable "byo_ngw" {
+  default     = false
+  type        = bool
+  description = "Bring your own AWS NAT Gateway(s) Cloud Connector"
+}
+
+variable "byo_ngw_ids" {
+  default     = null
+  type        = list(string)
+  description = "User provided existing AWS NAT Gateway IDs"
 }

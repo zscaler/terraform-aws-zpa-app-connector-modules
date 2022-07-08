@@ -49,7 +49,6 @@ variable "ac_count" {
 }
 
 variable "iam_instance_profile" {
-  type        = list(string)
   description = "IAM instance profile ID assigned to App Connector"
   default     = null
 }

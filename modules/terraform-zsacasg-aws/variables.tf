@@ -34,26 +34,26 @@ variable "acvm_instance_type" {
 }
 
 variable "global_tags" {
-  type        = map
   description = "populate custom user provided tags"
+  type        = map
 }
 
 variable "iam_instance_profile" {
-  type        = list(string)
   description = "IAM instance profile ID assigned to App Connector"
+  type        = list(string)
   default     = null
 }
 
 variable "security_group_id" {
-  type        = list(string)
   description = "Security Group ID assigned to App Connector"
+  type        = list(string)
   default     = null
 }
 
 variable "associate_public_ip_address" {
-  default = false
-  type = bool
   description = "enable/disalbe public IP addresses on App Connector instances"
+  type        = bool
+  default     = false
 }
 
 variable "min_size" {
@@ -76,6 +76,7 @@ variable "target_value" {
 
 variable "ac_subnet_ids" {
   description = "App Connector subnet IDs list"
+  type        = list(string)
 }
 
 variable "health_check_grace_period" {
@@ -84,9 +85,24 @@ variable "health_check_grace_period" {
   default     = 300
 }
 
+variable "warm_pool_enabled" {
+  description = "If set to true, add a warm pool to the specified Auto Scaling group. See [warm_pool](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group#warm_pool)."
+  default     = "false"
+  type        = bool
+}
+
 variable "warm_pool_state" {
   description = "Sets the instance state to transition to after the lifecycle hooks finish. Valid values are: Stopped (default), Running or Hibernated. Ignored when 'warm_pool_enabled' is false"
   default     = null
+  validation {
+          condition = ( 
+            var.warm_pool_state == "Stopped"  ||
+            var.warm_pool_state == "Running" ||
+            var.warm_pool_state == "Hibernated" ||
+            var.warm_pool_state == null
+          )
+          error_message = "Input warm_pool_state must be set to an approved value."
+      }
 }
 
 variable "warm_pool_min_size" {
@@ -97,13 +113,8 @@ variable "warm_pool_min_size" {
 
 variable "warm_pool_max_group_prepared_capacity" {
   description = "Specifies the total maximum number of instances that are allowed to be in the warm pool or in any state except Terminated for the Auto Scaling group. Ignored when 'warm_pool_enabled' is false"
+  type        = number
   default     = null
-}
-
-variable "warm_pool_enabled" {
-  description = "Ff set to true, add a warm pool to the specified Auto Scaling group. See [warm_pool](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group#warm_pool)."
-  default     = "false"
-  type        = bool
 }
 
 variable "reuse_on_scale_in" {
@@ -113,8 +124,8 @@ variable "reuse_on_scale_in" {
 }
 
 variable "launch_template_version" {
-  type        = string
   description = "Launch template version. Can be version number, `$Latest` or `$Default`"
+  type        = string
   default     = "$Latest"
 }
 

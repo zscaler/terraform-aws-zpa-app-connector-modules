@@ -26,6 +26,7 @@ ${join("\n", module.ac-vm.id)}
 All NAT GW IPs:
 ${join("\n", aws_nat_gateway.ngw.*.public_ip)}
 
+
 TB
 }
 

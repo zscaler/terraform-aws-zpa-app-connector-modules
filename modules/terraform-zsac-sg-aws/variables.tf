@@ -21,3 +21,9 @@ variable "sg_count" {
   description = "Default number of security groups to create"
   default     = 1
 }
+
+variable "byo_security_group" {
+  default     = false
+  type        = bool
+  description = "Bring your own Security Group for App Connector"
+}

@@ -27,3 +27,9 @@ variable "iam_count" {
   description = "Default number IAM roles/policies/profiles to create"
   default = 1
 }
+
+variable "byo_iam_instance_profile" {
+  default     = false
+  type        = bool
+  description = "Bring your own IAM Instance Profile for App Connector"
+}
