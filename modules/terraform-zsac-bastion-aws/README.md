@@ -1,6 +1,6 @@
-# Zscaler Cloud Connector / AWS EC2 Instance (Bastion Host) Module
+# Zscaler App Connector / AWS EC2 Instance (Bastion Host) Module
 
-This module creates all AWS EC2 instance, IAM, and Security Group resources needed to deploy a publicly accessible bastion/jump host for Cloud Connector Greenfield/POV environments.
+This module creates all AWS EC2 instance, IAM, and Security Group resources needed to deploy a publicly accessible bastion/jump host for App Connector Greenfield/POV environments.
 
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
@@ -50,7 +50,7 @@ No modules.
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | A prefix to associate to all the Workload module resources | `string` | `null` | no |
 | <a name="input_public_subnet"></a> [public\_subnet](#input\_public\_subnet) | The public subnet where the bastion host has to be attached | `string` | n/a | yes |
 | <a name="input_resource_tag"></a> [resource\_tag](#input\_resource\_tag) | A tag to associate to all the Workload module resources | `string` | `null` | no |
-| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | Cloud Connector VPC ID | `string` | n/a | yes |
+| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | App Connector VPC ID | `string` | n/a | yes |
 
 ## Outputs
 

@@ -33,14 +33,8 @@ variable "byo_security_group" {
   default     = false
 }
 
-variable "byo_mgmt_security_group_id" {
+variable "byo_security_group_id" {
   type        = list(string)
   description = "Management Security Group ID for App Connector association"
-  default     = null
-}
-
-variable "byo_service_security_group_id" {
-  type        = list(string)
-  description = "Service Security Group ID for App Connector association"
   default     = null
 }

@@ -18,7 +18,7 @@ variable "global_tags" {
 
 variable "vpc_id" {
   type        = string
-  description = "Cloud Connector VPC ID"
+  description = "App Connector VPC ID"
 }
 
 variable "public_subnet" {
