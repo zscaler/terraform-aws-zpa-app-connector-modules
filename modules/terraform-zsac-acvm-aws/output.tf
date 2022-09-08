@@ -2,7 +2,7 @@ output "private_ip" {
   value = aws_instance.ac-vm.*.private_ip
 }
 
-output availability_zone {
+output "availability_zone" {
   value = aws_instance.ac-vm.*.availability_zone
 }
 
