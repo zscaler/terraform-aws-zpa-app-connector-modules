@@ -1,7 +1,7 @@
-output "security_group_id" {
-  value = aws_security_group.ac-sg.*.id
+output "ac_security_group_id" {
+  value = data.aws_security_group.ac-sg-selected.*.id
 }
 
-output "security_group_arn" {
-  value = aws_security_group.ac-sg.*.arn
+output "ac_security_group_arn" {
+  value = data.aws_security_group.ac-sg-selected.*.arn
 }
