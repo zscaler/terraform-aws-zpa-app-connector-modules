@@ -1,4 +1,4 @@
-# Zscaler Cloud Connector / AWS IAM Module
+# Zscaler App Connector / AWS IAM Module
 
 This module creates IAM Policies, Roles, and Instance Profile resources required for successful App Connector deployments. As part of Zscaler provided deployment templates most resources have conditional create options leveraged "byo" variables should a customer want to leverage the module outputs with data reference to resources that may already exist in their AWS environment.
 
@@ -34,13 +34,13 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_byo_iam"></a> [byo\_iam](#input\_byo\_iam) | Bring your own IAM Instance Profile for Cloud Connector. Setting this variable to true will effectively instruct this module to not create any resources and only reference data resources from values provided in byo\_iam\_instance\_profile\_id | `bool` | `false` | no |
-| <a name="input_byo_iam_instance_profile_id"></a> [byo\_iam\_instance\_profile\_id](#input\_byo\_iam\_instance\_profile\_id) | Existing IAM Instance Profile IDs for Cloud Connector association | `list(string)` | `null` | no |
+| <a name="input_byo_iam"></a> [byo\_iam](#input\_byo\_iam) | Bring your own IAM Instance Profile for App Connector. Setting this variable to true will effectively instruct this module to not create any resources and only reference data resources from values provided in byo\_iam\_instance\_profile\_id | `bool` | `false` | no |
+| <a name="input_byo_iam_instance_profile_id"></a> [byo\_iam\_instance\_profile\_id](#input\_byo\_iam\_instance\_profile\_id) | Existing IAM Instance Profile IDs for App Connector association | `list(string)` | `null` | no |
 | <a name="input_global_tags"></a> [global\_tags](#input\_global\_tags) | Populate any custom user defined tags from a map | `map(string)` | `{}` | no |
 | <a name="input_iam_count"></a> [iam\_count](#input\_iam\_count) | Default number IAM roles/policies/profiles to create | `number` | `1` | no |
-| <a name="input_iam_role_policy_ssmcore"></a> [iam\_role\_policy\_ssmcore](#input\_iam\_role\_policy\_ssmcore) | Cloud Connector EC2 Instance predefined IAM Role to access AWS SSM | `string` | `"AmazonSSMManagedInstanceCore"` | no |
-| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | A prefix to associate to all the Cloud Connector IAM module resources | `string` | `null` | no |
-| <a name="input_resource_tag"></a> [resource\_tag](#input\_resource\_tag) | A tag to associate to all the Cloud Connector IAM module resources | `string` | `null` | no |
+| <a name="input_iam_role_policy_ssmcore"></a> [iam\_role\_policy\_ssmcore](#input\_iam\_role\_policy\_ssmcore) | App Connector EC2 Instance predefined IAM Role to access AWS SSM | `string` | `"AmazonSSMManagedInstanceCore"` | no |
+| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | A prefix to associate to all the App Connector IAM module resources | `string` | `null` | no |
+| <a name="input_resource_tag"></a> [resource\_tag](#input\_resource\_tag) | A tag to associate to all the App Connector IAM module resources | `string` | `null` | no |
 
 ## Outputs
 
