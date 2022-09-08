@@ -1,7 +1,7 @@
 output "iam_instance_profile_id" {
-  value = aws_iam_instance_profile.ac-host-profile.*.id
+  value = data.aws_iam_instance_profile.ac-host-profile-selected.*.name
 }
 
 output "iam_instance_profile_arn" {
-  value = aws_iam_instance_profile.ac-host-profile.*.arn
+  value = data.aws_iam_instance_profile.ac-host-profile-selected.*.arn
 }
