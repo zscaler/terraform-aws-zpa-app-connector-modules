@@ -16,12 +16,6 @@ variable "global_tags" {
   default     = {}
 }
 
-variable "iam_role_policy_ssmcore" {
-  type        = string
-  description = "App Connector EC2 Instance predefined IAM Role to access AWS SSM"
-  default     = "AmazonSSMManagedInstanceCore"
-}
-
 variable "iam_count" {
   type        = number
   description = "Default number IAM roles/policies/profiles to create"

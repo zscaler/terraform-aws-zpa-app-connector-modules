@@ -20,16 +20,6 @@ data "aws_iam_policy_document" "instance-assume-role-policy" {
 
 
 ################################################################################
-# Define AWS Managed SSM Manager Policy
-################################################################################
-resource "aws_iam_role_policy_attachment" "SSMManagedInstanceCore" {
-  count      = var.byo_iam == false ? var.iam_count : 0
-  policy_arn = "arn:aws:iam::aws:policy/${var.iam_role_policy_ssmcore}"
-  role       = aws_iam_role.ac-node-iam-role.*.name[count.index]
-}
-
-
-################################################################################
 # Create AC IAM Role and Host/Instance Profile
 ################################################################################
 resource "aws_iam_role" "ac-node-iam-role" {
