@@ -51,7 +51,7 @@ data "aws_internet_gateway" "igw-selected" {
 ################################################################################
 # Create NAT Gateway and assign EIP per AZ. This will not be created if var.byo_ngw is set to True
 resource "aws_eip" "eip" {
-  count      = var.byo_ngw == false ? length(aws_subnet.public-subnet.*.id) : 0
+  count      = var.byo_ngw == false || var.associate_public_ip_address == false ? length(aws_subnet.public-subnet.*.id) : 0
   vpc        = true
   depends_on = [data.aws_internet_gateway.igw-selected]
 
@@ -62,7 +62,7 @@ resource "aws_eip" "eip" {
 
 # Create 1 NAT Gateway per Public Subnet.
 resource "aws_nat_gateway" "ngw" {
-  count         = var.byo_ngw == false ? length(aws_subnet.public-subnet.*.id) : 0
+  count         = var.byo_ngw == false || var.associate_public_ip_address == false ? length(aws_subnet.public-subnet.*.id) : 0
   allocation_id = aws_eip.eip.*.id[count.index]
   subnet_id     = aws_subnet.public-subnet.*.id[count.index]
   depends_on    = [data.aws_internet_gateway.igw-selected]
@@ -148,7 +148,8 @@ resource "aws_route_table" "ac-rt" {
   vpc_id = data.aws_vpc.vpc-selected.id
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = element(data.aws_nat_gateway.ngw-selected.*.id, count.index)
+    nat_gateway_id = var.associate_public_ip_address == false ? element(data.aws_nat_gateway.ngw-selected.*.id, count.index) : null
+    gateway_id     = var.associate_public_ip_address == true ? data.aws_internet_gateway.igw-selected.internet_gateway_id : null
   }
 
   tags = merge(var.global_tags,
