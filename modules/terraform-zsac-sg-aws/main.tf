@@ -36,7 +36,7 @@ data "aws_security_group" "ac-sg-selected" {
 
 resource "aws_security_group_rule" "ac-node-ingress-ssh" {
   count             = var.byo_security_group == false ? var.sg_count : 0
-  description       = "Allow SSH to App Connector VM"
+  description       = "Allow SSH to App Connector VM only from within the VPC CIDR space"
   from_port         = 22
   to_port           = 22
   protocol          = "tcp"
