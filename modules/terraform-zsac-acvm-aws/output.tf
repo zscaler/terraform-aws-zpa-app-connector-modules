@@ -9,3 +9,7 @@ output "availability_zone" {
 output "id" {
   value = aws_instance.ac-vm.*.id
 }
+
+output "public_ip" {
+  value = aws_instance.ac-vm.*.public_ip
+}
