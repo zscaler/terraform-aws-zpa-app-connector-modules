@@ -13,8 +13,6 @@
 ## 1. Zscaler App Connector Key E.g. 3|api.private.zscaler.com|<string>
 
 #ac_prov_key = "3|api.private.zscaler.com|<string>"
-ac_prov_key = "3|api.private.zscaler.com|OT9XrVNektMQ3NKFD3q5SJdsFCZ2Yx7cKwbUgx+1UcAIdNF4Q1Gi2SxbdUVZ7060JjtP04MhfR7yAOItrzjDeWn6DsvRDyWAMnRlyjxMs53XOnj6yk/UTFBVQ+YN4K2z0Aq8o4Z1GUzMBR3CxQ4xY/smrKZvEB4VGKeQVhzMZ0kTcAzwEchH2r/aCMCU4LfvlfMQa0rU3LbVtcq7OOPG98qrSpjr3CGJWsm6ja/lLSkZpeEua8xU/tltT7eY23qdJnVpmu1A7RWLP3insxNRsZq9fVUMi8RLaaMXIy1HrlT4qin2vAXtb9ABFsKj6EjaTMnxUJqUWhSkfVL7wNxK8w1nPFRHE48fWnad9YVYkJfUAKt430o9u6cTq9pzA/mr"
-
 
 #####################################################################################################################
 ##### Custom variables. Only change if required for your environment  #####
