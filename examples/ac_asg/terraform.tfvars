@@ -34,14 +34,22 @@
 
 #az_count                                   = 2
 
-## 5. The number of App Connector appliances to provision. Each incremental App Connector will be created in alternating 
-##    subnets based on the az_count or byo_subnet_ids variable and loop through for any deployments where ac_count > az_count.
-##    (Default: varies per deployment type template)
-##    E.g. ac_count set to 4 and az_count set to 2 or byo_subnet_ids configured for 2 will create 2x ACs in AZ subnet 1 and 2x ACs in AZ subnet 2
+## 5. The minumum number of App Connectors to maintain in an Autoscaling group. (Default: 2)
+##    Recommendation is to maintain HA/Zonal resliency for production deployments
 
-#ac_count                                   = 2
+#min_size                                   = 2
 
-## 6. Network Configuration:
+
+## 6. The maximum number of App Connectors to maintain in an Autoscaling group. (Default: 4)
+
+#max_size                                   = 4
+
+
+## 7. The amount of time until EC2 Auto Scaling performs the first health check on new instances after they are put into service. (Default: 300 seconds/5 minutes)
+
+#health_check_grace_period                  = 300
+
+## 8. Network Configuration:
 
 ##    IPv4 CIDR configured with VPC creation. All Subnet resources (Public / App Connector) will be created based off this prefix
 ##    /24 subnets are created assuming this cidr is a /16. If you require creating a VPC smaller than /16, you may need to explicitly define all other 
@@ -78,6 +86,43 @@
 
 #reuse_iam                                  = true
 
+## 10. If set to true, add a warm pool to the specified Auto Scaling group. See [warm_pool](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group#warm_pool).
+##     Uncomment to enable. (Default: false)
+
+#warm_pool_enabled                          = true
+
+
+## 11. Sets the instance state to transition to after the lifecycle hooks finish. Valid values are: Stopped (default), Running or Hibernated. Ignored when 'warm_pool_enabled' is false
+##     Uncomment the desired value
+
+#warm_pool_state                            = "Stopped"
+#warm_pool_state                            = "Running"
+#warm_pool_state                            = "Hibernated"
+
+
+## 12. Specifies the minimum number of instances to maintain in the warm pool. This helps you to ensure that there is always a certain number of warmed instances available to handle traffic spikes. Ignored when 'warm_pool_enabled' is false
+##     Uncomment and specify a desired minimum number of App Connectors to maintain deployed in a warm pool
+
+#warm_pool_min_size                         = 1
+
+
+## 13. Specifies the total maximum number of instances that are allowed to be in the warm pool or in any state except Terminated for the Auto Scaling group. Ignored when 'warm_pool_enabled' is false
+##     Uncomment and specify a desired maximum number of App Connectors to maintain deployed in a warm pool
+
+#warm_pool_max_group_prepared_capacity      = 2
+
+
+## 14. Specifies whether instances in the Auto Scaling group can be returned to the warm pool on scale in
+##     Uncomment to enable. (Default: false)
+
+#reuse_on_scale_in                          = true
+
+
+## 15. Target value number for autoscaling policy CPU utilization target tracking. ie: trigger a scale in/out to keep average CPU Utliization percentage across all instances at/under this number
+##     (Default: 50%)
+
+#target_cpu_util_value                      = 50
+
 
 
 #####################################################################################################################
@@ -85,19 +130,19 @@
 #####                                 E.g. "ac_asg"                                               #####
 #####################################################################################################################
 
-## 10. By default, this script will create a new AWS VPC.
+## 16. By default, this script will create a new AWS VPC.
 ##     Uncomment if you want to deploy all resources to a VPC that already exists (true or false. Default: false)
 
 #byo_vpc                                    = true
 
 
-## 11. Provide your existing VPC ID. Only uncomment and modify if you set byo_vpc to true. (Default: null)
+## 17. Provide your existing VPC ID. Only uncomment and modify if you set byo_vpc to true. (Default: null)
 ##     Example: byo_vpc_id = "vpc-0588ce674df615334"
 
 #byo_vpc_id                                 = "vpc-0588ce674df615334"
 
 
-## 12. By default, this script will create new AWS subnets in the VPC defined based on az_count.
+## 18. By default, this script will create new AWS subnets in the VPC defined based on az_count.
 ##     Uncomment if you want to deploy all resources to subnets that already exist (true or false. Default: false)
 ##     Dependencies require in order to reference existing subnets, the corresponding VPC must also already exist.
 ##     Setting byo_subnet to true means byo_vpc must ALSO be set to true.
@@ -105,7 +150,7 @@
 #byo_subnets                                = true
 
 
-## 13. Provide your existing App Connector private subnet IDs. Only uncomment and modify if you set byo_subnets to true.
+## 19. Provide your existing App Connector private subnet IDs. Only uncomment and modify if you set byo_subnets to true.
 ##     Subnet IDs must be added as a list with order determining assocations for resources like aws_instance, NAT GW,
 ##     Route Tables, etc. Provide only one subnet per Availability Zone in a VPC
 ##
@@ -118,7 +163,7 @@
 #byo_subnet_ids                             = ["subnet-id"]
 
 
-## 14. By default, this script will create a new Internet Gateway resource in the VPC.
+## 20. By default, this script will create a new Internet Gateway resource in the VPC.
 ##     Uncomment if you want to utlize an IGW that already exists (true or false. Default: false)
 ##     Dependencies require in order to reference an existing IGW, the corresponding VPC must also already exist.
 ##     Setting byo_igw to true means byo_vpc must ALSO be set to true.
@@ -126,13 +171,13 @@
 #byo_igw                                    = true
 
 
-## 15. Provide your existing Internet Gateway ID. Only uncomment and modify if you set byo_igw to true.
+## 21. Provide your existing Internet Gateway ID. Only uncomment and modify if you set byo_igw to true.
 ##     Example: byo_igw_id = "igw-090313c21ffed44d3"
 
 #byo_igw_id                                 = "igw-090313c21ffed44d3"
 
 
-## 16. By default, this script will create new Public Subnets, and NAT Gateway w/ Elastic IP in the VPC defined or selected.
+## 22. By default, this script will create new Public Subnets, and NAT Gateway w/ Elastic IP in the VPC defined or selected.
 ##     It will also create a Route Table forwarding default 0.0.0.0/0 next hop to the Internet Gateway that is created or defined 
 ##     based on the byo_igw variable and associate with the public subnet(s)
 ##     Uncomment if you want to deploy App Connectors routing to NAT Gateway(s)/Public Subnet(s) that already exist (true or false. Default: false)
@@ -142,7 +187,7 @@
 #byo_ngw                                    = true
 
 
-## 17. Provide your existing NAT Gateway IDs. Only uncomment and modify if you set byo_subnets to true
+## 23. Provide your existing NAT Gateway IDs. Only uncomment and modify if you set byo_subnets to true
 ##     NAT Gateway IDs must be added as a list with order determining assocations for the AC Route Tables (ac-rt)
 ##     nat_gateway_id next hop
 ##
@@ -162,26 +207,26 @@
 #byo_ngw_ids                                = ["nat-id"]
 
 
-## 18. By default, this script will create new IAM roles, policy, and Instance Profiles for the App Connector
+## 24. By default, this script will create new IAM roles, policy, and Instance Profiles for the App Connector
 ##     Uncomment if you want to use your own existing IAM Instance Profiles (true or false. Default: false)
 
 #byo_iam                                    = true
 
 
-## 19. Provide your existing Instance Profile resource names. Only uncomment and modify if you set byo_iam to true
+## 25. Provide your existing Instance Profile resource names. Only uncomment and modify if you set byo_iam to true
 
 ##    Example: byo_iam_instance_profile_id     = ["instance-profile-1","instance-profile-2"]
 
 #byo_iam_instance_profile_id                = ["instance-profile-1"]
 
 
-## 20. By default, this script will create new Security Groups for the App Connector interfaces
+## 26. By default, this script will create new Security Groups for the App Connector interfaces
 ##     Uncomment if you want to use your own existing SGs (true or false. Default: false)
 
 #byo_security_group                         = true
 
 
-## 21. Provide your existing Security Group resource names. Only uncomment and modify if you set byo_security_group to true
+## 27. Provide your existing Security Group resource names. Only uncomment and modify if you set byo_security_group to true
 
 ##    Example: byo_security_group_id     = ["sg-1","sg-2"]
 
