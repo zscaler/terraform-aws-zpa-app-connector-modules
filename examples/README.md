@@ -13,7 +13,7 @@
 6. Subscribe and accept terms of using Zscaler App Connector image at [this link](https://aws.amazon.com/marketplace/pp/prodview-epy3md7fcvk4g)
 
 ### Zscaler requirements
-7. A valid Zscaler App Connector provisioning key generated from the ZPA Admin Portal
+7. A valid Zscaler App Connector provisioning key generated from the ZPA Admin Portal (unless running a deployment like base_ac_zpa which leverages the Terraform ZPA Provider to also create a new provisioning key)
 
 See: [Zscaler App Connector AWS Deployment Guide](https://help.zscaler.com/zpa/connector-deployment-guide-amazon-web-services) for additional prerequisite provisioning steps.
 
@@ -41,10 +41,11 @@ Optional: Edit the terraform.tfvars file under your desired deployment type (ie:
 **Greenfield Deployment Types:**
 
 ```
-Deployment Type: (base | base_ac | base_ac_asg):
+Deployment Type: (base | base_ac | base_ac_asg | base_ac_zpa):
 base: Creates 1 new VPC with 1 public subnet and 1 private/workload subnet; 1 IGW; 1 NAT Gateway; 1 Bastion Host in the public subnet assigned an Elastic IP and routing to the IGW; generates local key pair .pem file for ssh access
 base_ac: Base Deployment Type + Creates App Connector private subnets and App Connector VMs egressing through the NAT Gateways in their respective availability zones
 base_ac_asg: Base Deployment Type + Creates App Connectors via Launch Template in an Autoscaling Group.
+base_ac_zpa: Same as base_ac Deployment Type except for the addition of leveraging the Terraform ZPA Provider for creating a new App Connector Group and Provisioning Key instead of referencing an existing one. Please refer to additional requirements in this deployment folder terraform.tfvars file prior to running.
 ```
 
 **2. Brownfield Deployments**
