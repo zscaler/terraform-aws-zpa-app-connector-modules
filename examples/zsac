@@ -20,31 +20,70 @@ else
     esac
 fi
 
-if [[ "$oper" == "up" || "destroy" ]]; then
+if [[ "$oper" == "up" ]]; then
     # shellcheck disable=SC2153
-    if [ -z "$DTYPE" ]; then
-      read -rp "Deployment Type: ( base_ac | base_ac_asg | ac_custom | ac_asg_custom ): " dtype
-    else
-      dtype=$DTYPE
-    fi
+    if [ -z "$dtype" ]; then
+    while true; do
+     read -r -p "Deployment: ( greenfield | brownfield ): " deploy
+
+    case $deploy in
+      greenfield)
+          break
+      ;;
+      brownfield)
+          break
+      ;;    
+      *)
+          echo "Invalid Deployment Type: ${dtype}"
+      ;;
+    esac
+  done
+
+    while [ "$deploy" == "greenfield" ]; do
+     read -r -p "Deployment Type: ( base | base_ac | base_ac_asg | base_ac_zpa ): " dtype
 
     case $dtype in
-      base_ac|base_ac_asg|ac_custom|ac_asg_custom)
+      base|base_ac|base_ac_asg|base_ac_zpa)
           echo "Deployment Type: ${dtype}"
+          break
       ;;
       *)
           echo "Invalid Deployment Type: ${dtype}"
-          exit 1
       ;;
     esac
+  done
+
+  while [ "$deploy" == "brownfield" ]; do
+     read -r -p "Deployment Type: ( ac | ac_asg ) : " dtype
+
+    case $dtype in
+      ac|ac_asg)
+          echo "Deployment Type: ${dtype}"
+          break
+      ;;
+      *)
+          echo "Invalid Deployment Type: ${dtype}"
+      ;;
+    esac
+  done
+    else
+      dtype=$dtype
+    fi
 fi
 
-tversion=0.13.7
+echo "Discovering processor architecture..."
+archdetect=$(uname -m)
+
+tversion=1.1.9
 echo "Detecting OS..."
 if [[ "$OSTYPE" == "linux"* ]]; then
     os_str=linux
     arch=amd64
     ostype=Linux
+elif [[ "$OSTYPE" == "darwin"* && $archdetect == "arm64" ]]; then
+    os_str=darwin
+    arch=arm64
+    ostype=MacOS_arm64
 elif [[ "$OSTYPE" == "darwin"* ]]; then
     os_str=darwin
     arch=amd64
@@ -71,26 +110,443 @@ elif [[ ! -d $dir ]]; then
 fi
 
 echo "Checking AWS Environment Variables..."
+    # Checking for AWS MFA required
+    while true; do
+    read -r -p "Is an AWS MFA session token generation required? (yes/no): " mfa_response
+case $mfa_response in 
+	yes|y ) 
+    echo "MFA enabled"
+    mfa_enabled=true
+    break
+    ;;
+	no|n )
+    echo "MFA not enabled. Proceeding..."
+    mfa_enabled=false
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done 
+
+aws_regions=["af-south-1","ap-east-1","ap-northeast-1","ap-northeast-2","ap-northeast-3","ap-south-1","ap-southeast-1","ap-southeast-2","ca-central-1","cn-north-1","cn-northwest-1","eu-central-1","eu-north-1","eu-south-1","eu-west-1","eu-west-2","eu-west-3","me-south-1","sa-east-1","us-east-1","us-east-2","us-gov-east-1","us-gov-west-1","us-west-1","us-west-2"]
 # if .zsacrc is not present we'll assume that AWS env was never set
-if [[ ! -e ./.zsacrc ]]; then
-    read -rp "Enter AWS Access Key: " aws_key
-    read -rp "Enter AWS Secret Key: " aws_secret
-    read -rp "Enter AWS Region: " aws_region
+if [[ $dtype == "base" && ! -e ./.zsacrc ]]; then
+    # Get MFA session token
+    if [[ $mfa_enabled == true ]]; then
+    echo "Gathering information to get AWS Session Token. We need the following details:"
+    echo "example - arn:aws:iam::1234567890:mfa/user@company.com where Account ID = 1234567890 and User Account = user@company.com"
+    read -r -p "Enter AWS Account ID: " aws_account_id
+    read -r -p "Enter AWS MFA User account: " aws_user_account
+    echo "unsetting existing AWS Environment variables (unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY)"
+    unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
+    read -r -p "Enter token code from MFA device: " mfa_token
+    echo "getting session token (aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code)"
+    aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}  
+
+    read -r -p "Enter AWS Session Token: " aws_session_token
+    fi
+    read -r -p "Enter AWS Access Key ID: " aws_key
+    read -r -p "Enter AWS Secret Access Key: " aws_secret
+    read -r -p "Enter AWS Region (e.g. us-west-2): " aws_region
+    if [[ ${aws_regions[*]} =~ $aws_region ]]; then
+    echo "AWS Region entered is: $aws_region"
+    else
+    echo "Invalid AWS region name entered."
+    echo "Delete .zsacrc file and re-run zsac up..."
+    exit 1
+    fi
     echo "export AWS_ACCESS_KEY_ID=${aws_key}" > .zsacrc
     echo "export AWS_SECRET_ACCESS_KEY=${aws_secret}" >> .zsacrc
     echo "export AWS_DEFAULT_REGION=${aws_region}" >> .zsacrc
+    echo "export TF_VAR_aws_region=${aws_region}" >> .zsacrc
+
+    while [[ "$dtype" == "base" && "$oper" == "up" ]]; do
+clientpublicip=$(curl -s ifconfig.me)
+    echo "greenfield deployments include a publicly accessible ssh bastion host.."
+    read -r -p "Your current public IP is ${clientpublicip}. Lock SSH access to this IP? [yes/no] " bastion_response
+case $bastion_response in 
+	yes|y ) 
+    echo "Updating Bastion NSG to permit SSH only from ${clientpublicip}: "
+    echo "export TF_VAR_bastion_nsg_source_prefix='[\"${clientpublicip}/32\"]'" >> .zsacrc
+    useclientip=true
+    break
+    ;;
+	no|n )
+    useclientip=false
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done
+
+if [[ "$useclientip" == "false" ]]; then
+while true; do
+read -r -p "Lock SSH access to a different IP address or range? Default is open any [yes/no]: " changebastionip
+case $changebastionip in 
+	yes|y ) 
+    read -r -p "Enter new IP Address/range w/ CIDR (e.g. 2.2.2.2/32): " bastionipinput
+    echo "export TF_VAR_bastion_nsg_source_prefix='[\"${bastionipinput}\"]'" >> .zsacrc
+
+if [[ $bastionipinput =~ ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(3[0-2]|[1-2][0-9]|[1-9]))$ ]]
+    then
+    echo "$bastionipinput - IP/Netmask valid"
+    else
+    echo "$bastionipinput is not valid IP CIDR format"
+    echo "Delete .zsacrc file and re-run zsac up..."
+    exit 1
+    fi
+    break
+    ;;
+	no|n )
+    echo "SSH access permitted for all IP addresses..." 
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done
+    fi
 fi
+
+echo "Checking AWS Environment Variables and App Connector bootstrap requirements... brownfield/byo deployments, please stop and refer to the README and terraform.tfvars file instructions"
+# if .zsacrc is not present we'll assume that AWS env was never set
+if [[ "$oper" == "up" && "$dtype" != base && ! -e ./.zsacrc ]]; then
+    # Get MFA session token
+    if [[ $mfa_enabled == true ]]; then
+    echo "Gathering information to get AWS Session Token. We need the following details:"
+    echo "example - arn:aws:iam::1234567890:mfa/user@company.com where Account ID = 1234567890 and User Account = user@company.com"
+    read -r -p "Enter AWS Account ID: " aws_account_id
+    read -r -p "Enter AWS MFA User account: " aws_user_account
+    echo "unsetting existing AWS Environment variables (unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY)"
+    unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
+    read -r -p "Enter token code from MFA device: " mfa_token
+    echo "getting session token (aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code)"
+    aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}
+ 
+    read -r -p "Enter AWS Session Token: " aws_session_token
+    fi
+    read -r -p "Enter AWS Access Key ID: " aws_key
+    read -r -p "Enter AWS Secret Access Key: " aws_secret
+    read -r -p "Enter AWS Region (e.g. us-west-2): " aws_region
+    if [[ ${aws_regions[*]} =~ $aws_region ]]; then
+    echo "AWS Region entered is: $aws_region"
+    else
+    echo "Invalid AWS region name entered."
+    echo "Delete .zsacrc file and re-run zsac up..."
+    exit 1
+    fi
+    echo "export AWS_ACCESS_KEY_ID=${aws_key}" > .zsacrc
+    echo "export AWS_SECRET_ACCESS_KEY=${aws_secret}" >> .zsacrc
+    echo "export AWS_DEFAULT_REGION=${aws_region}" >> .zsacrc
+    echo "export TF_VAR_aws_region=${aws_region}" >> .zsacrc
+    
+    while [[ "$dtype" == "base"* && "$oper" == "up" ]]; do
+clientpublicip=$(curl -s ifconfig.me)
+    echo "greenfield deployments include a publicly accessible ssh bastion host.."
+    read -r -p "Your current public IP is ${clientpublicip}. Lock SSH access to this IP? [yes/no] " bastion_response
+case $bastion_response in 
+	yes|y ) 
+    echo "Updating Bastion NSG to permit SSH only from ${clientpublicip}: "
+    echo "export TF_VAR_bastion_nsg_source_prefix='[\"${clientpublicip}/32\"]'" >> .zsacrc
+    useclientip=true
+    break
+    ;;
+	no|n )
+    useclientip=false
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done
+
+if [[ "$useclientip" == "false" ]]; then
+while true; do
+read -r -p "Lock SSH access to a different IP address or range? Default is open any [yes/no]: " changebastionip
+case $changebastionip in 
+	yes|y ) 
+    read -r -p "Enter new IP Address/range w/ CIDR (e.g. 2.2.2.2/32): " bastionipinput
+    echo "export TF_VAR_bastion_nsg_source_prefix='[\"${bastionipinput}\"]'" >> .zsacrc
+
+if [[ $bastionipinput =~ ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(3[0-2]|[1-2][0-9]|[1-9]))$ ]]
+    then
+    echo "$bastionipinput - IP/Netmask valid"
+    else
+    echo "$bastionipinput is not valid IP CIDR format"
+    echo "Delete .zsacrc file and re-run zsac up..."
+    exit 1
+fi
+    break
+    ;;
+	no|n )
+    echo "SSH access permitted for all IP addresses..." 
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done
+fi
+
+acvm_instance_type_default=m5a.xlarge
+while true; do
+    read -r -p "Enter desired AWS EC2 instance type for AC. [Default=$acvm_instance_type_default]: " acvm_instance_type_input
+acvm_instance_type=${acvm_instance_type_input:-$acvm_instance_type_default}    
+    case $acvm_instance_type in
+      t3.xlarge|m5a.xlarge)
+          echo "AC EC2 type: ${acvm_instance_type}"
+          echo "export TF_VAR_acvm_instance_type=${acvm_instance_type}" >> .zsacrc
+          break
+      ;;
+      *)
+          echo "Invalid App Connector VM type: ${acvm_instance_type}. Please enter an approved VM type"
+      ;;
+    esac
+done
+
+if [[ "$dtype" != *"zpa"* ]]; then
+read -r -p "Enter AC Provisioning Key (E.g. 3|api.private.zscaler.com|<string>): " ac_prov_key
+echo "Provisioning Key entered is: $ac_prov_key"
+echo "export TF_VAR_ac_prov_key=${ac_prov_key}" >> .zsacrc
+fi
+
+ac_count_default=2
+if [[ "$dtype" == *"asg"* ]]; then
+    echo "Autoscaling deployment type identified. Proceeding to ASG configurations"  
+elif [[ "$dtype" == *"ac"* ]]; then
+    read -p "Enter how many App Connectors to deploy? [Default=$ac_count_default]: " ac_count_input
+ac_count=${ac_count_input:-$ac_count_default}
+if ((ac_count >= 1 && ac_count <= 20)); then
+    echo "${dtype} will deploy ${ac_count} App Connectors in ${aws_region}"
+    echo "export TF_VAR_ac_count=${ac_count}" >> .zsacrc
+else
+    echo "invalid ac_count value. Must be a number between 1 and 20"
+    echo "Delete .zsacrc file and re-run zsac up..."
+    exit 1
+fi  
+fi
+
+min_size_default=2
+    while [[ "$dtype" == *"asg"* ]]; do
+    read -r -p "Enter the minumum number of App Connectors to maintain in an Autoscaling group [Default=$min_size_default]: " min_size_input
+min_size=${min_size_input:-$min_size_default}
+    case $min_size in
+      1|2|3|4|5|6|7|8|9|10)
+          echo "App Connector Mininum size: ${min_size}"
+          echo "export TF_VAR_min_size=${min_size}" >> .zsacrc
+          break
+      ;;
+      *)
+          echo "Invalid ASG Minimum size: ${min_size}. Enter a number 1-10"
+      ;;
+    esac
+done
+
+max_size_default="$min_size"
+    while [[ "$dtype" == *"asg"* ]]; do
+    read -r -p "Enter the maximum number of App Connectors to maintain in an Autoscaling group [Default=$max_size_default]: " max_size_input
+max_size=${max_size_input:-$max_size_default}
+    if [[ "$max_size" -lt "$min_size" ]]; then
+    echo "Max size must be greater than or equal to ${min_size}"
+    else
+        case $max_size in
+        1|2|3|4|5|6|7|8|9|10)
+          echo "App Connector Maximum size: ${max_size}"
+          echo "export TF_VAR_max_size=${max_size}" >> .zsacrc
+          break
+      ;;
+      *)
+          echo "Invalid ASG Maximum size: ${max_size}. Enter a number 1-10"
+      ;;
+    esac
+    fi
+done
+
+az_count_default=2
+    read -r -p "Enter how many Availability Zone subnets [1-3] to deploy across? [Default=$az_count_default]: " az_count_input
+az_count=${az_count_input:-$az_count_default}
+if ((az_count >= 1 && az_count <= 3)); then
+    echo "${dtype} will deploy ${ac_count} App Connectors across ${az_count} Availabiliy Zone subnets in ${aws_region}"
+    echo "export TF_VAR_az_count=${az_count}" >> .zsacrc
+else
+    echo "invalid az_count value. Must be a number between 1 and 3"
+    echo "Delete .zsacrc file and re-run zsac up..."
+    exit 1
+fi  
+fi
+
+target_cpu_util_value_default=50
+while [[ "$dtype" == *"asg"* ]]; do
+    read -r -p "Enter desired ASG Target Tracking CPU Utilization target [Default=$target_cpu_util_value_default]: " target_cpu_util_value_input
+target_cpu_util_value=${target_cpu_util_value_input:-$target_cpu_util_value_default}
+ if [[ "$target_cpu_util_value" -lt 1 || "$target_cpu_util_value" -gt 100 ]]; then
+    echo "Target tracking percentage must be a number between 1-100"
+    else
+        case $target_cpu_util_value in
+        *) 
+        echo "ASG AVGCPUUtilization Target Value set to ${target_cpu_util_value}"
+        echo "export TF_VAR_target_cpu_util_value=${target_cpu_util_value}" >> .zsacrc 
+        break
+        ;;
+    esac
+    fi
+done
+
+
+while [[ "$dtype" == *"asg"* ]]; do
+    read -r -p "Do you want Warm Pool enabled on the Autoscaling Group? (yes/no): " warm_pool_response
+case $warm_pool_response in 
+	yes|y ) 
+    echo "Warm Pool enabled. Proceeding with configurations..."
+    echo "export TF_VAR_warm_pool_enabled=true" >> .zsacrc 
+    warm_pool_enabled=true
+    break
+    ;;
+	no|n )
+    echo "Warm Pool not enabled. Proceeding..."
+    echo "export TF_VAR_warm_pool_enabled=false" >> .zsacrc 
+    warm_pool_enabled=false
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done
+
+if [[ "$dtype" == *"asg"* && "$warm_pool_enabled" == "true" ]]; then
+warm_pool_min_size_default=1
+    while true; do
+    read -r -p "Enter the minimum number of instances to maintain in the warm pool [Default=$warm_pool_min_size_default]: " warm_pool_min_size_input
+warm_pool_min_size=${warm_pool_min_size_input:-$warm_pool_min_size_default}
+    case $warm_pool_min_size in
+      1|2|3|4|5|6|7|8|9|10)
+          echo "Warm Pool Mininum size: ${warm_pool_min_size}"
+          echo "export TF_VAR_warm_pool_min_size=${warm_pool_min_size}" >> .zsacrc
+          break
+      ;;
+      *)
+          echo "Invalid Warm Pool Minimum size: ${warm_pool_min_size}. Enter a number 1-10"
+      ;;
+    esac
+done
+warm_pool_max_group_prepared_capacity_default=1
+    while true; do
+    read -r -p "Enter the maximum number of instances that are allowed to be in the warm pool [Default=$warm_pool_max_group_prepared_capacity_default]: " warm_pool_max_group_prepared_capacity_input
+warm_pool_max_group_prepared_capacity=${warm_pool_max_group_prepared_capacity_input:-$warm_pool_max_group_prepared_capacity_default}
+    if [[ "$warm_pool_max_group_prepared_capacity" -lt "$warm_pool_min_size" ]]; then
+    echo "Warm Pool Maximum capacity must be greater than or equal to ${warm_pool_min_size}"
+    else
+    case $warm_pool_max_group_prepared_capacity in
+      1|2|3|4|5|6|7|8|9|10)
+          echo "Warm Pool Maximum capacity: ${warm_pool_max_group_prepared_capacity}"
+          echo "export TF_VAR_warm_pool_max_group_prepared_capacity=${warm_pool_max_group_prepared_capacity}" >> .zsacrc
+          break
+      ;;
+      *)
+          echo "Invalid Warm Pool Maximum capacity: ${warm_pool_max_group_prepared_capacity}. Enter a number 1-10"
+      ;;
+    esac
+    fi
+done
+warm_pool_state_default=Stopped
+    while true; do
+    read -r -p "Enter the desired Warm Pool instance state to transition to after the lifecycle hooks finish [Default=$warm_pool_state_default]: " warm_pool_state_input
+warm_pool_state=${warm_pool_state_input:-$warm_pool_state_default}
+    case $warm_pool_state in
+      Stopped|Running|Hibernated)
+          echo "Warm Pool State: ${warm_pool_state}"
+          echo "export TF_VAR_warm_pool_state=${warm_pool_state}" >> .zsacrc
+          break
+      ;;
+      *)
+          echo "Invalid Warm Pool State: ${warm_pool_state}. Enter either Stopped, Running, or Hibernated"
+      ;;
+    esac
+done
+
+    while true; do
+    read -r -p "Do you want ASG instances to return to the warm pool on scale in? (yes/no): " reuse_on_scale_in_response
+case $reuse_on_scale_in_response in 
+	yes|y ) 
+    echo "Reuse on scale in enabled"
+    echo "export TF_VAR_reuse_on_scale_in=true" >> .zsacrc 
+    break
+    ;;
+	no|n )
+    echo "Reuse on scale not enabled. Proceeding..."
+    echo "export TF_VAR_reuse_on_scale_in=false" >> .zsacrc 
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done 
+fi
+
 
 # add local bin directory to PATH
 if ! grep -Fxq "export PATH=\${PATH}:\${PWD}/bin" .zsacrc; then
     echo 'export PATH=${PATH}:${PWD}/bin' >> .zsacrc
 fi
+
+# add deployment type to .zsacrc for future runs
+if [[ "$oper" == "up" ]]; then
+    # check if previous deployment has ever run
+    if [ -z "$dtype" ]; then
+    echo "export dtype=${dtype}" >> .zsacrc
+    else
+    echo "a previous zsac up operation has been identified. Updating dtype value..."
+    echo "Updating .zsacrc with dtype of $dtype"
+    sed -i '/dtype/d' .zsacrc
+    echo "export dtype=${dtype}" >> .zsacrc
+    fi 
+fi
+
+# initialize environment variables
 . ./.zsacrc
 
+# check for valid environment variables in .zsacrc
 if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$AWS_DEFAULT_REGION" ]; then
     echo "AWS Access info is missing. Remove .zsacrc file and rerun $0 $1"
     exit 1
 fi
+
+#if [[ $dtype != "base" ]]; then
+#    echo "Checking Cloud Connector provisioning info"
+#  if [ -z "$TF_VAR_cc_vm_prov_url" ] || [ -z "$TF_VAR_secret_name" ] || [ -z "$TF_VAR_http_probe_port" ] || [ -z "$TF_VAR_cc_instance_size" ] || [ -z "$TF_VAR_ccvm_instance_type" ]; then
+#    echo "Cloud Connector provisioning info is missing. Remove .zsacrc file and rerun $0 $1"
+#    exit 1
+#  fi
+#fi
+
+
+# Get new MFA session token
+if [[ $mfa_enabled == true ]]; then
+    if [ -z "$AWS_SESSION_TOKEN" ]; then
+    echo "export AWS_SESSION_TOKEN=${aws_session_token}" >> .zsacrc 
+    echo "export AWS_SESSION_TOKEN=${aws_session_token}"
+else
+    echo "zsacrc file has existing session token. Resetting to ensure credentials are refreshed"
+    echo "unsetting existing AWS Environment variables (unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY)"
+    unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
+    echo "backup .zsacrc to .zsacrc.bak"
+    cp .zsacrc .zsacrc.bak
+    echo "Updating .zsacrc"
+    sed '/AWS_SESSION_TOKEN\|AWS_ACCESS_KEY_ID\|AWS_SECRET_ACCESS_KEY/d' .zsacrc > .zsacrcnew && mv .zsacrcnew .zsacrc
+    echo "example - arn:aws:iam::1234567890:mfa/user@company.com where Account ID = 1234567890 and User Account = user@company.com"
+    read -r -p "Enter AWS Account ID: " aws_account_id
+    read -r -p "Enter AWS MFA User account: " aws_user_account
+    read -r -p "Enter token code from MFA device: " mfa_token
+    echo "getting session token (aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code)"
+    aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}
+ 
+    read -r -p "Enter AWS Session Token: " aws_session_token
+    echo "export AWS_SESSION_TOKEN=${aws_session_token}" >> .zsacrc
+    echo "export AWS_SESSION_TOKEN=${aws_session_token}"
+    read -r -p "Enter AWS Access Key ID: " aws_key
+    read -r -p "Enter AWS Secret Access Key: " aws_secret
+    echo "export AWS_ACCESS_KEY_ID=${aws_key}" >> .zsacrc
+    echo "export AWS_SECRET_ACCESS_KEY=${aws_secret}" >> .zsacrc
+fi    
+    # Reinitialize environment variables
+. ./.zsacrc
+fi
+
 
 echo "Download terraform binary for $ostype if not present..."
 if [[ ! -e ./$dir/terraform ]]; then
@@ -105,25 +561,29 @@ fi
 
 if [[ "$oper" == "up" ]]; then
     echo "Bringing up App Connector cluster..."
-    ./$dir/terraform init $dtype
+    TF_DATA_DIR=../.terraform ./$dir/terraform -chdir="$dtype" init
     if [[ "$AUTO_APPROVE" ]]; then
-        ./$dir/terraform apply -auto-approve -var aws_region="$AWS_DEFAULT_REGION" $dtype
+        TF_DATA_DIR=../.terraform ./$dir/terraform -chdir="$dtype" apply -auto-approve
     else
-        ./$dir/terraform apply -var aws_region="$AWS_DEFAULT_REGION" $dtype
+        TF_DATA_DIR=../.terraform ./$dir/terraform -chdir="$dtype" apply
     fi
    
 
 elif [[ "$oper" == "destroy" ]]; then
     echo "Destroying App Connector cluster..."
-    ./$dir/terraform init $dtype
+    TF_DATA_DIR=../.terraform ./$dir/terraform -chdir="$dtype" init
     if [[ "$AUTO_APPROVE" ]]; then
-      ./$dir/terraform destroy -auto-approve
+      TF_DATA_DIR=../.terraform ./$dir/terraform -chdir="$dtype" destroy -auto-approve
     else
-      ./$dir/terraform destroy --compact-warnings
+      TF_DATA_DIR=../.terraform ./$dir/terraform -chdir="$dtype" destroy -compact-warnings
     fi
-    rm -rf bin .terraform terraform.tfstate*
+    rm -rf bin 
+    rm -rf **/.terraform/* && rm -rf **/.terraform*
+	find . -type f -name '.terraform.lock.hcl' -delete
+    rm -rf .terraform* && rm -f terraform.tfstate*
     rm -f *.pem && rm -f *.pem.pub
     rm -f name_prefix random_string
     rm -rf user.key user.crt
     rm -rf systems.json setup-*.tar
+    rm -rf **/errorlog.txt
 fi
