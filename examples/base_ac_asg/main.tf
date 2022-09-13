@@ -124,7 +124,7 @@ module "ac-asg" {
 
   max_size                  = var.max_size
   min_size                  = var.min_size
-  target_value              = var.target_value
+  target_cpu_util_value     = var.target_cpu_util_value
   health_check_grace_period = var.health_check_grace_period
   launch_template_version   = var.launch_template_version
   target_tracking_metric    = var.target_tracking_metric
