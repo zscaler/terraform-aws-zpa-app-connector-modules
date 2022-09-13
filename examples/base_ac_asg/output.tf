@@ -28,8 +28,7 @@ TB
 }
 
 output "testbedconfig" {
-  value     = local.testbedconfig
-  sensitive = true
+  value = local.testbedconfig
 }
 
 resource "local_file" "testbed" {

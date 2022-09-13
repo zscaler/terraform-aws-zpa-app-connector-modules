@@ -49,10 +49,10 @@ From base_ac_asg directory execute:
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.7.0 |
-| <a name="provider_local"></a> [local](#provider\_local) | 2.2.3 |
-| <a name="provider_random"></a> [random](#provider\_random) | 3.3.2 |
-| <a name="provider_tls"></a> [tls](#provider\_tls) | 3.4.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 4.7.0 |
+| <a name="provider_local"></a> [local](#provider\_local) | ~> 2.2.0 |
+| <a name="provider_random"></a> [random](#provider\_random) | ~> 3.3.0 |
+| <a name="provider_tls"></a> [tls](#provider\_tls) | ~> 3.4.0 |
 
 ## Modules
 
