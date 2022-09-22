@@ -68,6 +68,7 @@ From base_ac_zpa directory execute:
 | <a name="module_bastion"></a> [bastion](#module\_bastion) | ../../modules/terraform-zsac-bastion-aws | n/a |
 | <a name="module_network"></a> [network](#module\_network) | ../../modules/terraform-zsac-network-aws | n/a |
 | <a name="module_zpa-app-connector-group"></a> [zpa-app-connector-group](#module\_zpa-app-connector-group) | ../../modules/terraform-zpa-app-connector-group | n/a |
+| <a name="module_zpa-provisioning-key"></a> [zpa-provisioning-key](#module\_zpa-provisioning-key) | ../../modules/terraform-zpa-provisioning-key | n/a |
 
 ## Resources
 

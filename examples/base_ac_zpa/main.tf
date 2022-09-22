@@ -77,11 +77,10 @@ module "bastion" {
 
 
 ################################################################################
-# 3. Create ZPA Provisioning Key and App Connector Group
+# 3. Create ZPA App Connector Group
 ################################################################################
 module "zpa-app-connector-group" {
   source                                       = "../../modules/terraform-zpa-app-connector-group"
-  enrollment_cert                              = var.enrollment_cert
   app_connector_group_name                     = var.app_connector_group_name
   app_connector_group_description              = var.app_connector_group_description
   app_connector_group_enabled                  = var.app_connector_group_enabled
@@ -94,15 +93,25 @@ module "zpa-app-connector-group" {
   app_connector_group_override_version_profile = var.app_connector_group_override_version_profile
   app_connector_group_version_profile_id       = var.app_connector_group_version_profile_id
   app_connector_group_dns_query_type           = var.app_connector_group_dns_query_type
-  provisioning_key_name                        = var.provisioning_key_name
-  provisioning_key_enabled                     = var.provisioning_key_enabled
-  provisioning_key_association_type            = var.provisioning_key_association_type
-  provisioning_key_max_usage                   = var.provisioning_key_max_usage
 }
 
 
 ################################################################################
-# 4. Create specified number AC VMs per ac_count which will span equally across 
+# 4. Create ZPA Provisioning Key
+################################################################################
+module "zpa-provisioning-key" {
+  source                            = "../../modules/terraform-zpa-provisioning-key"
+  enrollment_cert                   = var.enrollment_cert
+  provisioning_key_name             = var.provisioning_key_name
+  provisioning_key_enabled          = var.provisioning_key_enabled
+  provisioning_key_association_type = var.provisioning_key_association_type
+  provisioning_key_max_usage        = var.provisioning_key_max_usage
+  app_connector_group_id            = module.zpa-app-connector-group.app_connector_group_id
+}
+
+
+################################################################################
+# 5. Create specified number AC VMs per ac_count which will span equally across 
 #    designated availability zones per az_count. E.g. ac_count set to 4 and 
 #    az_count set to 2 will create 2x ACs in AZ1 and 2x ACs in AZ2
 ################################################################################
@@ -114,7 +123,7 @@ locals {
 systemctl stop zpa-connector
 #Create a file from the App Connector provisioning key created in the ZPA Admin Portal
 #Make sure that the provisioning key is between double quotes
-echo "${module.zpa-app-connector-group.provisioning_key}" > /opt/zscaler/var/provision_key
+echo "${module.zpa-provisioning-key.provisioning_key}" > /opt/zscaler/var/provision_key
 #Run a yum update to apply the latest patches
 yum update -y
 #Start the App Connector service to enroll it in the ZPA cloud
@@ -150,7 +159,7 @@ module "ac-vm" {
 
   depends_on = [
     local_file.user-data-file,
-    module.zpa-app-connector-group,
+    module.zpa-provisioning-key,
   ]
 }
 

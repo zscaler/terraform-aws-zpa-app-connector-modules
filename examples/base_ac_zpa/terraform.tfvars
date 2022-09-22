@@ -17,9 +17,8 @@
 #zpa_client_secret                            = "zpa-api-client-secret"
 #zpa_customer_id                              = "zpa-tenant-id"
 
-
 ## ZPA App Connector Group variables. Uncomment and replace values as desired for your deployment
-#app_connector_group_name                     = "group_name"
+#app_connector_group_name                     = "new_group_name"
 #app_connector_group_description              = "group_description"
 #app_connector_group_enabled                  = true
 #app_connector_group_country_code             = "US"
@@ -35,7 +34,7 @@
 
 ## ZPA App Connector Provisioning Key variables
 #enrollment_cert                               = "Connector"
-#provisioning_key_name                         = "key_name"
+#provisioning_key_name                         = "new_key_name"
 #provisioning_key_enabled                      = true
 #provisioning_key_max_usage                    = 50
 
