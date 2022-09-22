@@ -490,7 +490,7 @@ if [[ "$oper" == "up" ]]; then
     else
     echo "a previous zsac up operation has been identified. Updating dtype value..."
     echo "Updating .zsacrc with dtype of $dtype"
-    sed -i '/dtype/d' .zsacrc
+    sed -i'' -e '/dtype/d' .zsacrc
     echo "export dtype=${dtype}" >> .zsacrc
     fi 
 fi
