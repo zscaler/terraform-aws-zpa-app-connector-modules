@@ -71,7 +71,44 @@ module "network" {
 
 
 ################################################################################
-# 2. Create specified number AC VMs per min_size / max_size which will span  
+# 2. Create ZPA App Connector Group
+################################################################################
+module "zpa-app-connector-group" {
+  count                                        = var.byo_provisioning_key == true ? 0 : 1 # Only use this module if a new provisioning key is needed
+  source                                       = "../../modules/terraform-zpa-app-connector-group"
+  app_connector_group_name                     = var.app_connector_group_name
+  app_connector_group_description              = var.app_connector_group_description
+  app_connector_group_enabled                  = var.app_connector_group_enabled
+  app_connector_group_country_code             = var.app_connector_group_country_code
+  app_connector_group_latitude                 = var.app_connector_group_latitude
+  app_connector_group_longitude                = var.app_connector_group_longitude
+  app_connector_group_location                 = var.app_connector_group_location
+  app_connector_group_upgrade_day              = var.app_connector_group_upgrade_day
+  app_connector_group_upgrade_time_in_secs     = var.app_connector_group_upgrade_time_in_secs
+  app_connector_group_override_version_profile = var.app_connector_group_override_version_profile
+  app_connector_group_version_profile_id       = var.app_connector_group_version_profile_id
+  app_connector_group_dns_query_type           = var.app_connector_group_dns_query_type
+}
+
+
+################################################################################
+# 3. Create ZPA Provisioning Key (or reference existing if byo set)
+################################################################################
+module "zpa-provisioning-key" {
+  source                            = "../../modules/terraform-zpa-provisioning-key"
+  enrollment_cert                   = var.enrollment_cert
+  provisioning_key_name             = var.provisioning_key_name
+  provisioning_key_enabled          = var.provisioning_key_enabled
+  provisioning_key_association_type = var.provisioning_key_association_type
+  provisioning_key_max_usage        = var.provisioning_key_max_usage
+  app_connector_group_id            = try(module.zpa-app-connector-group[0].app_connector_group_id, "")
+  byo_provisioning_key              = var.byo_provisioning_key
+  byo_provisioning_key_name         = var.byo_provisioning_key_name
+}
+
+
+################################################################################
+# 4. Create specified number AC VMs per min_size / max_size which will span  
 #    equally across designated availability zones per az_count. E.g. min_size  
 #    set to 4 and az_count set to 2 will create 2x ACs in AZ1 and 2x ACs in AZ2
 ################################################################################
@@ -83,7 +120,7 @@ locals {
 systemctl stop zpa-connector
 #Create a file from the App Connector provisioning key created in the ZPA Admin Portal
 #Make sure that the provisioning key is between double quotes
-echo "${var.ac_prov_key}" > /opt/zscaler/var/provision_key
+echo "${module.zpa-provisioning-key.provisioning_key}" > /opt/zscaler/var/provision_key
 #Run a yum update to apply the latest patches
 yum update -y
 #Start the App Connector service to enroll it in the ZPA cloud
@@ -138,7 +175,7 @@ module "ac-asg" {
 
 
 ################################################################################
-# 3. Create IAM Policy, Roles, and Instance Profiles to be assigned to AC. 
+# 5. Create IAM Policy, Roles, and Instance Profiles to be assigned to AC. 
 #    Default behavior will create 1 of each IAM resource per AC VM. Set variable 
 #    "reuse_iam" to true if you would like a single IAM profile created and 
 #    assigned to ALL App Connectors instead.
@@ -158,7 +195,7 @@ module "ac-iam" {
 
 
 ################################################################################
-# 4. Create Security Group and rules to be assigned to the App Connector 
+# 6. Create Security Group and rules to be assigned to the App Connector 
 #    interface. Default behavior will create 1 of each SG resource per AC VM. 
 #    Set variable "reuse_security_group" to true if you would like a single 
 #    security group created and assigned to ALL App Connectors instead.
