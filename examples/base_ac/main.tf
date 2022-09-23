@@ -107,10 +107,9 @@ module "zpa-provisioning-key" {
   provisioning_key_enabled          = var.provisioning_key_enabled
   provisioning_key_association_type = var.provisioning_key_association_type
   provisioning_key_max_usage        = var.provisioning_key_max_usage
-  #app_connector_group_id            = module.zpa-app-connector-group[0].app_connector_group_id
-  app_connector_group_id    = try(module.zpa-app-connector-group[0].app_connector_group_id, "")
-  byo_provisioning_key      = var.byo_provisioning_key
-  byo_provisioning_key_name = var.byo_provisioning_key_name
+  app_connector_group_id            = try(module.zpa-app-connector-group[0].app_connector_group_id, "")
+  byo_provisioning_key              = var.byo_provisioning_key
+  byo_provisioning_key_name         = var.byo_provisioning_key_name
 }
 
 

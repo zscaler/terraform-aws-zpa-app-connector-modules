@@ -96,24 +96,6 @@ variable "associate_public_ip_address" {
 
 
 # ZPA Provider specific variables for App Connector Group and Provisioning Key creation
-variable "zpa_client_id" {
-  type        = string
-  description = "ZPA API Client ID. Reference: https://help.zscaler.com/zpa/about-api-keys#:~:text=An%20API%20key%20is%20required,from%20the%20API%20Keys%20page"
-  sensitive   = true
-}
-
-variable "zpa_client_secret" {
-  type        = string
-  description = "ZPA API Client Secret. Reference: https://help.zscaler.com/zpa/about-api-keys#:~:text=An%20API%20key%20is%20required,from%20the%20API%20Keys%20page"
-  sensitive   = true
-}
-
-variable "zpa_customer_id" {
-  type        = string
-  description = "ZPA API Customer ID. Reference: https://help.zscaler.com/zpa/about-api-keys#:~:text=An%20API%20key%20is%20required,from%20the%20API%20Keys%20page"
-  sensitive   = true
-}
-
 variable "byo_provisioning_key" {
   type        = bool
   description = "Bring your own App Connector Provisioning Key. Setting this variable to true will effectively instruct this module to not create any resources and only reference data resources from values provided in byo_provisioning_key_name"

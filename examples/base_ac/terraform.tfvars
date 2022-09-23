@@ -2,7 +2,7 @@
 ## Uncomment and change the below variables according to your specific environment
 
 #####################################################################################################################
-##### Variables 5-14 are populated automically if terraform is ran via ZSAC bash script.  ##### 
+##### Variables 5-13 are populated automically if terraform is ran via ZSAC bash script.  ##### 
 ##### Modifying the variables in this file will override any inputs from ZSAC             #####
 #####################################################################################################################
 
@@ -11,16 +11,16 @@
 ##### App Connector Group + Provisioning Key.                                   #####
 #####################################################################################################################
 
-## 1. ZPA App Connector Provisioning Key variables. Uncomment and replace values as desired for your deployment.
+## 1. ZPA App Connector Provisioning Key variables. Uncomment and replace default values as desired for your deployment.
 ##    For any questions populating the below values, please reference: 
 ##    https://registry.terraform.io/providers/zscaler/zpa/latest/docs/resources/zpa_provisioning_key
 
 #enrollment_cert                                = "Connector"
 #provisioning_key_name                          = "new_key_name"
 #provisioning_key_enabled                       = true
-#provisioning_key_max_usage                     = 50
+#provisioning_key_max_usage                     = 10
 
-## 2. ZPA App Connector Group variables. Uncomment and replace values as desired for your deployment. 
+## 2. ZPA App Connector Group variables. Uncomment and replace default values as desired for your deployment. 
 ##    For any questions populating the below values, please reference: 
 ##    https://registry.terraform.io/providers/zscaler/zpa/latest/docs/resources/zpa_app_connector_group
 
@@ -54,45 +54,33 @@
 
 
 #####################################################################################################################
-##### Zscaler ZPA Provider credentials. These may be automatically populated if using zsac  #####
-#####################################################################################################################
-
-## 5. Uncomment and enter values valid for your ZPA environment. For production deployments, it would be advised to store 
-##    these as encrypted environment variables.
-##    Details on how to find and generate ZPA API keys can be located here: https://help.zscaler.com/zpa/about-api-keys#:~:text=An%20API%20key%20is%20required,from%20the%20API%20Keys%20page
-
-#zpa_client_id                                  = "zpa-api-client-id"
-#zpa_client_secret                              = "zpa-api-client-secret"
-#zpa_customer_id                                = "zpa-tenant-id"
-
-#####################################################################################################################
 ##### Custom variables. Only change if required for your environment  #####
 #####################################################################################################################
 
-## 6. AWS region where App Connector resources will be deployed. This environment variable is automatically populated if running ZSEC script
+## 5. AWS region where App Connector resources will be deployed. This environment variable is automatically populated if running ZSEC script
 ##    and thus will override any value set here. Only uncomment and set this value if you are deploying terraform standalone. (Default: us-west-2)
 
 #aws_region                                     = "us-west-2"
 
-## 7. App Connector AWS EC2 Instance size selection. Uncomment acvm_instance_type line with desired vm size to change.
+## 6. App Connector AWS EC2 Instance size selection. Uncomment acvm_instance_type line with desired vm size to change.
 ##    (Default: m5a.xlarge)
 
 #acvm_instance_type                             = "t3.xlarge"  # recommended only for test/non-prod use
 #acvm_instance_type                             = "m5a.xlarge"
 
-## 8. The number of App Connector Subnets to create in sequential availability zones. Available input range 1-3 (Default: 2)
+## 7. The number of App Connector Subnets to create in sequential availability zones. Available input range 1-3 (Default: 2)
 ##    **** NOTE - This value will be ignored if byo_vpc / byo_subnets
 
 #az_count                                       = 2
 
-## 9. The number of App Connector appliances to provision. Each incremental App Connector will be created in alternating 
+## 8. The number of App Connector appliances to provision. Each incremental App Connector will be created in alternating 
 ##    subnets based on the az_count or byo_subnet_ids variable and loop through for any deployments where ac_count > az_count.
 ##    (Default: varies per deployment type template)
 ##    E.g. ac_count set to 4 and az_count set to 2 or byo_subnet_ids configured for 2 will create 2x ACs in AZ subnet 1 and 2x ACs in AZ subnet 2
 
 #ac_count                                       = 2
 
-## 10. Enable/Disable public IP addresses on App Connector instances. Default is false. Setting this to true will result in the following: 
+## 9. Enable/Disable public IP addresses on App Connector instances. Default is false. Setting this to true will result in the following: 
 ##    Dynamic Public IP address on the App Connector VM Instance will be enabled; 
 ##    No EIP or NAT Gateway resources will be created; 
 ##    The App Connector Route Table default route next-hop will be set as the IGW
@@ -102,7 +90,7 @@
 
 #associate_public_ip_address                    = true
 
-## 11. Network Configuration:
+## 10. Network Configuration:
 
 ##    IPv4 CIDR configured with VPC creation. All Subnet resources (Public / App Connector) will be created based off this prefix
 ##    /24 subnets are created assuming this cidr is a /16. If you require creating a VPC smaller than /16, you may need to explicitly define all other 
@@ -125,16 +113,16 @@
 #public_subnets                                 = ["10.x.y.z/24","10.x.y.z/24"]
 #ac_subnets                                     = ["10.x.y.z/24","10.x.y.z/24"]
 
-## 12. Tag attribute "Owner" assigned to all resoure creation. (Default: "zsac-admin")
+## 11. Tag attribute "Owner" assigned to all resoure creation. (Default: "zsac-admin")
 
 #owner_tag                                      = "username@company.com"
 
-## 13. By default, this script will apply 1 Security Group per App Connector instance. 
+## 12. By default, this script will apply 1 Security Group per App Connector instance. 
 ##     Uncomment if you want to use the same Security Group for ALL App Connectors (true or false. Default: false)
 
 #reuse_security_group                           = true
 
-## 14. By default, this script will apply 1 IAM Role/Instance Profile per App Connector instance. 
+## 13. By default, this script will apply 1 IAM Role/Instance Profile per App Connector instance. 
 ##     Uncomment if you want to use the same IAM Role/Instance Profile for ALL App Connectors (true or false. Default: false)
 
 #reuse_iam                                      = true

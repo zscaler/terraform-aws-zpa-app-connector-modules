@@ -119,9 +119,6 @@ From base_ac directory execute:
 | <a name="input_reuse_security_group"></a> [reuse\_security\_group](#input\_reuse\_security\_group) | Specifies whether the SG module should create 1:1 security groups per instance or 1 security group for all instances | `bool` | `false` | no |
 | <a name="input_tls_key_algorithm"></a> [tls\_key\_algorithm](#input\_tls\_key\_algorithm) | algorithm for tls\_private\_key resource | `string` | `"RSA"` | no |
 | <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | VPC IP CIDR Range. All subnet resources that might get created (public / app connector) are derived from this /16 CIDR. If you require creating a VPC smaller than /16, you may need to explicitly define all other subnets via public\_subnets and ac\_subnets variables | `string` | `"10.1.0.0/16"` | no |
-| <a name="input_zpa_client_id"></a> [zpa\_client\_id](#input\_zpa\_client\_id) | ZPA API Client ID. Reference: https://help.zscaler.com/zpa/about-api-keys#:~:text=An%20API%20key%20is%20required,from%20the%20API%20Keys%20page | `string` | n/a | yes |
-| <a name="input_zpa_client_secret"></a> [zpa\_client\_secret](#input\_zpa\_client\_secret) | ZPA API Client Secret. Reference: https://help.zscaler.com/zpa/about-api-keys#:~:text=An%20API%20key%20is%20required,from%20the%20API%20Keys%20page | `string` | n/a | yes |
-| <a name="input_zpa_customer_id"></a> [zpa\_customer\_id](#input\_zpa\_customer\_id) | ZPA API Customer ID. Reference: https://help.zscaler.com/zpa/about-api-keys#:~:text=An%20API%20key%20is%20required,from%20the%20API%20Keys%20page | `string` | n/a | yes |
 
 ## Outputs
 
