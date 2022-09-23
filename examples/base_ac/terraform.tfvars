@@ -57,7 +57,8 @@
 ##### Zscaler ZPA Provider credentials. These may be automatically populated if using zsac  #####
 #####################################################################################################################
 
-## 5. Uncomment and enter values valid for your ZPA environment. 
+## 5. Uncomment and enter values valid for your ZPA environment. For production deployments, it would be advised to store 
+##    these as encrypted environment variables.
 ##    Details on how to find and generate ZPA API keys can be located here: https://help.zscaler.com/zpa/about-api-keys#:~:text=An%20API%20key%20is%20required,from%20the%20API%20Keys%20page
 
 #zpa_client_id                                  = "zpa-api-client-id"

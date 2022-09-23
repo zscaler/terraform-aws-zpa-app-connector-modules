@@ -2,14 +2,15 @@
 
 This deployment type is intended for greenfield/pov/lab purposes. It will deploy a fully functioning sandbox environment in a new VPC. Full set of resources provisioned are listed below, but this will effectively create all network infrastructure dependencies for an AWS environment. Everything from "Base" deployment type (Creates 1 new VPC with one or more public subnets; one IGW; one or more NAT Gateways; one Bastion Host in the public subnet assigned an Elastic IP and routing to the IGW; and generates a local key pair .pem file for ssh access)<br>
 
-Additionally: Creates App Connector private subnets and App Connector VMs egressing through the NAT Gateways in their respective availability zones. If you desire to deploy to a public subnet, setting variable "associate_public_ip_address" to true will enable the automatic dynamic public IPv4 address assignment and set the Route Table to default next-hop through IGW.<br> 
+Additionally: Creates App Connector private subnets and App Connector VMs egressing through the NAT Gateways in their respective availability zones. The preferred deployment configuration are App Connectors in a private subnet. If you desire to deploy to a public subnet, setting variable "associate_public_ip_address" to true will enable the automatic dynamic public IPv4 address assignment and set the Route Table to default next-hop through IGW.<br> 
 
-We are leveraging the [Zscaler ZPA Provider](https://github.com/zscaler/terraform-provider-zpa) to connect to your ZPA Admin console and provision a new App Connector Group + Provisioning Key. You can still run this template if deploying to an existing App Connector Group rather than creating a new one, but using the conditional create functionality from variable byo_provisioning_key and supplying to name of your provisioning key to variable byo_provisioning_key_name. In either deployment, this is fed directly into the userdata for bootstrapping.
+We are leveraging the [Zscaler ZPA Provider](https://github.com/zscaler/terraform-provider-zpa) to connect to your ZPA Admin console and provision a new App Connector Group + Provisioning Key. You can still run this template if deploying to an existing App Connector Group rather than creating a new one, but using the conditional create functionality from variable byo_provisioning_key and supplying to name of your provisioning key to variable byo_provisioning_key_name. In either deployment, this is fed directly into the userdata for bootstrapping.<br>
 
 
 ## How to deploy:
 
 ### Option 1 (guided):
+Optional: Edit the terraform.tfvars file under your desired deployment type (ie: base_ac) to setup your App Connector Group (Details are documented inside the file)
 From the examples directory, run the zsac bash script that walks to all required inputs.
 - ./zsac up
 - enter "greenfield"
