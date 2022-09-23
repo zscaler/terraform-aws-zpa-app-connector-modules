@@ -61,7 +61,7 @@ variable "bastion_nsg_source_prefix" {
 variable "ac_count" {
   type        = number
   description = "Default number of App Connector appliances to create"
-  default     = 1
+  default     = 2
 }
 
 variable "acvm_instance_type" {
@@ -168,6 +168,19 @@ variable "byo_security_group_id" {
   default     = null
 }
 
+variable "byo_provisioning_key" {
+  type        = bool
+  description = "Bring your own App Connector Provisioning Key. Setting this variable to true will effectively instruct this module to not create any resources and only reference data resources from values provided in byo_provisioning_key_name"
+  default     = false
+}
+
+variable "byo_provisioning_key_name" {
+  type        = string
+  description = "Existing App Connector Provisioning Key name"
+  default     = null
+}
+
+# ZPA Provider specific variables for App Connector Group and Provisioning Key creation
 variable "enrollment_cert" {
   type        = string
   description = "Get name of ZPA enrollment cert to be used for App Connector provisioning"
@@ -188,6 +201,7 @@ variable "enrollment_cert" {
 variable "app_connector_group_name" {
   type        = string
   description = "Name of the App Connector Group"
+  default     = "aws-connector-group-tf"
 }
 
 variable "app_connector_group_description" {
@@ -211,16 +225,19 @@ variable "app_connector_group_country_code" {
 variable "app_connector_group_latitude" {
   type        = string
   description = "Latitude of the App Connector Group. Integer or decimal. With values in the range of -90 to 90"
+  default     = "37.3382082"
 }
 
 variable "app_connector_group_longitude" {
   type        = string
   description = "Longitude of the App Connector Group. Integer or decimal. With values in the range of -90 to 90"
+  default     = "-121.8863286"
 }
 
 variable "app_connector_group_location" {
   type        = string
   description = "location of the App Connector Group in City, State, Country format. example: 'San Jose, CA, USA'"
+  default     = "San Jose, CA, USA"
 }
 
 variable "app_connector_group_upgrade_day" {
@@ -274,6 +291,7 @@ variable "app_connector_group_dns_query_type" {
 variable "provisioning_key_name" {
   type        = string
   description = "Name of the provisioning key"
+  default     = "aws-prov-key-tf"
 }
 
 variable "provisioning_key_enabled" {
@@ -299,4 +317,5 @@ variable "provisioning_key_association_type" {
 variable "provisioning_key_max_usage" {
   type        = number
   description = "The maximum number of instances where this provisioning key can be used for enrolling an App Connector or Service Edge"
+  default     = 10
 }

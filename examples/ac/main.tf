@@ -69,71 +69,12 @@ module "network" {
   byo_ngw_ids    = var.byo_ngw_ids
 }
 
-# Create specified number of AC appliances
-module "ac-vm" {
-  source                      = "../../modules/terraform-zsac-acvm-aws"
-  ac_count                    = var.ac_count
-  name_prefix                 = var.name_prefix
-  resource_tag                = random_string.suffix.result
-  global_tags                 = local.global_tags
-  ac_subnet_ids               = module.network.ac_subnet_ids
-  instance_key                = aws_key_pair.deployer.key_name
-  user_data                   = local.appuserdata
-  acvm_instance_type          = var.acvm_instance_type
-  iam_instance_profile        = module.ac-iam.iam_instance_profile_id
-  security_group_id           = module.ac-sg.ac_security_group_id
-  associate_public_ip_address = var.associate_public_ip_address
-
-  depends_on = [
-    local_file.user-data-file,
-  ]
-}
-
 
 ################################################################################
-# 3. Create IAM Policy, Roles, and Instance Profiles to be assigned to AC.
-#    Default behavior will create 1 of each IAM resource per AC VM. Set variable
-#    "reuse_iam" to true if you would like a single IAM profile created and
-#    assigned to ALL App Connectors instead.
-################################################################################
-module "ac-iam" {
-  source       = "../../modules/terraform-zsac-iam-aws"
-  iam_count    = var.reuse_iam == false ? var.ac_count : 1
-  name_prefix  = var.name_prefix
-  resource_tag = random_string.suffix.result
-  global_tags  = local.global_tags
-
-  byo_iam = var.byo_iam
-  # optional inputs. only required if byo_iam set to true
-  byo_iam_instance_profile_id = var.byo_iam_instance_profile_id
-  # optional inputs. only required if byo_iam set to true
-}
-
-
-################################################################################
-# 4. Create Security Group and rules to be assigned to the App Connector
-#    interface. Default behavior will create 1 of each SG resource per AC VM.
-#    Set variable "reuse_security_group" to true if you would like a single
-#    security group created and assigned to ALL App Connectors instead.
-################################################################################
-module "ac-sg" {
-  source       = "../../modules/terraform-zsac-sg-aws"
-  sg_count     = var.reuse_security_group == false ? var.ac_count : 1
-  name_prefix  = var.name_prefix
-  resource_tag = random_string.suffix.result
-  global_tags  = local.global_tags
-  vpc_id       = module.network.vpc_id
-
-  byo_security_group = var.byo_security_group
-  # optional inputs. only required if byo_security_group set to true
-  byo_security_group_id = var.byo_security_group_id
-  # optional inputs. only required if byo_security_group set to true
-}
-
-################################################################################
-# 3. Create ZPA App Connector Group
+# 2. Create ZPA App Connector Group
 ################################################################################
 module "zpa-app-connector-group" {
+  count                                        = var.byo_provisioning_key == true ? 0 : 1 # Only use this module if a new provisioning key is needed
   source                                       = "../../modules/terraform-zpa-app-connector-group"
   app_connector_group_name                     = var.app_connector_group_name
   app_connector_group_description              = var.app_connector_group_description
@@ -149,8 +90,9 @@ module "zpa-app-connector-group" {
   app_connector_group_dns_query_type           = var.app_connector_group_dns_query_type
 }
 
+
 ################################################################################
-# 4. Create ZPA Provisioning Key
+# 3. Create ZPA Provisioning Key (or reference existing if byo set)
 ################################################################################
 module "zpa-provisioning-key" {
   source                            = "../../modules/terraform-zpa-provisioning-key"
@@ -159,11 +101,14 @@ module "zpa-provisioning-key" {
   provisioning_key_enabled          = var.provisioning_key_enabled
   provisioning_key_association_type = var.provisioning_key_association_type
   provisioning_key_max_usage        = var.provisioning_key_max_usage
-  app_connector_group_id            = module.zpa-app-connector-group.app_connector_group_id
+  app_connector_group_id            = try(module.zpa-app-connector-group[0].app_connector_group_id, "")
+  byo_provisioning_key              = var.byo_provisioning_key
+  byo_provisioning_key_name         = var.byo_provisioning_key_name
 }
 
+
 ################################################################################
-# 2. Create specified number AC VMs per ac_count which will span equally across
+# 4. Create specified number AC VMs per ac_count which will span equally across
 #    designated availability zones per az_count. E.g. ac_count set to 4 and
 #    az_count set to 2 will create 2x ACs in AZ1 and 2x ACs in AZ2
 ################################################################################
@@ -193,3 +138,65 @@ resource "local_file" "user-data-file" {
   content  = local.appuserdata
   filename = "../user_data"
 }
+
+# Create specified number of AC appliances
+module "ac-vm" {
+  source                      = "../../modules/terraform-zsac-acvm-aws"
+  ac_count                    = var.ac_count
+  name_prefix                 = var.name_prefix
+  resource_tag                = random_string.suffix.result
+  global_tags                 = local.global_tags
+  ac_subnet_ids               = module.network.ac_subnet_ids
+  instance_key                = aws_key_pair.deployer.key_name
+  user_data                   = local.appuserdata
+  acvm_instance_type          = var.acvm_instance_type
+  iam_instance_profile        = module.ac-iam.iam_instance_profile_id
+  security_group_id           = module.ac-sg.ac_security_group_id
+  associate_public_ip_address = var.associate_public_ip_address
+
+  depends_on = [
+    local_file.user-data-file,
+  ]
+}
+
+
+################################################################################
+# 5. Create IAM Policy, Roles, and Instance Profiles to be assigned to AC.
+#    Default behavior will create 1 of each IAM resource per AC VM. Set variable
+#    "reuse_iam" to true if you would like a single IAM profile created and
+#    assigned to ALL App Connectors instead.
+################################################################################
+module "ac-iam" {
+  source       = "../../modules/terraform-zsac-iam-aws"
+  iam_count    = var.reuse_iam == false ? var.ac_count : 1
+  name_prefix  = var.name_prefix
+  resource_tag = random_string.suffix.result
+  global_tags  = local.global_tags
+
+  byo_iam = var.byo_iam
+  # optional inputs. only required if byo_iam set to true
+  byo_iam_instance_profile_id = var.byo_iam_instance_profile_id
+  # optional inputs. only required if byo_iam set to true
+}
+
+
+################################################################################
+# 6. Create Security Group and rules to be assigned to the App Connector
+#    interface. Default behavior will create 1 of each SG resource per AC VM.
+#    Set variable "reuse_security_group" to true if you would like a single
+#    security group created and assigned to ALL App Connectors instead.
+################################################################################
+module "ac-sg" {
+  source       = "../../modules/terraform-zsac-sg-aws"
+  sg_count     = var.reuse_security_group == false ? var.ac_count : 1
+  name_prefix  = var.name_prefix
+  resource_tag = random_string.suffix.result
+  global_tags  = local.global_tags
+  vpc_id       = module.network.vpc_id
+
+  byo_security_group = var.byo_security_group
+  # optional inputs. only required if byo_security_group set to true
+  byo_security_group_id = var.byo_security_group_id
+  # optional inputs. only required if byo_security_group set to true
+}
+
