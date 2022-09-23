@@ -40,10 +40,10 @@ if [[ "$oper" == "up" ]]; then
   done
 
     while [ "$deploy" == "greenfield" ]; do
-     read -r -p "Deployment Type: ( base | base_ac | base_ac_asg | base_ac_zpa ): " dtype
+     read -r -p "Deployment Type: ( base | base_ac | base_ac_asg ): " dtype
 
     case $dtype in
-      base|base_ac|base_ac_asg|base_ac_zpa)
+      base|base_ac|base_ac_asg)
           echo "Deployment Type: ${dtype}"
           break
       ;;
@@ -155,8 +155,8 @@ if [[ $dtype == "base" && ! -e ./.zsacrc ]]; then
     echo "Delete .zsacrc file and re-run zsac up..."
     exit 1
     fi
-    echo "export AWS_ACCESS_KEY_ID=${aws_key}" > .zsacrc
-    echo "export AWS_SECRET_ACCESS_KEY=${aws_secret}" >> .zsacrc
+    echo "export AWS_ACCESS_KEY_ID='\"${aws_key}\"'" > .zsacrc
+    echo "export AWS_SECRET_ACCESS_KEY='\"${aws_secret}\"'" >> .zsacrc
     echo "export AWS_DEFAULT_REGION=${aws_region}" >> .zsacrc
     echo "export TF_VAR_aws_region=${aws_region}" >> .zsacrc
 
@@ -225,19 +225,44 @@ if [[ "$oper" == "up" && "$dtype" != base && ! -e ./.zsacrc ]]; then
     read -r -p "Enter AWS Session Token: " aws_session_token
     fi
     read -r -p "Enter AWS Access Key ID: " aws_key
+    echo "export AWS_ACCESS_KEY_ID=\"${aws_key}\"" > .zsacrc
     read -r -p "Enter AWS Secret Access Key: " aws_secret
+    echo "export AWS_SECRET_ACCESS_KEY=\"${aws_secret}\"" >> .zsacrc
     read -r -p "Enter AWS Region (e.g. us-west-2): " aws_region
     if [[ ${aws_regions[*]} =~ $aws_region ]]; then
     echo "AWS Region entered is: $aws_region"
+    echo "export AWS_DEFAULT_REGION=${aws_region}" >> .zsacrc
+    echo "export TF_VAR_aws_region=${aws_region}" >> .zsacrc
     else
     echo "Invalid AWS region name entered."
     echo "Delete .zsacrc file and re-run zsac up..."
     exit 1
     fi
-    echo "export AWS_ACCESS_KEY_ID=${aws_key}" > .zsacrc
-    echo "export AWS_SECRET_ACCESS_KEY=${aws_secret}" >> .zsacrc
-    echo "export AWS_DEFAULT_REGION=${aws_region}" >> .zsacrc
-    echo "export TF_VAR_aws_region=${aws_region}" >> .zsacrc
+    
+    while true; do
+    read -r -p "Enter ZPA Client ID: " zpa_client_id
+    echo "export ZPA_CLIENT_ID=\"${zpa_client_id}\"" >> .zsacrc
+    read -r -p "Enter ZPA Client Secret: " zpa_client_secret
+    echo "export ZPA_CLIENT_SECRET=\"${zpa_client_secret}\"" >> .zsacrc
+    read -r -p "Enter ZPA Customer ID: " zpa_customer_id
+    echo "export ZPA_CUSTOMER_ID=\"${zpa_customer_id}\"" >> .zsacrc
+
+    read -r -p "Do you already have an App Connector provisioning key to use? [yes/no] " prov_key_response
+    case $prov_key_response in 
+	yes|y ) 
+    read -r -p "Enter the name of your existing App Connector provisioning key: " byo_provisioning_key_name
+    echo "export TF_VAR_byo_provisioning_key=true" >> .zsacrc
+    echo "export TF_VAR_byo_provisioning_key_name=${byo_provisioning_key_name}" >> .zsacrc
+    break
+    ;;
+	no|n )
+    echo "Terraform will be creating a new App Connector Group and provisioning key"
+    echo "Before proceeding, make sure you have entered all variable requirements from steps 1 and 2 in $dtype/terraform.tfvars"
+    break
+    ;;
+	* ) echo "invalid response. Please enter yes or no";;
+    esac
+done
     
     while [[ "$dtype" == "base"* && "$oper" == "up" ]]; do
 clientpublicip=$(curl -s ifconfig.me)
@@ -300,12 +325,6 @@ acvm_instance_type=${acvm_instance_type_input:-$acvm_instance_type_default}
       ;;
     esac
 done
-
-if [[ "$dtype" != *"zpa"* ]]; then
-read -r -p "Enter AC Provisioning Key (E.g. 3|api.private.zscaler.com|<string>): " ac_prov_key
-echo "Provisioning Key entered is: $ac_prov_key"
-echo "export TF_VAR_ac_prov_key='${ac_prov_key}'" >> .zsacrc
-fi
 
 ac_count_default=2
 if [[ "$dtype" == *"asg"* ]]; then
@@ -508,7 +527,7 @@ fi
 # Get new MFA session token
 if [[ $mfa_enabled == true ]]; then
     if [ -z "$AWS_SESSION_TOKEN" ]; then
-    echo "export AWS_SESSION_TOKEN=${aws_session_token}" >> .zsacrc 
+    echo "export AWS_SESSION_TOKEN=\"${aws_session_token}\"" >> .zsacrc
 else
     echo "zsacrc file has existing session token. Resetting to ensure credentials are refreshed"
     echo "unsetting existing AWS Environment variables (unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY)"
@@ -525,11 +544,11 @@ else
     aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}
  
     read -r -p "Enter AWS Session Token: " aws_session_token
-    echo "export AWS_SESSION_TOKEN=${aws_session_token}" >> .zsacrc
+    echo "export AWS_SESSION_TOKEN=\"${aws_session_token}\"" >> .zsacrc
     read -r -p "Enter AWS Access Key ID: " aws_key
     read -r -p "Enter AWS Secret Access Key: " aws_secret
-    echo "export AWS_ACCESS_KEY_ID=${aws_key}" >> .zsacrc
-    echo "export AWS_SECRET_ACCESS_KEY=${aws_secret}" >> .zsacrc
+    echo "export AWS_ACCESS_KEY_ID=\"${aws_key}\"" > .zsacrc
+    echo "export AWS_SECRET_ACCESS_KEY=\"${aws_secret}\"" >> .zsacrc
 fi    
     # Reinitialize environment variables
 . ./.zsacrc

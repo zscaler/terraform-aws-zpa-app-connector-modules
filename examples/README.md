@@ -33,7 +33,7 @@ See: [Zscaler App Connector AWS Deployment Guide](https://help.zscaler.com/zpa/c
 ```
 bash
 cd examples
-Optional: Edit the terraform.tfvars file under your desired deployment type (ie: base_ac) to setup your App Connector (Details are documented inside the file)
+Optional: Edit the terraform.tfvars file under your desired deployment type (ie: base_ac) to setup your App Connector Group (Details are documented inside the file)
 - ./zsac up
 - enter "greenfield"
 - enter <desired deployment type>
