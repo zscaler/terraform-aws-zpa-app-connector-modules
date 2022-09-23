@@ -1,20 +1,3 @@
-variable "enrollment_cert" {
-  type        = string
-  description = "Get name of ZPA enrollment cert to be used for App Connector provisioning"
-  default     = "Connector"
-
-  validation {
-    condition = (
-      var.enrollment_cert == "Root" ||
-      var.enrollment_cert == "Client" ||
-      var.enrollment_cert == "Connector" ||
-      var.enrollment_cert == "Service Edge" ||
-      var.enrollment_cert == "Isolation Client"
-    )
-    error_message = "Input enrollment_cert must be set to an approved value."
-  }
-}
-
 variable "app_connector_group_name" {
   type        = string
   description = "Name of the App Connector Group"
@@ -99,34 +82,4 @@ variable "app_connector_group_dns_query_type" {
     )
     error_message = "Input app_connector_group_dns_query_type must be set to an approved value."
   }
-}
-
-variable "provisioning_key_name" {
-  type        = string
-  description = "Name of the provisioning key"
-}
-
-variable "provisioning_key_enabled" {
-  type        = bool
-  description = "Whether the provisioning key is enabled or not. Default: true"
-  default     = true
-}
-
-variable "provisioning_key_association_type" {
-  type        = string
-  description = "Specifies the provisioning key type for App Connectors or ZPA Private Service Edges. The supported values are CONNECTOR_GRP and SERVICE_EDGE_GRP"
-  default     = "CONNECTOR_GRP"
-
-  validation {
-    condition = (
-      var.provisioning_key_association_type == "CONNECTOR_GRP" ||
-      var.provisioning_key_association_type == "SERVICE_EDGE_GRP"
-    )
-    error_message = "Input provisioning_key_association_type must be set to an approved value."
-  }
-}
-
-variable "provisioning_key_max_usage" {
-  type        = number
-  description = "The maximum number of instances where this provisioning key can be used for enrolling an App Connector or Service Edge"
 }

@@ -22,7 +22,7 @@ terraform {
     }
     zpa = {
       source  = "zscaler/zpa"
-      version = "~> 2.3.0"
+      version = ">= 2.3.2"
     }
   }
 
@@ -34,8 +34,4 @@ provider "aws" {
   region = var.aws_region
 }
 
-provider "zpa" {
-  zpa_client_id     = var.zpa_client_id
-  zpa_client_secret = var.zpa_client_secret
-  zpa_customer_id   = var.zpa_customer_id
-}
+provider "zpa" {}

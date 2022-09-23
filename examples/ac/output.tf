@@ -3,7 +3,7 @@ locals {
   testbedconfig = <<TB
 
 
-VPC:         
+VPC:
 ${module.network.vpc_id}
 
 All AC AZs:
