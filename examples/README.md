@@ -13,7 +13,12 @@
 6. Subscribe and accept terms of using Zscaler App Connector image at [this link](https://aws.amazon.com/marketplace/pp/prodview-epy3md7fcvk4g)
 
 ### Zscaler requirements
-7. A valid Zscaler App Connector provisioning key generated from the ZPA Admin Portal (unless running a deployment like base_ac_zpa which leverages the Terraform ZPA Provider to also create a new provisioning key)
+7. A valid Zscaler Private Access subscription and portal access
+8. Zscaler ZPA API Keys. Details on how to find and generate ZPA API keys can be located here: https://help.zscaler.com/zpa/about-api-keys#:~:text=An%20API%20key%20is%20required,from%20the%20API%20Keys%20page
+- Client ID
+- Client Secret
+- Customer ID
+9. (Optional) An existing App Connector Group and Provisioning Key. Otherwise, you can follow the prompts in the examples terraform.tfvars to create a new Connector Group and Provisioning Key
 
 See: [Zscaler App Connector AWS Deployment Guide](https://help.zscaler.com/zpa/connector-deployment-guide-amazon-web-services) for additional prerequisite provisioning steps.
 
@@ -41,11 +46,10 @@ Optional: Edit the terraform.tfvars file under your desired deployment type (ie:
 **Greenfield Deployment Types:**
 
 ```
-Deployment Type: (base | base_ac | base_ac_asg | base_ac_zpa):
+Deployment Type: (base | base_ac | base_ac_asg):
 base: Creates 1 new VPC with 1 public subnet and 1 private/workload subnet; 1 IGW; 1 NAT Gateway; 1 Bastion Host in the public subnet assigned an Elastic IP and routing to the IGW; generates local key pair .pem file for ssh access
-base_ac: Base Deployment Type + Creates App Connector private subnets and App Connector VMs egressing through the NAT Gateways in their respective availability zones
-base_ac_asg: Base Deployment Type + Creates App Connectors via Launch Template in an Autoscaling Group.
-base_ac_zpa: Same as base_ac Deployment Type except for the addition of leveraging the Terraform ZPA Provider for creating a new App Connector Group and Provisioning Key instead of referencing an existing one. Please refer to additional requirements in this deployment folder terraform.tfvars file prior to running.
+base_ac: Base Deployment Type + Creates App Connector private subnets and App Connector VMs egressing through the NAT Gateways in their respective availability zones. Please refer to additional requirements in this deployment folder terraform.tfvars file prior to running to step through requirements to create a new App Connector Group if you do NOT already have one created.
+base_ac_asg: Base Deployment Type + Creates App Connectors via Launch Template in an Autoscaling Group. Please refer to additional requirements in this deployment folder terraform.tfvars file prior to running to step through requirements to create a new App Connector Group if you do NOT already have one created.
 ```
 
 **2. Brownfield Deployments**
@@ -69,8 +73,8 @@ Optional: Edit the terraform.tfvars file under your desired deployment type (ie:
 
 ```
 Deployment Type: (ac | ac_asg):
-ac: Creates 1 new VPC with 2 public subnets and 2 App Connector private subnets; 1 IGW; 2 NAT Gateways; 2 App Connector VMs (1 per subnet/AZ) routing to the NAT Gateway in their same AZ; generates local key pair .pem file for ssh access; The number of App Connectors and subnets deployed is customizable; There are also "byo" variables providing the ability to use existing resources (VPC, subnets, IGW, NAT Gateways, IAM, Security Groups, etc.) generates local key pair .pem file for ssh access to all instances.
-ac_asg: Same resource creation and "byo" options as ac deployment type, but the App Connectors VMs are instead deployed via a Launch Template in Autoscaling Group configuration.
+ac: Creates 1 new VPC with 2 public subnets and 2 App Connector private subnets; 1 IGW; 2 NAT Gateways; 2 App Connector VMs (1 per subnet/AZ) routing to the NAT Gateway in their same AZ; generates local key pair .pem file for ssh access; The number of App Connectors and subnets deployed is customizable; There are also "byo" variables providing the ability to use existing resources (VPC, subnets, IGW, NAT Gateways, IAM, Security Groups, etc.) generates local key pair .pem file for ssh access to all instances. Please refer to additional requirements in this deployment folder terraform.tfvars file prior to running to step through requirements to create a new App Connector Group if you do NOT already have one created or if you intend to reference any existing byo network resources.
+ac_asg: Same resource creation and "byo" options as ac deployment type, but the App Connectors VMs are instead deployed via a Launch Template in Autoscaling Group configuration. Please refer to additional requirements in this deployment folder terraform.tfvars file prior to running to step through requirements to create a new App Connector Group if you do NOT already have one created or if you intend to reference any existing byo network resources.
 ```
 
 ## Destroying the cluster
