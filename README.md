@@ -25,7 +25,12 @@ Our Deployment scripts are leveraging Terraform v1.1.9 that includes full binary
 6. Subscribe and accept terms of using Zscaler App Connector image at [this link](https://aws.amazon.com/marketplace/pp/prodview-epy3md7fcvk4g)
 
 ### Zscaler requirements
-7. A valid Zscaler App Connector provisioning key generated from the ZPA Admin Portal (unless running a deployment like base_ac_zpa which leverages the Terraform ZPA Provider to also create a new provisioning key)
+7. A valid Zscaler Private Access subscription and portal access
+8. Zscaler ZPA API Keys. Details on how to find and generate ZPA API keys can be located here: https://help.zscaler.com/zpa/about-api-keys#:~:text=An%20API%20key%20is%20required,from%20the%20API%20Keys%20page
+- Client ID
+- Client Secret
+- Customer ID
+9. (Optional) An existing App Connector Group and Provisioning Key. Otherwise, you can follow the prompts in the examples terraform.tfvars to create a new Connector Group and Provisioning Key
 
 See: [Zscaler App Connector AWS Deployment Guide](https://help.zscaler.com/zpa/connector-deployment-guide-amazon-web-services) for additional prerequisite provisioning steps.
 
