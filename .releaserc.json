@@ -1,39 +1,45 @@
 {
     "branches": [
-        "main"
+      "main",
+      "master"
     ],
+    "ci": false,
     "plugins": [
-        [
-            "@semantic-release/commit-analyzer",
-            {
-                "releaseRules": [
-                    {
-                        "breaking": true,
-                        "release": "minor"
-                    },
-                    {
-                        "type": "feat",
-                        "release": "patch"
-                    }
-                ]
-            }
-        ],
+      [
+        "@semantic-release/commit-analyzer",
+        {
+          "preset": "conventionalcommits"
+        }
+      ],
+      [
         "@semantic-release/release-notes-generator",
-        [
-            "@semantic-release/git",
-            {
-                "assets": [
-                    "README.md"
-                ],
-                "message": "chore(release): ${nextRelease.version}\n\n${nextRelease.notes}"
-            }
-        ],
-        [
-            "@semantic-release/github",
-            {
-                "successComment": ":tada: This ${issue.pull_request ? 'PR is included' : 'issue has been resolved'} in version ${nextRelease.version} :tada:\n\nThe release is available on [Terraform Registry](https://registry.terraform.io/modules/PaloAltoNetworks/vmseries-modules/aws/latest) and [GitHub release](../releases/tag/v${nextRelease.version})\n\n> Posted by [semantic-release](https://github.com/semantic-release/semantic-release) bot"
-            }
-        ]
-    ],
-    "preset": "conventionalcommits"
-}
+        {
+          "preset": "conventionalcommits"
+        }
+      ],
+      [
+        "@semantic-release/github",
+        {
+          "successComment": "This ${issue.pull_request ? 'PR is included' : 'issue has been resolved'} in version ${nextRelease.version} :tada:",
+          "labels": false,
+          "releasedLabels": false
+        }
+      ],
+      [
+        "@semantic-release/changelog",
+        {
+          "changelogFile": "CHANGELOG.md",
+          "changelogTitle": "# Changelog\n\nAll notable changes to this project will be documented in this file."
+        }
+      ],
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "CHANGELOG.md"
+          ],
+          "message": "chore(release): version ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+        }
+      ]
+    ]
+  }
