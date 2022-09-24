@@ -46,3 +46,5 @@ override.tf.json
 
 # My stuff
 .todo
+local_test
+/local_test
