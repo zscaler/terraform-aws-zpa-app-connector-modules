@@ -1,22 +1,32 @@
-name: 'Close stale issues and pull requests with no recent activity'
+name: 'Mark or close stale issues and PRs'
 on:
   schedule:
-  - cron: "15 00 * * *"
+    - cron: '0 0 * * *'
 
 jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/stale@v4.0.0
-
-      with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        # stale-issue-message: 'This issue has been marked as a stale issue because it has been open (more than) 30 days with no activity. Remove the stale label or add a comment, otherwise this issue will automatically be closed in 5 days. Note, that you can always re-open a closed issue at any time.'
-        # stale-pr-message: 'This pull request has been marked as a stale pull request because it has been open (more than) 30 days with no activity. Remove the stale label or add a comment, otherwise this pull request will automatically be closed in 5 days. Note, that you can always re-open a closed issue at any time.'
-        stale-issue-label: stale
-        stale-pr-label: stale
-        exempt-issue-labels: bug,enhancement
-        exempt-pr-labels: bug,enhancement
-        days-before-stale: 30
-        days-before-close: -1
-        remove-stale-when-updated: true
+      - uses: actions/stale@v4
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          # Staling issues and PR's
+          days-before-stale: 30
+          stale-issue-label: stale
+          stale-pr-label: stale
+          stale-issue-message: |
+            This issue has been automatically marked as stale because it has been open 30 days
+            with no activity. Remove stale label or comment or this issue will be closed in 10 days
+          stale-pr-message: |
+            This PR has been automatically marked as stale because it has been open 30 days
+            with no activity. Remove stale label or comment or this PR will be closed in 10 days
+          # Not stale if have this labels or part of milestone
+          exempt-issue-labels: bug,wip,on-hold
+          exempt-pr-labels: bug,wip,on-hold
+          exempt-all-milestones: true
+          # Close issue operations
+          # Label will be automatically removed if the issues are no longer closed nor locked.
+          days-before-close: 10
+          delete-branch: true
+          close-issue-message: This issue was automatically closed because of stale in 10 days
+          close-pr-message: This PR was automatically closed because of stale in 10 days
