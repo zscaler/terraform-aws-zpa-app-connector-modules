@@ -22,11 +22,11 @@ locals {
 
 
 ################################################################################
-# The following lines generates a new SSH key pair and stores the PEM file 
-# locally. The public key output is used as the instance_key passed variable 
+# The following lines generates a new SSH key pair and stores the PEM file
+# locally. The public key output is used as the instance_key passed variable
 # to the ec2 modules for admin_ssh_key public_key authentication.
-# This is not recommended for production deployments. Please consider modifying 
-# to pass your own custom public key file located in a secure location.   
+# This is not recommended for production deployments. Please consider modifying
+# to pass your own custom public key file located in a secure location.
 ################################################################################
 resource "tls_private_key" "key" {
   algorithm = var.tls_key_algorithm
@@ -45,7 +45,7 @@ resource "local_file" "private_key" {
 
 
 ################################################################################
-# 1. Create/reference all network infrastructure resource dependencies for all 
+# 1. Create/reference all network infrastructure resource dependencies for all
 #    child modules (vpc, igw, nat gateway, subnets, route tables)
 ################################################################################
 module "network" {
@@ -79,7 +79,7 @@ module "bastion" {
 ################################################################################
 # 3. Create ZPA App Connector Group
 ################################################################################
-module "zpa-app-connector-group" {
+module "zpa_app_connector_group" {
   count                                        = var.byo_provisioning_key == true ? 0 : 1 # Only use this module if a new provisioning key is needed
   source                                       = "../../modules/terraform-zpa-app-connector-group"
   app_connector_group_name                     = var.app_connector_group_name
@@ -100,22 +100,22 @@ module "zpa-app-connector-group" {
 ################################################################################
 # 4. Create ZPA Provisioning Key (or reference existing if byo set)
 ################################################################################
-module "zpa-provisioning-key" {
+module "zpa_provisioning_key" {
   source                            = "../../modules/terraform-zpa-provisioning-key"
   enrollment_cert                   = var.enrollment_cert
   provisioning_key_name             = var.provisioning_key_name
   provisioning_key_enabled          = var.provisioning_key_enabled
   provisioning_key_association_type = var.provisioning_key_association_type
   provisioning_key_max_usage        = var.provisioning_key_max_usage
-  app_connector_group_id            = try(module.zpa-app-connector-group[0].app_connector_group_id, "")
+  app_connector_group_id            = try(module.zpa_app_connector_group[0].app_connector_group_id, "")
   byo_provisioning_key              = var.byo_provisioning_key
   byo_provisioning_key_name         = var.byo_provisioning_key_name
 }
 
 
 ################################################################################
-# 5. Create specified number AC VMs per ac_count which will span equally across 
-#    designated availability zones per az_count. E.g. ac_count set to 4 and 
+# 5. Create specified number AC VMs per ac_count which will span equally across
+#    designated availability zones per az_count. E.g. ac_count set to 4 and
 #    az_count set to 2 will create 2x ACs in AZ1 and 2x ACs in AZ2
 ################################################################################
 # Create the user_data file with necessary bootstrap variables for App Connector registration
@@ -126,7 +126,7 @@ locals {
 systemctl stop zpa-connector
 #Create a file from the App Connector provisioning key created in the ZPA Admin Portal
 #Make sure that the provisioning key is between double quotes
-echo "${module.zpa-provisioning-key.provisioning_key}" > /opt/zscaler/var/provision_key
+echo "${module.zpa_provisioning_key.provisioning_key}" > /opt/zscaler/var/provision_key
 #Run a yum update to apply the latest patches
 yum update -y
 #Start the App Connector service to enroll it in the ZPA cloud
@@ -140,13 +140,13 @@ APPUSERDATA
 }
 
 # Write the file to local filesystem for storage/reference
-resource "local_file" "user-data-file" {
+resource "local_file" "user_data_file" {
   content  = local.appuserdata
   filename = "../user_data"
 }
 
 # Create specified number of AC appliances
-module "ac-vm" {
+module "ac_vm" {
   source                      = "../../modules/terraform-zsac-acvm-aws"
   ac_count                    = var.ac_count
   name_prefix                 = var.name_prefix
@@ -156,24 +156,24 @@ module "ac-vm" {
   instance_key                = aws_key_pair.deployer.key_name
   user_data                   = local.appuserdata
   acvm_instance_type          = var.acvm_instance_type
-  iam_instance_profile        = module.ac-iam.iam_instance_profile_id
-  security_group_id           = module.ac-sg.ac_security_group_id
+  iam_instance_profile        = module.ac_iam.iam_instance_profile_id
+  security_group_id           = module.ac_sg.ac_security_group_id
   associate_public_ip_address = var.associate_public_ip_address
 
   depends_on = [
-    local_file.user-data-file,
-    module.zpa-provisioning-key,
+    local_file.user_data_file,
+    module.zpa_provisioning_key,
   ]
 }
 
 
 ################################################################################
-# 5. Create IAM Policy, Roles, and Instance Profiles to be assigned to AC. 
-#    Default behavior will create 1 of each IAM resource per AC VM. Set variable 
-#    "reuse_iam" to true if you would like a single IAM profile created and 
+# 5. Create IAM Policy, Roles, and Instance Profiles to be assigned to AC.
+#    Default behavior will create 1 of each IAM resource per AC VM. Set variable
+#    "reuse_iam" to true if you would like a single IAM profile created and
 #    assigned to ALL App Connectors instead.
 ################################################################################
-module "ac-iam" {
+module "ac_iam" {
   source       = "../../modules/terraform-zsac-iam-aws"
   iam_count    = var.reuse_iam == false ? var.ac_count : 1
   name_prefix  = var.name_prefix
@@ -183,12 +183,12 @@ module "ac-iam" {
 
 
 ################################################################################
-# 6. Create Security Group and rules to be assigned to the App Connector 
-#    interface. Default behavior will create 1 of each SG resource per AC VM. 
-#    Set variable "reuse_security_group" to true if you would like a single 
+# 6. Create Security Group and rules to be assigned to the App Connector
+#    interface. Default behavior will create 1 of each SG resource per AC VM.
+#    Set variable "reuse_security_group" to true if you would like a single
 #    security group created and assigned to ALL App Connectors instead.
 ################################################################################
-module "ac-sg" {
+module "ac_sg" {
   source       = "../../modules/terraform-zsac-sg-aws"
   sg_count     = var.reuse_security_group == false ? var.ac_count : 1
   name_prefix  = var.name_prefix
@@ -196,7 +196,3 @@ module "ac-sg" {
   global_tags  = local.global_tags
   vpc_id       = module.network.vpc_id
 }
-
-
-
-

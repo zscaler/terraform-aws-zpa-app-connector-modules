@@ -20,11 +20,11 @@ data "aws_ami" "appconnector" {
 
 
 ################################################################################
-# Create launch template for App Connector autoscaling group instance creation. 
-# Mgmt and service interface device indexes are swapped to support ASG + GWLB 
+# Create launch template for App Connector autoscaling group instance creation.
+# Mgmt and service interface device indexes are swapped to support ASG + GWLB
 # instance association
 ################################################################################
-resource "aws_launch_template" "ac-launch-template" {
+resource "aws_launch_template" "ac_launch_template" {
   count         = 1
   name          = "${var.name_prefix}-ac-launch-template-${var.resource_tag}"
   image_id      = data.aws_ami.appconnector.id
@@ -62,7 +62,7 @@ resource "aws_launch_template" "ac-launch-template" {
 ################################################################################
 # Create App Connector autoscaling group
 ################################################################################
-resource "aws_autoscaling_group" "ac-asg" {
+resource "aws_autoscaling_group" "ac_asg" {
   name                      = "${var.name_prefix}-ac-asg-${var.resource_tag}"
   vpc_zone_identifier       = distinct(var.ac_subnet_ids)
   max_size                  = var.max_size
@@ -71,7 +71,7 @@ resource "aws_autoscaling_group" "ac-asg" {
   health_check_grace_period = var.health_check_grace_period
 
   launch_template {
-    id      = aws_launch_template.ac-launch-template.*.id[0]
+    id      = aws_launch_template.ac_launch_template.*.id[0]
     version = var.launch_template_version
   }
 
@@ -104,12 +104,12 @@ resource "aws_autoscaling_group" "ac-asg" {
 }
 
 ################################################################################
-# Create autoscaling group policy based on dynamic Target Tracking Scaling on 
+# Create autoscaling group policy based on dynamic Target Tracking Scaling on
 # average CPU
 ################################################################################
-resource "aws_autoscaling_policy" "ac-asg-target-tracking-policy" {
+resource "aws_autoscaling_policy" "ac_asg_target_tracking_policy" {
   name                   = "${var.name_prefix}-ac-asg-target-policy-${var.resource_tag}"
-  autoscaling_group_name = aws_autoscaling_group.ac-asg.name
+  autoscaling_group_name = aws_autoscaling_group.ac_asg.name
   policy_type            = "TargetTrackingScaling"
 
   target_tracking_configuration {

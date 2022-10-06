@@ -8,7 +8,7 @@ scp -i ${var.name_prefix}-key-${random_string.suffix.result}.pem ${var.name_pref
 2) SSH to the bastion host
 ssh -i ${var.name_prefix}-key-${random_string.suffix.result}.pem ec2-user@${module.bastion.public_dns}
 
-VPC:         
+VPC:
 ${module.network.vpc_id}
 
 All NAT GW IPs:
@@ -18,7 +18,8 @@ TB
 }
 
 output "testbedconfig" {
-  value = local.testbedconfig
+  description = "AWS Testbed results"
+  value       = local.testbedconfig
 }
 
 resource "local_file" "testbed" {

@@ -24,7 +24,7 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [zpa_app_connector_group.app-connector-group](https://registry.terraform.io/providers/zscaler/zpa/latest/docs/resources/app_connector_group) | resource |
+| [zpa_app_connector_group.app_connector_group](https://registry.terraform.io/providers/zscaler/zpa/latest/docs/resources/app_connector_group) | resource |
 
 ## Inputs
 
@@ -47,5 +47,5 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_app_connector_group_id"></a> [app\_connector\_group\_id](#output\_app\_connector\_group\_id) | n/a |
+| <a name="output_app_connector_group_id"></a> [app\_connector\_group\_id](#output\_app\_connector\_group\_id) | ZPA App Connector Group ID |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
