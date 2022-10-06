@@ -1,7 +1,6 @@
 ################################################################################
-# Pull region and VPC information
+# Pull VPC information
 ################################################################################
-data "aws_region" "current" {}
 data "aws_vpc" "selected" {
   id = var.vpc_id
 }
@@ -13,6 +12,7 @@ data "aws_vpc" "selected" {
 data "aws_ssm_parameter" "amazon_linux_latest" {
   name = "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
 }
+
 
 ################################################################################
 # Create pre-defined AWS Security Groups and rules for Bastion
