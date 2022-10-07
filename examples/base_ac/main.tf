@@ -82,7 +82,7 @@ module "bastion" {
 module "zpa_app_connector_group" {
   count                                        = var.byo_provisioning_key == true ? 0 : 1 # Only use this module if a new provisioning key is needed
   source                                       = "../../modules/terraform-zpa-app-connector-group"
-  app_connector_group_name                     = var.app_connector_group_name
+  app_connector_group_name                     = "${var.aws_region}-${module.network.vpc_id}"
   app_connector_group_description              = var.app_connector_group_description
   app_connector_group_enabled                  = var.app_connector_group_enabled
   app_connector_group_country_code             = var.app_connector_group_country_code
@@ -103,7 +103,7 @@ module "zpa_app_connector_group" {
 module "zpa_provisioning_key" {
   source                            = "../../modules/terraform-zpa-provisioning-key"
   enrollment_cert                   = var.enrollment_cert
-  provisioning_key_name             = var.provisioning_key_name
+  provisioning_key_name             = "${var.aws_region}-${module.network.vpc_id}"
   provisioning_key_enabled          = var.provisioning_key_enabled
   provisioning_key_association_type = var.provisioning_key_association_type
   provisioning_key_max_usage        = var.provisioning_key_max_usage
