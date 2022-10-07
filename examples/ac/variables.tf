@@ -193,16 +193,10 @@ variable "enrollment_cert" {
   }
 }
 
-variable "app_connector_group_name" {
-  type        = string
-  description = "Name of the App Connector Group"
-  default     = "aws-connector-group-tf"
-}
-
 variable "app_connector_group_description" {
   type        = string
   description = "Optional: Description of the App Connector Group"
-  default     = ""
+  default     = "This App Connector Group belongs to: "
 }
 
 variable "app_connector_group_enabled" {
@@ -281,12 +275,6 @@ variable "app_connector_group_dns_query_type" {
     )
     error_message = "Input app_connector_group_dns_query_type must be set to an approved value."
   }
-}
-
-variable "provisioning_key_name" {
-  type        = string
-  description = "Name of the provisioning key"
-  default     = "aws-prov-key-tf"
 }
 
 variable "provisioning_key_enabled" {
