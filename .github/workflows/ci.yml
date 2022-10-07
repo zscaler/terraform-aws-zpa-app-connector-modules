@@ -87,4 +87,3 @@ jobs:
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: ${{ steps.zscaler-iac-scan.outputs.sarif_file_path }}
-

@@ -1,10 +1,4 @@
 ################################################################################
-# Pull region information
-################################################################################
-data "aws_region" "current" {}
-
-
-################################################################################
 # Locate Latest App Connector AMI by product code
 ################################################################################
 data "aws_ami" "appconnector" {
@@ -22,7 +16,7 @@ data "aws_ami" "appconnector" {
 ################################################################################
 # Create App Connector VM
 ################################################################################
-resource "aws_instance" "ac-vm" {
+resource "aws_instance" "ac_vm" {
   count                       = var.ac_count
   ami                         = data.aws_ami.appconnector.id
   instance_type               = var.acvm_instance_type

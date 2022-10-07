@@ -52,13 +52,8 @@ variable "tls_key_algorithm" {
   default     = "RSA"
 }
 
-variable "bastion_nsg_source_prefix" {
-  type        = list(string)
-  description = "CIDR blocks of trusted networks for bastion host ssh access"
-  default     = ["0.0.0.0/0"]
-}
-
 variable "acvm_instance_type" {
+  type        = string
   description = "App Connector Instance Type"
   default     = "m5a.xlarge"
   validation {
@@ -68,18 +63,6 @@ variable "acvm_instance_type" {
     )
     error_message = "Input acvm_instance_type must be set to an approved vm instance type."
   }
-}
-
-variable "reuse_security_group" {
-  type        = bool
-  description = "Specifies whether the SG module should create 1:1 security groups per instance or 1 security group for all instances"
-  default     = false
-}
-
-variable "reuse_iam" {
-  type        = bool
-  description = "Specifies whether the SG module should create 1:1 IAM per instance or 1 IAM for all instances"
-  default     = false
 }
 
 variable "associate_public_ip_address" {

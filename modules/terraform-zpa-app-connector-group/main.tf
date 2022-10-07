@@ -2,7 +2,7 @@
 # Create ZPA App Connector Group
 ################################################################################
 # Create App Connector Group
-resource "zpa_app_connector_group" "app-connector-group" {
+resource "zpa_app_connector_group" "app_connector_group" {
   name                     = var.app_connector_group_name
   description              = var.app_connector_group_description
   enabled                  = var.app_connector_group_enabled

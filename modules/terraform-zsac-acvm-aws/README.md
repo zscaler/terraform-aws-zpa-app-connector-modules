@@ -26,9 +26,8 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [aws_instance.ac-vm](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
+| [aws_instance.ac_vm](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
 | [aws_ami.appconnector](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
-| [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 
 ## Inputs
 
@@ -50,8 +49,8 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_availability_zone"></a> [availability\_zone](#output\_availability\_zone) | n/a |
-| <a name="output_id"></a> [id](#output\_id) | n/a |
-| <a name="output_private_ip"></a> [private\_ip](#output\_private\_ip) | n/a |
-| <a name="output_public_ip"></a> [public\_ip](#output\_public\_ip) | n/a |
+| <a name="output_availability_zone"></a> [availability\_zone](#output\_availability\_zone) | Instance Availability Zone |
+| <a name="output_id"></a> [id](#output\_id) | Instance ID |
+| <a name="output_private_ip"></a> [private\_ip](#output\_private\_ip) | Instance Private IP Address |
+| <a name="output_public_ip"></a> [public\_ip](#output\_public\_ip) | Instance Public IP |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

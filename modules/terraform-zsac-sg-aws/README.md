@@ -24,9 +24,9 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [aws_security_group.ac-sg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
-| [aws_security_group_rule.ac-node-ingress-ssh](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
-| [aws_security_group.ac-sg-selected](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/security_group) | data source |
+| [aws_security_group.ac_sg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
+| [aws_security_group_rule.ac_node_ingress_ssh](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
+| [aws_security_group.ac_sg_selected](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/security_group) | data source |
 | [aws_vpc.selected](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/vpc) | data source |
 
 ## Inputs
@@ -45,6 +45,6 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_ac_security_group_arn"></a> [ac\_security\_group\_arn](#output\_ac\_security\_group\_arn) | n/a |
-| <a name="output_ac_security_group_id"></a> [ac\_security\_group\_id](#output\_ac\_security\_group\_id) | n/a |
+| <a name="output_ac_security_group_arn"></a> [ac\_security\_group\_arn](#output\_ac\_security\_group\_arn) | App Connector Security Group ARN |
+| <a name="output_ac_security_group_id"></a> [ac\_security\_group\_id](#output\_ac\_security\_group\_id) | App Connector Security Group ID |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

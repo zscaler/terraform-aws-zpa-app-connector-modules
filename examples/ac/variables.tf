@@ -52,12 +52,6 @@ variable "tls_key_algorithm" {
   default     = "RSA"
 }
 
-variable "bastion_nsg_source_prefix" {
-  type        = list(string)
-  description = "CIDR blocks of trusted networks for bastion host ssh access"
-  default     = ["0.0.0.0/0"]
-}
-
 variable "ac_count" {
   type        = number
   description = "Default number of App Connector appliances to create"
@@ -65,6 +59,7 @@ variable "ac_count" {
 }
 
 variable "acvm_instance_type" {
+  type        = string
   description = "App Connector Instance Type"
   default     = "m5a.xlarge"
   validation {

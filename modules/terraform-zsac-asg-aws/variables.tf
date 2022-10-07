@@ -32,6 +32,7 @@ variable "user_data" {
 }
 
 variable "acvm_instance_type" {
+  type        = string
   description = "App Connector Instance Type"
   default     = "m5a.xlarge"
   validation {
@@ -132,8 +133,3 @@ variable "target_cpu_util_value" {
   description = "Target value number for autoscaling policy CPU utilization target tracking. ie: trigger a scale in/out to keep average CPU Utliization percentage across all instances at/under this number"
   default     = 50
 }
-
-
-
-
-

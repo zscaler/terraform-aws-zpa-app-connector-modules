@@ -47,7 +47,7 @@ From ac directory execute:
 | <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.1.0 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.3.0 |
 | <a name="requirement_tls"></a> [tls](#requirement\_tls) | ~> 3.4.0 |
-| <a name="requirement_zpa"></a> [zpa](#requirement\_zpa) | ~> 2.3.0 |
+| <a name="requirement_zpa"></a> [zpa](#requirement\_zpa) | >=2.3.2 |
 
 ## Providers
 
@@ -62,12 +62,12 @@ From ac directory execute:
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_ac-iam"></a> [ac-iam](#module\_ac-iam) | ../../modules/terraform-zsac-iam-aws | n/a |
-| <a name="module_ac-sg"></a> [ac-sg](#module\_ac-sg) | ../../modules/terraform-zsac-sg-aws | n/a |
-| <a name="module_ac-vm"></a> [ac-vm](#module\_ac-vm) | ../../modules/terraform-zsac-acvm-aws | n/a |
+| <a name="module_ac_iam"></a> [ac\_iam](#module\_ac\_iam) | ../../modules/terraform-zsac-iam-aws | n/a |
+| <a name="module_ac_sg"></a> [ac\_sg](#module\_ac\_sg) | ../../modules/terraform-zsac-sg-aws | n/a |
+| <a name="module_ac_vm"></a> [ac\_vm](#module\_ac\_vm) | ../../modules/terraform-zsac-acvm-aws | n/a |
 | <a name="module_network"></a> [network](#module\_network) | ../../modules/terraform-zsac-network-aws | n/a |
-| <a name="module_zpa-app-connector-group"></a> [zpa-app-connector-group](#module\_zpa-app-connector-group) | ../../modules/terraform-zpa-app-connector-group | n/a |
-| <a name="module_zpa-provisioning-key"></a> [zpa-provisioning-key](#module\_zpa-provisioning-key) | ../../modules/terraform-zpa-provisioning-key | n/a |
+| <a name="module_zpa_app_connector_group"></a> [zpa\_app\_connector\_group](#module\_zpa\_app\_connector\_group) | ../../modules/terraform-zpa-app-connector-group | n/a |
+| <a name="module_zpa_provisioning_key"></a> [zpa\_provisioning\_key](#module\_zpa\_provisioning\_key) | ../../modules/terraform-zpa-provisioning-key | n/a |
 
 ## Resources
 
@@ -76,7 +76,7 @@ From ac directory execute:
 | [aws_key_pair.deployer](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/key_pair) | resource |
 | [local_file.private_key](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.testbed](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
-| [local_file.user-data-file](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
+| [local_file.user_data_file](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [random_string.suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) | resource |
 | [tls_private_key.key](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
 
@@ -102,7 +102,6 @@ From ac directory execute:
 | <a name="input_associate_public_ip_address"></a> [associate\_public\_ip\_address](#input\_associate\_public\_ip\_address) | enable/disable public IP addresses on App Connector instances. Setting this to true will result in the following: Dynamic Public IP address on the App Connector VM Instance will be enabled; no EIP or NAT Gateway resources will be created; and the App Connector Route Table default route next-hop will be set as the IGW | `bool` | `false` | no |
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region. | `string` | `"us-west-2"` | no |
 | <a name="input_az_count"></a> [az\_count](#input\_az\_count) | Default number of subnets to create based on availability zone input | `number` | `2` | no |
-| <a name="input_bastion_nsg_source_prefix"></a> [bastion\_nsg\_source\_prefix](#input\_bastion\_nsg\_source\_prefix) | CIDR blocks of trusted networks for bastion host ssh access | `list(string)` | <pre>[<br>  "0.0.0.0/0"<br>]</pre> | no |
 | <a name="input_byo_iam"></a> [byo\_iam](#input\_byo\_iam) | Bring your own IAM Instance Profile for App Connector | `bool` | `false` | no |
 | <a name="input_byo_iam_instance_profile_id"></a> [byo\_iam\_instance\_profile\_id](#input\_byo\_iam\_instance\_profile\_id) | IAM Instance Profile ID for App Connector association | `list(string)` | `null` | no |
 | <a name="input_byo_igw"></a> [byo\_igw](#input\_byo\_igw) | Bring your own AWS VPC for App Connector | `bool` | `false` | no |
@@ -134,5 +133,5 @@ From ac directory execute:
 
 | Name | Description |
 |------|-------------|
-| <a name="output_testbedconfig"></a> [testbedconfig](#output\_testbedconfig) | n/a |
+| <a name="output_testbedconfig"></a> [testbedconfig](#output\_testbedconfig) | AWS Testbed results |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

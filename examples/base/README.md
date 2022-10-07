@@ -87,5 +87,5 @@ From base directory execute:
 
 | Name | Description |
 |------|-------------|
-| <a name="output_testbedconfig"></a> [testbedconfig](#output\_testbedconfig) | n/a |
+| <a name="output_testbedconfig"></a> [testbedconfig](#output\_testbedconfig) | AWS Testbed results |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

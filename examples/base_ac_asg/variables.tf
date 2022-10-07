@@ -59,6 +59,7 @@ variable "bastion_nsg_source_prefix" {
 }
 
 variable "acvm_instance_type" {
+  type        = string
   description = "App Connector Instance Type"
   default     = "m5a.xlarge"
   validation {
@@ -303,6 +304,3 @@ variable "provisioning_key_max_usage" {
   description = "The maximum number of instances where this provisioning key can be used for enrolling an App Connector or Service Edge"
   default     = 10
 }
-
-
-

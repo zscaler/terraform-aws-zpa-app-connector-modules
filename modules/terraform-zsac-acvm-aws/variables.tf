@@ -32,6 +32,7 @@ variable "user_data" {
 }
 
 variable "acvm_instance_type" {
+  type        = string
   description = "App Connector Instance Type"
   default     = "m5a.xlarge"
   validation {
@@ -64,6 +65,3 @@ variable "associate_public_ip_address" {
   type        = bool
   description = "enable/disable public IP addresses on App Connector instances"
 }
-
-
- 

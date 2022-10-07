@@ -8,13 +8,13 @@ This module provides the resources necessary to create a new ZPA App Connector G
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
-| <a name="requirement_zpa"></a> [zpa](#requirement\_zpa) | ~> 2.3.0 |
+| <a name="requirement_zpa"></a> [zpa](#requirement\_zpa) | >=2.3.2 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_zpa"></a> [zpa](#provider\_zpa) | ~> 2.3.0 |
+| <a name="provider_zpa"></a> [zpa](#provider\_zpa) | >=2.3.2 |
 
 ## Modules
 
@@ -24,7 +24,7 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [zpa_app_connector_group.app-connector-group](https://registry.terraform.io/providers/zscaler/zpa/latest/docs/resources/app_connector_group) | resource |
+| [zpa_app_connector_group.app_connector_group](https://registry.terraform.io/providers/zscaler/zpa/latest/docs/resources/app_connector_group) | resource |
 
 ## Inputs
 
@@ -47,5 +47,5 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_app_connector_group_id"></a> [app\_connector\_group\_id](#output\_app\_connector\_group\_id) | n/a |
+| <a name="output_app_connector_group_id"></a> [app\_connector\_group\_id](#output\_app\_connector\_group\_id) | ZPA App Connector Group ID |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
