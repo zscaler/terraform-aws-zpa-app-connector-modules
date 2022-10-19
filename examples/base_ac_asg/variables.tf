@@ -77,6 +77,12 @@ variable "associate_public_ip_address" {
   description = "enable/disable public IP addresses on App Connector instances"
 }
 
+variable "use_zscaler_ami" {
+  default     = true
+  type        = bool
+  description = "By default, App Connector will deploy via the Zscaler Latest AMI. Setting this to false will deploy the latest Amazon Linux 2 AMI instead"
+}
+
 # Autoscaling Group specific variables list
 variable "min_size" {
   type        = number

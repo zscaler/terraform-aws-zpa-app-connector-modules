@@ -11,6 +11,7 @@ ssh -i ${var.name_prefix}-key-${random_string.suffix.result}.pem ec2-user@${modu
 3) SSH to the App Connectors
 ssh -i ${var.name_prefix}-key-${random_string.suffix.result}.pem admin@<< AC mgmt IP >> -o "proxycommand ssh -W %h:%p -i ${var.name_prefix}-key-${random_string.suffix.result}.pem ec2-user@${module.bastion.public_dns}"
 Note: Due to the dynamic nature of autoscaling groups, you will need to login to the AWS console and identify the private IP for each AC deployed and insert into the above command replacing "<< AC mgmt IP >>"
+Note: If deploying via Amazon Linux 2 AMI instead of Zscaler AMI, replace username "admin" with "ec2-user"
 
 VPC:
 ${module.network.vpc_id}

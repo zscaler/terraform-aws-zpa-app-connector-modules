@@ -62,31 +62,35 @@
 
 #aws_region                                 = "us-west-2"
 
-## 6. App Connector AWS EC2 Instance size selection. Uncomment acvm_instance_type line with desired vm size to change.
+## 6. By default, App Connector will deploy via the Zscaler Latest AMI. Setting this to false will deploy the latest Amazon Linux 2 AMI instead"
+
+#use_zscaler_ami                                = false
+
+## 7. App Connector AWS EC2 Instance size selection. Uncomment acvm_instance_type line with desired vm size to change.
 ##    (Default: m5a.xlarge)
 
 #acvm_instance_type                       = "t3.xlarge"  # recommended only for test/non-prod use
 #acvm_instance_type                       = "m5a.xlarge"
 
-## 7. The number of App Connector Subnets to create in sequential availability zones. Available input range 1-3 (Default: 2)
+## 8. The number of App Connector Subnets to create in sequential availability zones. Available input range 1-3 (Default: 2)
 ##    **** NOTE - This value will be ignored if byo_vpc / byo_subnets
 
 #az_count                                   = 2
 
-## 8. The minumum number of App Connectors to maintain in an Autoscaling group. (Default: 2)
+## 9. The minumum number of App Connectors to maintain in an Autoscaling group. (Default: 2)
 ##    Recommendation is to maintain HA/Zonal resliency for production deployments
 
 #min_size                                   = 2
 
-## 9. The maximum number of App Connectors to maintain in an Autoscaling group. (Default: 4)
+## 10. The maximum number of App Connectors to maintain in an Autoscaling group. (Default: 4)
 
 #max_size                                   = 4
 
-## 10. The amount of time until EC2 Auto Scaling performs the first health check on new instances after they are put into service. (Default: 300 seconds/5 minutes)
+## 11. The amount of time until EC2 Auto Scaling performs the first health check on new instances after they are put into service. (Default: 300 seconds/5 minutes)
 
 #health_check_grace_period                  = 300
 
-## 11. Enable/Disable public IP addresses on App Connector instances. Default is false. Setting this to true will result in the following: 
+## 12. Enable/Disable public IP addresses on App Connector instances. Default is false. Setting this to true will result in the following: 
 ##    Dynamic Public IP address on the App Connector VM Instance will be enabled; 
 ##    No EIP or NAT Gateway resources will be created; 
 ##    The App Connector Route Table default route next-hop will be set as the IGW
@@ -96,7 +100,7 @@
 
 #associate_public_ip_address                    = true
 
-## 12. Network Configuration:
+## 13. Network Configuration:
 
 ##    IPv4 CIDR configured with VPC creation. All Subnet resources (Public / App Connector) will be created based off this prefix
 ##    /24 subnets are created assuming this cidr is a /16. If you require creating a VPC smaller than /16, you may need to explicitly define all other 

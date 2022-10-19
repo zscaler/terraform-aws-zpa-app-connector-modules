@@ -263,6 +263,27 @@ if [[ "$oper" == "up" && "$dtype" != base && ! -e ./.zsacrc ]]; then
 	* ) echo "invalid response. Please enter yes or no";;
     esac
 done
+
+ami_default=zscaler
+    while true; do
+    read -r -p "Please enter the AMI you would like to use. (zscaler or al2) [Default=$ami_default]: " ami_input
+ami=${ami_input:-$ami_default}
+    case $ami in 
+	zscaler|z|zs|zpa ) 
+    echo "Deploying the Latest Zscaler App Connector AMI..."
+    echo "export TF_VAR_use_zscaler_ami=true" >> .zsacrc
+    break
+    ;;
+	al2|al|amazon|aws )
+    echo "Deploying the Latest Amazon Linux 2 AMI..."
+    echo "export TF_VAR_use_zscaler_ami=false" >> .zsacrc
+    break
+    ;;
+	* ) echo "invalid response. Please enter either zscaler or al2 for ami name";;
+    esac
+done
+
+
     
     while [[ "$dtype" == "base"* && "$oper" == "up" ]]; do
 clientpublicip=$(curl -s ifconfig.me)
@@ -547,7 +568,7 @@ else
     echo "export AWS_SESSION_TOKEN=\"${aws_session_token}\"" >> .zsacrc
     read -r -p "Enter AWS Access Key ID: " aws_key
     read -r -p "Enter AWS Secret Access Key: " aws_secret
-    echo "export AWS_ACCESS_KEY_ID=\"${aws_key}\"" > .zsacrc
+    echo "export AWS_ACCESS_KEY_ID=\"${aws_key}\"" >> .zsacrc
     echo "export AWS_SECRET_ACCESS_KEY=\"${aws_secret}\"" >> .zsacrc
 fi    
     # Reinitialize environment variables

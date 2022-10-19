@@ -95,6 +95,11 @@ variable "associate_public_ip_address" {
   description = "enable/disable public IP addresses on App Connector instances. Setting this to true will result in the following: Dynamic Public IP address on the App Connector VM Instance will be enabled; no EIP or NAT Gateway resources will be created; and the App Connector Route Table default route next-hop will be set as the IGW"
 }
 
+variable "use_zscaler_ami" {
+  default     = true
+  type        = bool
+  description = "By default, App Connector will deploy via the Zscaler Latest AMI. Setting this to false will deploy the latest Amazon Linux 2 AMI instead"
+}
 
 # ZPA Provider specific variables for App Connector Group and Provisioning Key creation
 variable "byo_provisioning_key" {
