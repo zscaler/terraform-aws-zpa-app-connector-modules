@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v1.0.1...v1.1.0) (2022-10-21)
+
+
+### Features
+
+* add support for Amazon Linux 2 AMI ([0aa8fd8](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/0aa8fd87e554cb878ccf06b3c505018a9cd07930))
+
 ## 1.0.0 (2022-10-07)
 
 
