@@ -27,3 +27,13 @@ repos:
     hooks:
       - id: check-merge-conflict
       - id: end-of-file-fixer
+
+  - repo: https://github.com/jorisroovers/gitlint
+    rev:  v0.17.0
+    hooks:
+      -   id: gitlint
+
+  - repo: https://github.com/ZscalerCWP/iac-pre-commit-hooks
+    rev: v0.0.1
+    hooks:
+      - id: zscaler-iac-scanner
