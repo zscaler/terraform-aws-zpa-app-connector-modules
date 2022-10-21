@@ -121,7 +121,7 @@ module "zpa_provisioning_key" {
 
 ################################################################################
 # A. Create the user_data file with necessary bootstrap variables for App   
-#     Connector registration. Used if variable use_zscaler_ami is set to false.
+#    Connector registration. Used if variable use_zscaler_ami is set to true.
 ################################################################################
 locals {
   appuserdata = <<APPUSERDATA
@@ -153,7 +153,7 @@ resource "local_file" "user_data_file" {
 
 ################################################################################
 # B. Create the user_data file with necessary bootstrap variables for App   
-#     Connector registration. Used if variable use_zscaler_ami is set to true.
+#    Connector registration. Used if variable use_zscaler_ami is set to false.
 ################################################################################
 locals {
   al2userdata = <<AL2USERDATA
