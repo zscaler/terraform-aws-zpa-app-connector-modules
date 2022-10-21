@@ -112,7 +112,11 @@ module "zpa_provisioning_key" {
 #    equally across designated availability zones per az_count. E.g. min_size
 #    set to 4 and az_count set to 2 will create 2x ACs in AZ1 and 2x ACs in AZ2
 ################################################################################
-# Create the user_data file with necessary bootstrap variables for App Connector registration
+
+################################################################################
+# A. Create the user_data file with necessary bootstrap variables for App   
+#     Connector registration. Used if variable use_zscaler_ami is set to false.
+################################################################################
 locals {
   appuserdata = <<APPUSERDATA
 #!/bin/bash
@@ -135,7 +139,52 @@ APPUSERDATA
 
 # Write the file to local filesystem for storage/reference
 resource "local_file" "user_data_file" {
+  count    = var.use_zscaler_ami == true ? 1 : 0
   content  = local.appuserdata
+  filename = "../user_data"
+}
+
+
+################################################################################
+# B. Create the user_data file with necessary bootstrap variables for App   
+#     Connector registration. Used if variable use_zscaler_ami is set to true.
+################################################################################
+locals {
+  al2userdata = <<AL2USERDATA
+#!/usr/bin/bash
+sudo /etc/yum.repos.d/zscaler.repo -R
+sudo cat > /etc/yum.repos.d/zscaler.repo <<-EOT
+[zscaler]
+name=Zscaler Private Access Repository
+baseurl=https://yum.private.zscaler.com/yum/el7
+enabled=1
+gpgcheck=1
+gpgkey=https://yum.private.zscaler.com/gpg
+EOT
+
+#Install App Connector packages
+sudo yum install zpa-connector -y
+#Stop the App Connector service which was auto-started at boot time
+systemctl stop zpa-connector
+#Create a file from the App Connector provisioning key created in the ZPA Admin Portal
+#Make sure that the provisioning key is between double quotes
+echo "${module.zpa_provisioning_key.provisioning_key}" > /opt/zscaler/var/provision_key
+#Run a yum update to apply the latest patches
+yum update -y
+#Start the App Connector service to enroll it in the ZPA cloud
+systemctl start zpa-connector
+#Wait for the App Connector to download latest build
+sleep 60
+#Stop and then start the App Connector for the latest build
+systemctl stop zpa-connector
+systemctl start zpa-connector
+AL2USERDATA
+}
+
+# Write the file to local filesystem for storage/reference
+resource "local_file" "al2_user_data_file" {
+  count    = var.use_zscaler_ami == true ? 0 : 1
+  content  = local.al2userdata
   filename = "../user_data"
 }
 
@@ -147,7 +196,7 @@ module "ac_asg" {
   global_tags                 = local.global_tags
   ac_subnet_ids               = module.network.ac_subnet_ids
   instance_key                = aws_key_pair.deployer.key_name
-  user_data                   = local.appuserdata
+  user_data                   = var.use_zscaler_ami == true ? local.appuserdata : local.al2userdata
   acvm_instance_type          = var.acvm_instance_type
   iam_instance_profile        = module.ac_iam.iam_instance_profile_id
   security_group_id           = module.ac_sg.ac_security_group_id
@@ -169,7 +218,9 @@ module "ac_asg" {
   ### only utilzed if warm_pool_enabled set to true ###
 
   depends_on = [
+    module.zpa_provisioning_key,
     local_file.user_data_file,
+    local_file.al2_user_data_file,
   ]
 }
 

@@ -47,7 +47,7 @@ Optional: Edit the terraform.tfvars file under your desired deployment type (ie:
 
 ```
 Deployment Type: (base | base_ac | base_ac_asg):
-base: Creates 1 new VPC with 1 public subnet and 1 private/workload subnet; 1 IGW; 1 NAT Gateway; 1 Bastion Host in the public subnet assigned an Elastic IP and routing to the IGW; generates local key pair .pem file for ssh access
+base: Creates 1 new VPC with 1 public subnet and 1 private/workload subnet; 1 IGW; 1 NAT Gateway; 1 Bastion Host in the public subnet assigned an Elastic IP and routing to the IGW; generates local key pair .pem file for ssh access. This template alone will NOT create any App Connector appliances.
 base_ac: Base Deployment Type + Creates App Connector private subnets and App Connector VMs egressing through the NAT Gateways in their respective availability zones. Please refer to additional requirements in this deployment folder terraform.tfvars file prior to running to step through requirements to create a new App Connector Group if you do NOT already have one created.
 base_ac_asg: Base Deployment Type + Creates App Connectors via Launch Template in an Autoscaling Group. Please refer to additional requirements in this deployment folder terraform.tfvars file prior to running to step through requirements to create a new App Connector Group if you do NOT already have one created.
 ```

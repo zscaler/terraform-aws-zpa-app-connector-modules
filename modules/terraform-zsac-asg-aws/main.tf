@@ -14,6 +14,14 @@ data "aws_ami" "appconnector" {
 
 
 ################################################################################
+# Locate Latest Amazon Linux 2 AMI for instance use
+################################################################################
+data "aws_ssm_parameter" "amazon_linux_latest" {
+  name = "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+}
+
+
+################################################################################
 # Create launch template for App Connector autoscaling group instance creation.
 # Mgmt and service interface device indexes are swapped to support ASG + GWLB
 # instance association
@@ -21,7 +29,7 @@ data "aws_ami" "appconnector" {
 resource "aws_launch_template" "ac_launch_template" {
   count         = 1
   name          = "${var.name_prefix}-ac-launch-template-${var.resource_tag}"
-  image_id      = data.aws_ami.appconnector.id
+  image_id      = var.use_zscaler_ami == true ? data.aws_ami.appconnector.id : data.aws_ssm_parameter.amazon_linux_latest.value
   instance_type = var.acvm_instance_type
   key_name      = var.instance_key
   user_data     = base64encode(var.user_data)
