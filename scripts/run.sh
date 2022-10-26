@@ -4,8 +4,6 @@
 
 set -euo pipefail
 
-brew install pre-commit
-pre-commit install
 pre-commit autoupdate
 pre-commit run --all-files terraform_fmt
 pre-commit run --all-files terraform_docs
