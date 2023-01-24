@@ -272,11 +272,13 @@ ami=${ami_input:-$ami_default}
 	zscaler|z|zs|zpa ) 
     echo "Deploying the Latest Zscaler App Connector AMI..."
     echo "export TF_VAR_use_zscaler_ami=true" >> .zsacrc
+    use_zs_ami=true
     break
     ;;
 	al2|al|amazon|aws )
     echo "Deploying the Latest Amazon Linux 2 AMI..."
     echo "export TF_VAR_use_zscaler_ami=false" >> .zsacrc
+    use_zs_ami=false
     break
     ;;
 	* ) echo "invalid response. Please enter either zscaler or al2 for ami name";;
@@ -331,21 +333,42 @@ fi
 done
 fi
 
+
 acvm_instance_type_default=m5a.xlarge
+
+
 while true; do
     read -r -p "Enter desired AWS EC2 instance type for AC. [Default=$acvm_instance_type_default]: " acvm_instance_type_input
-acvm_instance_type=${acvm_instance_type_input:-$acvm_instance_type_default}    
-    case $acvm_instance_type in
-      t3.xlarge|m5a.xlarge)
-          echo "AC EC2 type: ${acvm_instance_type}"
-          echo "export TF_VAR_acvm_instance_type=${acvm_instance_type}" >> .zsacrc
-          break
-      ;;
-      *)
-          echo "Invalid App Connector VM type: ${acvm_instance_type}. Please enter an approved VM type"
-      ;;
-    esac
-done
+acvm_instance_type=${acvm_instance_type_input:-$acvm_instance_type_default}
+    if [[ "$use_zs_ami" == "true" ]]; then    
+        case $acvm_instance_type in
+            t3.xlarge|m5a.xlarge)
+            echo "AC EC2 type: ${acvm_instance_type} to be deployed on Zscaler AMI"
+            echo "export TF_VAR_acvm_instance_type=${acvm_instance_type}" >> .zsacrc
+            break
+            ;;
+            *)
+            echo "Invalid App Connector VM type: ${acvm_instance_type}. Please enter an approved VM type"
+            ;;
+        esac
+    elif [[ "$use_zs_ami" == "false" ]]; then
+        case $acvm_instance_type in
+            t3.xlarge|m5a.xlarge)
+            echo "AC EC2 type: ${acvm_instance_type} to be deployed on Amazon Linux 2 AMI."
+            echo "export TF_VAR_acvm_instance_type=${acvm_instance_type}" >> .zsacrc
+            break
+            ;;
+            t2.micro)
+            echo "AC EC2 type: ${acvm_instance_type} to be deployed on Amazon Linux 2 AMI. This is NOT intended for production use"
+            echo "export TF_VAR_acvm_instance_type=${acvm_instance_type}" >> .zsacrc
+            break
+            ;;
+            *)
+            echo "Invalid App Connector VM type: ${acvm_instance_type}. Please enter an approved VM type"
+            ;;
+        esac 
+     fi 
+    done
 
 ac_count_default=2
 if [[ "$dtype" == *"asg"* ]]; then

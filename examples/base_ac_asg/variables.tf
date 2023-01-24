@@ -65,7 +65,8 @@ variable "acvm_instance_type" {
   validation {
     condition = (
       var.acvm_instance_type == "t3.xlarge" ||
-      var.acvm_instance_type == "m5a.xlarge"
+      var.acvm_instance_type == "m5a.xlarge" ||
+      var.acvm_instance_type == "t2.micro" #This is only recommended for lab/testing purposes and only works with Amazon Linux 2 AMIs. Zscaler AMI does not support t2.micro
     )
     error_message = "Input acvm_instance_type must be set to an approved vm instance type."
   }
