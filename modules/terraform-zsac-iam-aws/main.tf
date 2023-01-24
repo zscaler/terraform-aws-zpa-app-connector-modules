@@ -34,13 +34,13 @@ resource "aws_iam_role" "ac_node_iam_role" {
 resource "aws_iam_instance_profile" "ac_host_profile" {
   count = var.byo_iam == false ? var.iam_count : 0
   name  = var.iam_count > 1 ? "${var.name_prefix}-ac-${count.index + 1}-host-profile-${var.resource_tag}" : "${var.name_prefix}-ac-host-profile-${var.resource_tag}"
-  role  = aws_iam_role.ac_node_iam_role.*.name[count.index]
+  role  = aws_iam_role.ac_node_iam_role[count.index].name
 
   tags = merge(var.global_tags)
 }
 
 # Or use existing IAM Instance Profile if specified in byo_iam
 data "aws_iam_instance_profile" "ac_host_profile_selected" {
-  count = var.byo_iam == false ? length(aws_iam_instance_profile.ac_host_profile.*.id) : length(var.byo_iam_instance_profile_id)
-  name  = var.byo_iam == false ? element(aws_iam_instance_profile.ac_host_profile.*.name, count.index) : element(var.byo_iam_instance_profile_id, count.index)
+  count = var.byo_iam == false ? length(aws_iam_instance_profile.ac_host_profile[*].id) : length(var.byo_iam_instance_profile_id)
+  name  = var.byo_iam == false ? element(aws_iam_instance_profile.ac_host_profile[*].name, count.index) : element(var.byo_iam_instance_profile_id, count.index)
 }
