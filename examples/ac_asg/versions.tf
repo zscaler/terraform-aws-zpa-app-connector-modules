@@ -22,7 +22,7 @@ terraform {
     }
     zpa = {
       source  = "zscaler/zpa"
-      version = ">=2.3.2"
+      version = ">=2.5.4"
     }
   }
 

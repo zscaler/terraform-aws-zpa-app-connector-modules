@@ -2,7 +2,7 @@
 ## Uncomment and change the below variables according to your specific environment
 
 #####################################################################################################################
-##### Variables 5-14 are populated automically if terraform is ran via ZSAC bash script.  ##### 
+##### Variables 5-14 are populated automically if terraform is ran via ZSAC bash script.  #####
 ##### Modifying the variables in this file will override any inputs from ZSAC             #####
 #####################################################################################################################
 
@@ -12,7 +12,7 @@
 #####################################################################################################################
 
 ## 1. ZPA App Connector Provisioning Key variables. Uncomment and replace values as desired for your deployment.
-##    For any questions populating the below values, please reference: 
+##    For any questions populating the below values, please reference:
 ##    https://registry.terraform.io/providers/zscaler/zpa/latest/docs/resources/zpa_provisioning_key
 
 #enrollment_cert                                = "Connector"
@@ -20,8 +20,8 @@
 #provisioning_key_enabled                       = true
 #provisioning_key_max_usage                     = 50
 
-## 2. ZPA App Connector Group variables. Uncomment and replace values as desired for your deployment. 
-##    For any questions populating the below values, please reference: 
+## 2. ZPA App Connector Group variables. Uncomment and replace values as desired for your deployment.
+##    For any questions populating the below values, please reference:
 ##    https://registry.terraform.io/providers/zscaler/zpa/latest/docs/resources/zpa_app_connector_group
 
 #app_connector_group_name                       = "new_group_name"
@@ -75,18 +75,18 @@
 ## 8. The number of App Connector Subnets to create in sequential availability zones. Available input range 1-3 (Default: 2)
 ##    **** NOTE - This value will be ignored if byo_vpc / byo_subnets
 
-#az_count                                       = 2
+#az_count                                       = 1
 
-## 9. The number of App Connector appliances to provision. Each incremental App Connector will be created in alternating 
+## 9. The number of App Connector appliances to provision. Each incremental App Connector will be created in alternating
 ##    subnets based on the az_count or byo_subnet_ids variable and loop through for any deployments where ac_count > az_count.
 ##    (Default: varies per deployment type template)
 ##    E.g. ac_count set to 4 and az_count set to 2 or byo_subnet_ids configured for 2 will create 2x ACs in AZ subnet 1 and 2x ACs in AZ subnet 2
 
-#ac_count                                       = 2
+#ac_count                                       = 1
 
-## 10. Enable/Disable public IP addresses on App Connector instances. Default is false. Setting this to true will result in the following: 
-##    Dynamic Public IP address on the App Connector VM Instance will be enabled; 
-##    No EIP or NAT Gateway resources will be created; 
+## 10. Enable/Disable public IP addresses on App Connector instances. Default is false. Setting this to true will result in the following:
+##    Dynamic Public IP address on the App Connector VM Instance will be enabled;
+##    No EIP or NAT Gateway resources will be created;
 ##    The App Connector Route Table default route next-hop will be set as the IGW
 
 ##    Note: App Connector has no external inbound network dependencies, so the recommendation is to leave this set to false and utilize a NAT Gateway
@@ -97,7 +97,7 @@
 ## 11. Network Configuration:
 
 ##    IPv4 CIDR configured with VPC creation. All Subnet resources (Public / App Connector) will be created based off this prefix
-##    /24 subnets are created assuming this cidr is a /16. If you require creating a VPC smaller than /16, you may need to explicitly define all other 
+##    /24 subnets are created assuming this cidr is a /16. If you require creating a VPC smaller than /16, you may need to explicitly define all other
 ##     subnets via public_subnets and ac_subnets variables
 
 ##    Note: This variable only applies if you let Terraform create a new VPC. Custom deployment with byo_vpc enabled will ignore this
@@ -105,8 +105,8 @@
 #vpc_cidr                                       = "10.1.0.0/16"
 
 ##    Subnet space. (Minimum /28 required. Default is null). If you do not specify subnets, they will automatically be assigned based on the default cidrsubnet
-##    creation within the VPC CIDR block. Uncomment and modify if byo_vpc is set to true but byo_subnets is left false meaning you want terraform to create 
-##    NEW subnets in that existing VPC. OR if you choose to modify the vpc_cidr from the default /16 so a smaller CIDR, you may need to edit the below variables 
+##    creation within the VPC CIDR block. Uncomment and modify if byo_vpc is set to true but byo_subnets is left false meaning you want terraform to create
+##    NEW subnets in that existing VPC. OR if you choose to modify the vpc_cidr from the default /16 so a smaller CIDR, you may need to edit the below variables
 ##    to accommodate that address space.
 
 ##    ***** Note *****
@@ -121,12 +121,12 @@
 
 #owner_tag                                      = "username@company.com"
 
-## 13. By default, this script will apply 1 Security Group per App Connector instance. 
+## 13. By default, this script will apply 1 Security Group per App Connector instance.
 ##     Uncomment if you want to use the same Security Group for ALL App Connectors (true or false. Default: false)
 
 #reuse_security_group                           = true
 
-## 14. By default, this script will apply 1 IAM Role/Instance Profile per App Connector instance. 
+## 14. By default, this script will apply 1 IAM Role/Instance Profile per App Connector instance.
 ##     Uncomment if you want to use the same IAM Role/Instance Profile for ALL App Connectors (true or false. Default: false)
 
 #reuse_iam                                      = true
@@ -185,10 +185,10 @@
 
 
 ## 21. By default, this script will create new Public Subnets, and NAT Gateway w/ Elastic IP in the VPC defined or selected.
-##     It will also create a Route Table forwarding default 0.0.0.0/0 next hop to the Internet Gateway that is created or defined 
+##     It will also create a Route Table forwarding default 0.0.0.0/0 next hop to the Internet Gateway that is created or defined
 ##     based on the byo_igw variable and associate with the public subnet(s)
 ##     Uncomment if you want to deploy App Connectors routing to NAT Gateway(s)/Public Subnet(s) that already exist (true or false. Default: false)
-##     
+##
 ##     Setting byo_ngw to true means no additional Public Subnets, Route Tables, or Elastic IP resources will be created
 
 #byo_ngw                                        = true
@@ -206,9 +206,9 @@
 ##     ***** Note 2 *****
 ##     AC Route Tables will loop through all available NAT Gateways whether created via az_count variable or defined
 ##     below with existing IDs. If bringing your own NAT Gateways with multiple subnets with a desire to maintain zonal
-##     affinity ensure you enter the list of NAT GW IDs in order of 1. if creating AC subnets az_count will 
+##     affinity ensure you enter the list of NAT GW IDs in order of 1. if creating AC subnets az_count will
 ##     go in order az1, az2, etc. 2. if byo_subnet_ids, map this list NAT Gateway ID-1 to Subnet ID-1, etc.
-##     
+##
 ##     Example: byo_natgw_ids = ["nat-0e1351f3e8025a30e","nat-0e98fc3d8e09ed0e9"]
 
 #byo_ngw_ids                                    = ["nat-id"]
