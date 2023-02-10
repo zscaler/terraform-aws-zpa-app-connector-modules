@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+### [1.1.1](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v1.1.0...v1.1.1) (2023-02-10)
+
+
+### Bug Fixes
+
+* Amazon Linux 2 userdata permission ([1fe7a3a](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/1fe7a3a298ce3ff8f1a4d1c17ec25c014c36e1dd))
+* tflint and vpc resource selections ([f96fc1b](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/f96fc1b70a9365041244919772ed6e206052ae78))
+* Update CI Python version to 3.11 ([4aff607](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/4aff60777d2a7db1f0ce7fa36007c3494c5803b9))
+
 ### [1.1.1](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v1.1.0...v1.1.1) (2023-01-24)
 
 
