@@ -2,7 +2,7 @@
 ## Uncomment and change the below variables according to your specific environment
 
 #####################################################################################################################
-##### Variables 5-14 are populated automically if terraform is ran via ZSAC bash script.  #####
+##### Variables 5-14 are populated automatically if terraform is ran via ZSAC bash script.  #####
 ##### Modifying the variables in this file will override any inputs from ZSAC             #####
 #####################################################################################################################
 
