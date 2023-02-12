@@ -162,23 +162,24 @@ gpgcheck=1
 gpgkey=https://yum.private.zscaler.com/gpg
 EOT
 
+sleep 60
 #Install App Connector packages
-sudo yum install zpa-connector -y
+yum install zpa-connector -y
 #Stop the App Connector service which was auto-started at boot time
-sudo systemctl stop zpa-connector
+systemctl stop zpa-connector
 #Create a file from the App Connector provisioning key created in the ZPA Admin Portal
 #Make sure that the provisioning key is between double quotes
-sudo echo "${module.zpa_provisioning_key.provisioning_key}" > /opt/zscaler/var/provision_key
-sudo chmod 644 /opt/zscaler/var/provision_key
+echo "${module.zpa_provisioning_key.provisioning_key}" > /opt/zscaler/var/provision_key
+chmod 644 /opt/zscaler/var/provision_key
 #Run a yum update to apply the latest patches
-sudo yum update -y
+yum update -y
 #Start the App Connector service to enroll it in the ZPA cloud
-sudo systemctl start zpa-connector
+systemctl start zpa-connector
 #Wait for the App Connector to download latest build
-sudo sleep 60
+sleep 60
 #Stop and then start the App Connector for the latest build
-sudo systemctl stop zpa-connector
-sudo systemctl start zpa-connector
+systemctl stop zpa-connector
+systemctl start zpa-connector
 AL2USERDATA
 }
 
