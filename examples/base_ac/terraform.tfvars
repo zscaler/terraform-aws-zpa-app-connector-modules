@@ -64,7 +64,7 @@ aws_region = "us-west-2"
 
 ## 6. By default, App Connector will deploy via the Zscaler Latest AMI. Setting this to false will deploy the latest Amazon Linux 2 AMI instead"
 
-use_zscaler_ami = false
+#use_zscaler_ami = false
 
 ## 7. App Connector AWS EC2 Instance size selection. Uncomment #acvm_instance_type line with desired vm size to change.
 ##    (Default: m5.large)
@@ -93,14 +93,14 @@ use_zscaler_ami = false
 ## 8. The number of App Connector Subnets to create in sequential availability zones. Available input range 1-3 (Default: 2)
 ##    **** NOTE - This value will be ignored if byo_vpc / byo_subnets
 
-az_count = 2
+#az_count = 2
 
 ## 9. The number of App Connector appliances to provision. Each incremental App Connector will be created in alternating
 ##    subnets based on the az_count or byo_subnet_ids variable and loop through for any deployments where ac_count > az_count.
 ##    (Default: varies per deployment type template)
 ##    E.g. ac_count set to 4 and az_count set to 2 or byo_subnet_ids configured for 2 will create 2x ACs in AZ subnet 1 and 2x ACs in AZ subnet 2
 
-ac_count = 2
+#ac_count = 2
 
 ## 10. Enable/Disable public IP addresses on App Connector instances. Default is false. Setting this to true will result in the following:
 ##    Dynamic Public IP address on the App Connector VM Instance will be enabled;
@@ -120,7 +120,7 @@ ac_count = 2
 
 ##    Note: This variable only applies if you let Terraform create a new VPC. Custom deployment with byo_vpc enabled will ignore this
 
-vpc_cidr = "10.0.0.0/16"
+#vpc_cidr = "10.0.0.0/16"
 
 ##    Subnet space. (Minimum /28 required. Default is null). If you do not specify subnets, they will automatically be assigned based on the default cidrsubnet
 ##    creation within the VPC CIDR block. Uncomment and modify if byo_vpc is set to true but byo_subnets is left false meaning you want terraform to create

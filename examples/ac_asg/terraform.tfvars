@@ -60,7 +60,7 @@
 ## 5. AWS region where App Connector resources will be deployed. This environment variable is automatically populated if running ZSEC script
 ##    and thus will override any value set here. Only uncomment and set this value if you are deploying terraform standalone. (Default: us-west-2)
 
-aws_region = "us-west-2"
+#aws_region = "us-west-2"
 
 ## 6. By default, App Connector will deploy via the Zscaler Latest AMI. Setting this to false will deploy the latest Amazon Linux 2 AMI instead"
 
@@ -93,7 +93,7 @@ aws_region = "us-west-2"
 ## 8. The number of App Connector Subnets to create in sequential availability zones. Available input range 1-3 (Default: 2)
 ##    **** NOTE - This value will be ignored if byo_vpc / byo_subnets
 
-az_count = 2
+#az_count = 2
 
 ## 9. The minumum number of App Connectors to maintain in an Autoscaling group. (Default: 2)
 ##    Recommendation is to maintain HA/Zonal resliency for production deployments
