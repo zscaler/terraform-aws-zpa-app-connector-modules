@@ -65,7 +65,8 @@ variable "acvm_instance_type" {
   validation {
     condition = (
       var.acvm_instance_type == "t3.xlarge" ||
-      var.acvm_instance_type == "m5a.xlarge"
+      var.acvm_instance_type == "m5a.xlarge" ||
+      var.acvm_instance_type == "t2.micro" #This is only recommended for lab/testing purposes and only works with Amazon Linux 2 AMIs. Zscaler AMI does not support t2.micro
     )
     error_message = "Input acvm_instance_type must be set to an approved vm instance type."
   }
@@ -189,11 +190,7 @@ variable "enrollment_cert" {
 
   validation {
     condition = (
-      var.enrollment_cert == "Root" ||
-      var.enrollment_cert == "Client" ||
-      var.enrollment_cert == "Connector" ||
-      var.enrollment_cert == "Service Edge" ||
-      var.enrollment_cert == "Isolation Client"
+      var.enrollment_cert == "Connector"
     )
     error_message = "Input enrollment_cert must be set to an approved value."
   }
@@ -296,8 +293,7 @@ variable "provisioning_key_association_type" {
 
   validation {
     condition = (
-      var.provisioning_key_association_type == "CONNECTOR_GRP" ||
-      var.provisioning_key_association_type == "SERVICE_EDGE_GRP"
+      var.provisioning_key_association_type == "CONNECTOR_GRP"
     )
     error_message = "Input provisioning_key_association_type must be set to an approved value."
   }

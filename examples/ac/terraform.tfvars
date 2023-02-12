@@ -66,11 +66,29 @@
 
 #use_zscaler_ami                                = false
 
-## 7. App Connector AWS EC2 Instance size selection. Uncomment acvm_instance_type line with desired vm size to change.
-##    (Default: m5a.xlarge)
+## 7. App Connector AWS EC2 Instance size selection. Uncomment #acvm_instance_type line with desired vm size to change.
+##    (Default: m5.large)
 
-#acvm_instance_type                             = "t3.xlarge"  # recommended only for test/non-prod use
+#acvm_instance_type                             = "t2.micro"  # recommended only for test/non-prod use
+#acvm_instance_type                             = "t3.medium"
+#acvm_instance_type                             = "t3.large"
+#acvm_instance_type                             = "t3.xlarge"
+#acvm_instance_type                             = "t3a.medium"
+#acvm_instance_type                             = "t3a.large"
+#acvm_instance_type                             = "t3a.xlarge"
+#acvm_instance_type                             = "t3a.2xlarge"
+#acvm_instance_type                             = "m5.large"
+#acvm_instance_type                             = "m5.xlarge"
+#acvm_instance_type                             = "m5.2xlarge"
+#acvm_instance_type                             = "m5.4xlarge"
+#acvm_instance_type                             = "m5a.large"
 #acvm_instance_type                             = "m5a.xlarge"
+#acvm_instance_type                             = "m5a.2xlarge"
+#acvm_instance_type                             = "m5a.4xlarge"
+#acvm_instance_type                             = "m5n.large"
+#acvm_instance_type                             = "m5n.xlarge"
+#acvm_instance_type                             = "m5n.2xlarge"
+#acvm_instance_type                             = "m5n.4xlarge"
 
 ## 8. The number of App Connector Subnets to create in sequential availability zones. Available input range 1-3 (Default: 2)
 ##    **** NOTE - This value will be ignored if byo_vpc / byo_subnets

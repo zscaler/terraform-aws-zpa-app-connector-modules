@@ -60,17 +60,35 @@
 ## 5. AWS region where App Connector resources will be deployed. This environment variable is automatically populated if running ZSEC script
 ##    and thus will override any value set here. Only uncomment and set this value if you are deploying terraform standalone. (Default: us-west-2)
 
-#aws_region = "us-west-2"
+aws_region = "us-west-2"
 
 ## 6. By default, App Connector will deploy via the Zscaler Latest AMI. Setting this to false will deploy the latest Amazon Linux 2 AMI instead"
 
 #use_zscaler_ami = false
 
-## 7. App Connector AWS EC2 Instance size selection. Uncomment acvm_instance_type line with desired vm size to change.
-##    (Default: m5a.xlarge)
+## 7. App Connector AWS EC2 Instance size selection. Uncomment #acvm_instance_type line with desired vm size to change.
+##    (Default: m5.large)
 
-#acvm_instance_type                             = "t3.xlarge"  # recommended only for test/non-prod use
+#acvm_instance_type                             = "t2.micro"  # recommended only for test/non-prod use
+#acvm_instance_type                             = "t3.medium"
+#acvm_instance_type                             = "t3.large"
+#acvm_instance_type                             = "t3.xlarge"
+#acvm_instance_type                             = "t3a.medium"
+#acvm_instance_type                             = "t3a.large"
+#acvm_instance_type                             = "t3a.xlarge"
+#acvm_instance_type                             = "t3a.2xlarge"
+#acvm_instance_type                             = "m5.large"
+#acvm_instance_type                             = "m5.xlarge"
+#acvm_instance_type                             = "m5.2xlarge"
+#acvm_instance_type                             = "m5.4xlarge"
+#acvm_instance_type                             = "m5a.large"
 #acvm_instance_type                             = "m5a.xlarge"
+#acvm_instance_type                             = "m5a.2xlarge"
+#acvm_instance_type                             = "m5a.4xlarge"
+#acvm_instance_type                             = "m5n.large"
+#acvm_instance_type                             = "m5n.xlarge"
+#acvm_instance_type                             = "m5n.2xlarge"
+#acvm_instance_type                             = "m5n.4xlarge"
 
 ## 8. The number of App Connector Subnets to create in sequential availability zones. Available input range 1-3 (Default: 2)
 ##    **** NOTE - This value will be ignored if byo_vpc / byo_subnets
@@ -102,7 +120,7 @@
 
 ##    Note: This variable only applies if you let Terraform create a new VPC. Custom deployment with byo_vpc enabled will ignore this
 
-#vpc_cidr                                       = "10.1.0.0/16"
+#vpc_cidr = "10.0.0.0/16"
 
 ##    Subnet space. (Minimum /28 required. Default is null). If you do not specify subnets, they will automatically be assigned based on the default cidrsubnet
 ##    creation within the VPC CIDR block. Uncomment and modify if byo_vpc is set to true but byo_subnets is left false meaning you want terraform to create
@@ -114,8 +132,8 @@
 ##    Default/Minumum: 1 - Maximum: 3
 ##    Example: If you change vpc_cidr to "10.2.0.0/24", set below variables to cidrs that fit in that /24 like ac_subnets = ["10.2.0.0/27","10.2.0.32/27"] etc.
 
-#public_subnets                                 = ["10.x.y.z/24","10.x.y.z/24"]
-#ac_subnets                                     = ["10.x.y.z/24","10.x.y.z/24"]
+#public_subnets                                 = ["10.0.0.0/24","10.x.y.z/24"]
+#ac_subnets                                     = ["10.0.0.0/24","10.x.y.z/24"]
 
 ## 12. Tag attribute "Owner" assigned to all resoure creation. (Default: "zsac-admin")
 
