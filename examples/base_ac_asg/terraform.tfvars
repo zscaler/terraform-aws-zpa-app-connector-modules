@@ -2,7 +2,7 @@
 ## Uncomment and change the below variables according to your specific environment
 
 #####################################################################################################################
-##### Variables 5-22 are populated automically if terraform is ran via ZSAC bash script.  ##### 
+##### Variables 5-22 are populated automically if terraform is ran via ZSAC bash script.  #####
 ##### Modifying the variables in this file will override any inputs from ZSAC             #####
 #####################################################################################################################
 
@@ -12,7 +12,7 @@
 #####################################################################################################################
 
 ## 1. ZPA App Connector Provisioning Key variables. Uncomment and replace default values as desired for your deployment.
-##    For any questions populating the below values, please reference: 
+##    For any questions populating the below values, please reference:
 ##    https://registry.terraform.io/providers/zscaler/zpa/latest/docs/resources/zpa_provisioning_key
 
 #enrollment_cert                                = "Connector"
@@ -20,8 +20,8 @@
 #provisioning_key_enabled                       = true
 #provisioning_key_max_usage                     = 10
 
-## 2. ZPA App Connector Group variables. Uncomment and replace default values as desired for your deployment. 
-##    For any questions populating the below values, please reference: 
+## 2. ZPA App Connector Group variables. Uncomment and replace default values as desired for your deployment.
+##    For any questions populating the below values, please reference:
 ##    https://registry.terraform.io/providers/zscaler/zpa/latest/docs/resources/zpa_app_connector_group
 
 #app_connector_group_name                       = "new_group_name"
@@ -65,11 +65,29 @@
 
 #use_zscaler_ami                                = false
 
-## 7. App Connector AWS EC2 Instance size selection. Uncomment acvm_instance_type line with desired vm size to change.
-##    (Default: m5a.xlarge)
+## 7. App Connector AWS EC2 Instance size selection. Uncomment #acvm_instance_type line with desired vm size to change.
+##    (Default: m5.large)
 
-#acvm_instance_type                       = "t3.xlarge"  # recommended only for test/non-prod use
-#acvm_instance_type                       = "m5a.xlarge"
+#acvm_instance_type                             = "t2.micro"  # recommended only for test/non-prod use
+#acvm_instance_type                             = "t3.medium"
+#acvm_instance_type                             = "t3.large"
+#acvm_instance_type                             = "t3.xlarge"
+#acvm_instance_type                             = "t3a.medium"
+#acvm_instance_type                             = "t3a.large"
+#acvm_instance_type                             = "t3a.xlarge"
+#acvm_instance_type                             = "t3a.2xlarge"
+#acvm_instance_type                             = "m5.large"
+#acvm_instance_type                             = "m5.xlarge"
+#acvm_instance_type                             = "m5.2xlarge"
+#acvm_instance_type                             = "m5.4xlarge"
+#acvm_instance_type                             = "m5a.large"
+#acvm_instance_type                             = "m5a.xlarge"
+#acvm_instance_type                             = "m5a.2xlarge"
+#acvm_instance_type                             = "m5a.4xlarge"
+#acvm_instance_type                             = "m5n.large"
+#acvm_instance_type                             = "m5n.xlarge"
+#acvm_instance_type                             = "m5n.2xlarge"
+#acvm_instance_type                             = "m5n.4xlarge"
 
 ## 8. The number of App Connector Subnets to create in sequential availability zones. Available input range 1-3 (Default: 2)
 ##    **** NOTE - This value will be ignored if byo_vpc / byo_subnets
@@ -89,9 +107,9 @@
 
 #health_check_grace_period                  = 300
 
-## 12. Enable/Disable public IP addresses on App Connector instances. Default is false. Setting this to true will result in the following: 
-##    Dynamic Public IP address on the App Connector VM Instance will be enabled; 
-##    No EIP or NAT Gateway resources will be created; 
+## 12. Enable/Disable public IP addresses on App Connector instances. Default is false. Setting this to true will result in the following:
+##    Dynamic Public IP address on the App Connector VM Instance will be enabled;
+##    No EIP or NAT Gateway resources will be created;
 ##    The App Connector Route Table default route next-hop will be set as the IGW
 
 ##    Note: App Connector has no external inbound network dependencies, so the recommendation is to leave this set to false and utilize a NAT Gateway
@@ -102,7 +120,7 @@
 ## 13. Network Configuration:
 
 ##    IPv4 CIDR configured with VPC creation. All Subnet resources (Public / App Connector) will be created based off this prefix
-##    /24 subnets are created assuming this cidr is a /16. If you require creating a VPC smaller than /16, you may need to explicitly define all other 
+##    /24 subnets are created assuming this cidr is a /16. If you require creating a VPC smaller than /16, you may need to explicitly define all other
 ##     subnets via public_subnets and ac_subnets variables
 
 ##    Note: This variable only applies if you let Terraform create a new VPC. Custom deployment with byo_vpc enabled will ignore this
@@ -110,8 +128,8 @@
 #vpc_cidr                                   = "10.1.0.0/16"
 
 ##    Subnet space. (Minimum /28 required. Default is null). If you do not specify subnets, they will automatically be assigned based on the default cidrsubnet
-##    creation within the VPC CIDR block. Uncomment and modify if byo_vpc is set to true but byo_subnets is left false meaning you want terraform to create 
-##    NEW subnets in that existing VPC. OR if you choose to modify the vpc_cidr from the default /16 so a smaller CIDR, you may need to edit the below variables 
+##    creation within the VPC CIDR block. Uncomment and modify if byo_vpc is set to true but byo_subnets is left false meaning you want terraform to create
+##    NEW subnets in that existing VPC. OR if you choose to modify the vpc_cidr from the default /16 so a smaller CIDR, you may need to edit the below variables
 ##    to accommodate that address space.
 
 ##    ***** Note *****
@@ -126,12 +144,12 @@
 
 #owner_tag                                  = "username@company.com"
 
-## 15. By default, this script will apply 1 Security Group per App Connector instance. 
+## 15. By default, this script will apply 1 Security Group per App Connector instance.
 ##     Uncomment if you want to use the same Security Group for ALL App Connectors (true or false. Default: false)
 
 #reuse_security_group                       = true
 
-## 16. By default, this script will apply 1 IAM Role/Instance Profile per App Connector instance. 
+## 16. By default, this script will apply 1 IAM Role/Instance Profile per App Connector instance.
 ##     Uncomment if you want to use the same IAM Role/Instance Profile for ALL App Connectors (true or false. Default: false)
 
 #reuse_iam                                  = true
