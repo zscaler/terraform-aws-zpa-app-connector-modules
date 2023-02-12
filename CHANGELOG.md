@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v1.1.1...v1.2.0) (2023-02-12)
+
+
+### Features
+
+* add support for al2 t2.micro ec2 ([b54c044](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/b54c044eac7599204bf6f304c92980e91eaa61d1))
+
+
+### Bug Fixes
+
+* validation of all supported instance types ([ba502dc](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/ba502dc5a145a9bd1bbc21e881dc020a5758e391))
+* validation of all supported instance types ([8580b12](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/8580b121b04563c01d5a01c6dbafca5a00e9352d))
+
 ### [1.1.1](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v1.1.0...v1.1.1) (2023-02-10)
 
 
