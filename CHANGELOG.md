@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+### [1.3.1](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v1.3.0...v1.3.1) (2023-03-16)
+
+
+### Bug Fixes
+
+* marketplace ami update ([e0c38ec](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/e0c38ecefe61625b6cbe50ba5181700cbf886713))
+
 ## [1.3.0](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v1.2.0...v1.3.0) (2023-02-12)
 
 
