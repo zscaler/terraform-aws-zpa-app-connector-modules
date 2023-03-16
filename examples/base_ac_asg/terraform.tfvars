@@ -172,3 +172,12 @@
 ##     (Default: 50%)
 
 #target_cpu_util_value                      = 50
+
+## 23. By default, terraform will always query the AWS Marketplace for the latest App Connector AMI available.
+##     This variable is provided if a customer desires to override or retain an old ami for existing deployments rather than upgrading and forcing a replacement. 
+##     It is also inputted as a list to facilitate if a customer desired to manually upgrade only select ACs deployed based on the ac_count index
+
+##     Note: Customers should NOT be hard coding AMI IDs as Zscaler recommendation is to always be deploying/running the latest version.
+##           Leave this variable commented out unless you are absolutely certain why/that you need to set it and only temporarily.
+
+#ami_id                                         = ["ami-123456789"]
