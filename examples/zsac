@@ -141,24 +141,30 @@ if [[ $dtype == "base" && ! -e ./.zsacrc ]]; then
     unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
     read -r -p "Enter token code from MFA device: " mfa_token
     echo "getting session token (aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code)"
-    aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}  
-
-    read -r -p "Enter AWS Session Token: " aws_session_token
+    aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}
+ 
     fi
     read -r -p "Enter AWS Access Key ID: " aws_key
     read -r -p "Enter AWS Secret Access Key: " aws_secret
+    read -r -p "Enter AWS Session Token (if applicable): " aws_session_token
     read -r -p "Enter AWS Region (e.g. us-west-2): " aws_region
     if [[ ${aws_regions[*]} =~ $aws_region ]]; then
     echo "AWS Region entered is: $aws_region"
     else
     echo "Invalid AWS region name entered."
-    echo "Delete .zsacrc file and re-run zsac up..."
+    echo "Delete .zsacrc file and re-run zsec up..."
     exit 1
     fi
-    echo "export AWS_ACCESS_KEY_ID='\"${aws_key}\"'" > .zsacrc
-    echo "export AWS_SECRET_ACCESS_KEY='\"${aws_secret}\"'" >> .zsacrc
-    echo "export AWS_DEFAULT_REGION=${aws_region}" >> .zsacrc
-    echo "export TF_VAR_aws_region=${aws_region}" >> .zsacrc
+    echo "export AWS_ACCESS_KEY_ID='$aws_key'" > .zsacrc
+    echo "export AWS_SECRET_ACCESS_KEY='$aws_secret'" >> .zsacrc
+    echo "export AWS_DEFAULT_REGION='$aws_region'" >> .zsacrc
+    echo "export TF_VAR_aws_region='$aws_region'" >> .zsacrc
+    if [[ $aws_session_token == "" ]]; then
+    echo "No AWS Session Token entered..."
+    else
+    echo "AWS Session token entered..."
+    echo "export AWS_SESSION_TOKEN='$aws_session_token'" >> .zsacrc
+    fi
 
     while [[ "$dtype" == "base" && "$oper" == "up" ]]; do
 clientpublicip=$(curl -s ifconfig.me)
@@ -220,49 +226,85 @@ if [[ "$oper" == "up" && "$dtype" != base && ! -e ./.zsacrc ]]; then
     unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
     read -r -p "Enter token code from MFA device: " mfa_token
     echo "getting session token (aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code)"
-    aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}
- 
-    read -r -p "Enter AWS Session Token: " aws_session_token
+    aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}  
+
     fi
     read -r -p "Enter AWS Access Key ID: " aws_key
-    echo "export AWS_ACCESS_KEY_ID=\"${aws_key}\"" > .zsacrc
     read -r -p "Enter AWS Secret Access Key: " aws_secret
-    echo "export AWS_SECRET_ACCESS_KEY=\"${aws_secret}\"" >> .zsacrc
+    read -r -p "Enter AWS Session Token (if applicable): " aws_session_token
     read -r -p "Enter AWS Region (e.g. us-west-2): " aws_region
     if [[ ${aws_regions[*]} =~ $aws_region ]]; then
     echo "AWS Region entered is: $aws_region"
-    echo "export AWS_DEFAULT_REGION=${aws_region}" >> .zsacrc
-    echo "export TF_VAR_aws_region=${aws_region}" >> .zsacrc
     else
     echo "Invalid AWS region name entered."
-    echo "Delete .zsacrc file and re-run zsac up..."
+    echo "Delete .zsacrc file and re-run zsec up..."
     exit 1
     fi
+    echo "export AWS_ACCESS_KEY_ID='$aws_key'" > .zsacrc
+    echo "export AWS_SECRET_ACCESS_KEY='$aws_secret'" >> .zsacrc
+    echo "export AWS_DEFAULT_REGION='$aws_region'" >> .zsacrc
+    echo "export TF_VAR_aws_region='$aws_region'" >> .zsacrc
+    if [[ $aws_session_token == "" ]]; then
+    echo "No AWS Session Token entered..."
+    else
+    echo "AWS Session token entered..."
+    echo "export AWS_SESSION_TOKEN='$aws_session_token'" >> .zsacrc 
+    fi
     
+    zpa_cloud_default=PRODUCTION
     while true; do
+        read -r -p "Enter ZPA Cloud Name (PRODUCTION, BETA, GOV, or PREVIEW) [Default=$zpa_cloud_default]: " zpa_cloud_input
+        zpa_cloud=${zpa_cloud_input:-$zpa_cloud_default}
+        case $zpa_cloud in
+        PROD*|prod*|PRODUCTION|production)
+          echo "ZPA Cloud selected: PRODUCTION"
+          echo "export ZPA_CLOUD=\"PRODUCTION\"" >> .zsacrc
+          break
+          ;;
+        BETA|beta|b|B)
+          echo "ZPA Cloud selected: BETA"
+          echo "export ZPA_CLOUD=\"BETA\"" >> .zsacrc
+          break
+          ;;
+        GOV|gov|g|G)
+          echo "ZPA Cloud selected: GOV"
+          echo "export ZPA_CLOUD=\"GOV\"" >> .zsacrc
+          break
+          ;;
+        PREVIEW|preview|pre*|PRE*)
+          echo "ZPA Cloud selected: PREVIEW"
+          echo "export ZPA_CLOUD=\"PREVIEW\"" >> .zsacrc
+          break
+          ;;
+          *)
+          echo "Invalid Cloud. Supported values are PRODUCTION, BETA, GOV, or PREVIEW: ${zpa_cloud}."
+      ;;
+        esac
+    done
     read -r -p "Enter ZPA Client ID: " zpa_client_id
-    echo "export ZPA_CLIENT_ID=\"${zpa_client_id}\"" >> .zsacrc
+    echo "export ZPA_CLIENT_ID='$zpa_client_id'" >> .zsacrc
     read -r -p "Enter ZPA Client Secret: " zpa_client_secret
-    echo "export ZPA_CLIENT_SECRET=\"${zpa_client_secret}\"" >> .zsacrc
+    echo "export ZPA_CLIENT_SECRET='$zpa_client_secret'" >> .zsacrc
     read -r -p "Enter ZPA Customer ID: " zpa_customer_id
-    echo "export ZPA_CUSTOMER_ID=\"${zpa_customer_id}\"" >> .zsacrc
+    echo "export ZPA_CUSTOMER_ID='$zpa_customer_id'" >> .zsacrc
 
-    read -r -p "Do you already have an App Connector provisioning key to use? [yes/no] " prov_key_response
-    case $prov_key_response in 
-	yes|y ) 
-    read -r -p "Enter the name of your existing App Connector provisioning key: " byo_provisioning_key_name
-    echo "export TF_VAR_byo_provisioning_key=true" >> .zsacrc
-    echo "export TF_VAR_byo_provisioning_key_name=${byo_provisioning_key_name}" >> .zsacrc
-    break
-    ;;
-	no|n )
-    echo "Terraform will be creating a new App Connector Group and provisioning key"
-    echo "Before proceeding, make sure you have entered all variable requirements from steps 1 and 2 in $dtype/terraform.tfvars"
-    break
-    ;;
-	* ) echo "invalid response. Please enter yes or no";;
-    esac
-done
+    while true; do
+        read -r -p "Do you already have an App Connector provisioning key to use? [yes/no] " prov_key_response
+        case $prov_key_response in 
+	    yes|y ) 
+        read -r -p "Enter the name of your existing App Connector provisioning key: " byo_provisioning_key_name
+        echo "export TF_VAR_byo_provisioning_key=true" >> .zsacrc
+        echo "export TF_VAR_byo_provisioning_key_name='$byo_provisioning_key_name'" >> .zsacrc
+        break
+        ;;
+	    no|n )
+        echo "Terraform will be creating a new App Connector Group and provisioning key"
+        echo "Before proceeding, make sure you have entered all variable requirements from steps 1 and 2 in $dtype/terraform.tfvars"
+        break
+        ;;
+	    * ) echo "invalid response. Please enter yes or no";;
+        esac
+    done
 
 ami_default=zscaler
     while true; do
@@ -343,28 +385,28 @@ acvm_instance_type=${acvm_instance_type_input:-$acvm_instance_type_default}
     if [[ "$use_zs_ami" == "true" ]]; then    
         case $acvm_instance_type in
             t3.xlarge|m5a.xlarge)
-            echo "AC EC2 type: ${acvm_instance_type} to be deployed on Zscaler AMI"
-            echo "export TF_VAR_acvm_instance_type=${acvm_instance_type}" >> .zsacrc
+            echo "AC EC2 type: $acvm_instance_type to be deployed on Zscaler AMI"
+            echo "export TF_VAR_acvm_instance_type='$acvm_instance_type'" >> .zsacrc
             break
             ;;
             *)
-            echo "Invalid App Connector VM type: ${acvm_instance_type}. Please enter an approved VM type"
+            echo "Invalid App Connector VM type: $acvm_instance_type. Please enter an approved VM type"
             ;;
         esac
     elif [[ "$use_zs_ami" == "false" ]]; then
         case $acvm_instance_type in
             t3.xlarge|m5a.xlarge)
-            echo "AC EC2 type: ${acvm_instance_type} to be deployed on Amazon Linux 2 AMI."
-            echo "export TF_VAR_acvm_instance_type=${acvm_instance_type}" >> .zsacrc
+            echo "AC EC2 type: $acvm_instance_type to be deployed on Amazon Linux 2 AMI."
+            echo "export TF_VAR_acvm_instance_type='$acvm_instance_type'" >> .zsacrc
             break
             ;;
             t2.micro)
-            echo "AC EC2 type: ${acvm_instance_type} to be deployed on Amazon Linux 2 AMI. This is NOT intended for production use"
-            echo "export TF_VAR_acvm_instance_type=${acvm_instance_type}" >> .zsacrc
+            echo "AC EC2 type: $acvm_instance_type to be deployed on Amazon Linux 2 AMI. This is NOT intended for production use"
+            echo "export TF_VAR_acvm_instance_type='$acvm_instance_type'" >> .zsacrc
             break
             ;;
             *)
-            echo "Invalid App Connector VM type: ${acvm_instance_type}. Please enter an approved VM type"
+            echo "Invalid App Connector VM type: $acvm_instance_type. Please enter an approved VM type"
             ;;
         esac 
      fi 
@@ -568,10 +610,54 @@ if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$AWS_
 fi
 
 
+# Only check for existing aws session token if user has not already been prompted for it in zsec up sequence
+if [[ -z $aws_session_token ]]; then
+
+# Prompt user to refresh AWS credentials on up or destroy if there is a previous session token in .zsacrc
+if [[ $mfa_enabled == false ]]; then
+    if [ -z "$AWS_SESSION_TOKEN" ]; then
+    echo "No session token found. Proceeding with existing AWS credentials..."
+    else
+        while true; do
+        read -r -p "An existing AWS session token has been identified with Access Key $AWS_ACCESS_KEY_ID. Is this still valid? (yes/no): " valid_key_response
+        case $valid_key_response in 
+	    yes|y ) 
+        echo "Terraform will use existing AWS credentials stored in .zsacrc..."
+        break
+        ;;
+	    no|n )
+        echo "Refreshing AWS credentials prior to Terraform apply"
+        read -r -p "Enter AWS Access Key ID: " aws_key
+        read -r -p "Enter AWS Secret Access Key: " aws_secret
+        read -r -p "Enter AWS Session Token (if applicable): " aws_session_token
+
+        # remove existing aws credentials from .zsacrc
+        sed -i'' -e '/AWS_ACCESS_KEY_ID/d' .zsacrc
+        sed -i'' -e '/AWS_SECRET_ACCESS_KEY/d' .zsacrc
+        sed -i'' -e '/AWS_SESSION_TOKEN/d' .zsacrc
+        echo "export AWS_ACCESS_KEY_ID='$aws_key'" >> .zsacrc
+        echo "export AWS_SECRET_ACCESS_KEY='$aws_secret'" >> .zsacrc
+            if [[ $aws_session_token == "" ]]; then
+            echo "No AWS Session Token entered..."
+            echo "export AWS_SESSION_TOKEN=bad_input" >> .zsacrc 
+            else
+            echo "AWS Session token entered..."
+            echo "export AWS_SESSION_TOKEN='$aws_session_token'" >> .zsacrc 
+            fi
+        break
+        ;;
+	    * ) echo "invalid response. Please enter yes or no";;
+        esac
+        done
+    fi
+# Reinitialize environment variables
+. ./.zsacrc
+fi 
+
 # Get new MFA session token
 if [[ $mfa_enabled == true ]]; then
     if [ -z "$AWS_SESSION_TOKEN" ]; then
-    echo "export AWS_SESSION_TOKEN=\"${aws_session_token}\"" >> .zsacrc
+    echo "export AWS_SESSION_TOKEN='$aws_session_token'" >> .zsacrc 
 else
     echo "zsacrc file has existing session token. Resetting to ensure credentials are refreshed"
     echo "unsetting existing AWS Environment variables (unset AWS_SESSION_TOKEN AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY)"
@@ -587,15 +673,19 @@ else
     echo "getting session token (aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code)"
     aws sts get-session-token --serial-number arn:aws:iam::${aws_account_id}:mfa/${aws_user_account} --token-code ${mfa_token}
  
-    read -r -p "Enter AWS Session Token: " aws_session_token
-    echo "export AWS_SESSION_TOKEN=\"${aws_session_token}\"" >> .zsacrc
     read -r -p "Enter AWS Access Key ID: " aws_key
     read -r -p "Enter AWS Secret Access Key: " aws_secret
-    echo "export AWS_ACCESS_KEY_ID=\"${aws_key}\"" >> .zsacrc
-    echo "export AWS_SECRET_ACCESS_KEY=\"${aws_secret}\"" >> .zsacrc
+    read -r -p "Enter AWS Session Token: " aws_session_token
+    echo "export AWS_ACCESS_KEY_ID='$aws_key'" >> .zsacrc
+    echo "export AWS_SECRET_ACCESS_KEY='$aws_secret'" >> .zsacrc
+    echo "export AWS_SESSION_TOKEN='$aws_session_token'" >> .zsacrc
 fi    
     # Reinitialize environment variables
 . ./.zsacrc
+fi
+
+else
+    echo "Proceeding..."
 fi
 
 
@@ -628,6 +718,7 @@ elif [[ "$oper" == "destroy" ]]; then
     else
       TF_DATA_DIR=../.terraform ./$dir/terraform -chdir="$dtype" destroy -compact-warnings
     fi
+    echo "Removing Terraform files and directories..."
     rm -rf bin 
     rm -rf **/.terraform/* && rm -rf **/.terraform*
 	find . -type f -name '.terraform.lock.hcl' -delete
@@ -637,4 +728,8 @@ elif [[ "$oper" == "destroy" ]]; then
     rm -rf user.key user.crt
     rm -rf systems.json setup-*.tar
     rm -rf **/errorlog.txt
+now=$(date +'%Y-%m-%d-%H_%M_%S')
+    echo "archiving .zsacrc file to .zsacrc-${now}"
+    cp .zsacrc .zsacrc-${now}
+    rm -rf .zsacrc && rm -rf .zsacrc.bak
 fi
