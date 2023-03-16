@@ -176,6 +176,12 @@ variable "target_cpu_util_value" {
   default     = 50
 }
 
+variable "ami_id" {
+  type        = list(string)
+  description = "AMI ID(s) to be used for deploying App Connector appliances. Ideally all VMs should be on the same AMI ID as templates always pull the latest from AWS Marketplace. This variable is provided if a customer desires to override/retain an old ami for existing deployments rather than upgrading and forcing a replacement. It is also inputted as a list to facilitate if a customer desired to manually upgrade select ACs deployed based on the ac_count index"
+  default     = [""]
+}
+
 
 # ZPA Provider specific variables for App Connector Group and Provisioning Key creation
 variable "byo_provisioning_key" {

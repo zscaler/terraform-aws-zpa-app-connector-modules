@@ -60,11 +60,11 @@
 ## 5. AWS region where App Connector resources will be deployed. This environment variable is automatically populated if running ZSEC script
 ##    and thus will override any value set here. Only uncomment and set this value if you are deploying terraform standalone. (Default: us-west-2)
 
-aws_region = "us-west-2"
+#aws_region                                     = "us-west-2"
 
 ## 6. By default, App Connector will deploy via the Zscaler Latest AMI. Setting this to false will deploy the latest Amazon Linux 2 AMI instead"
 
-#use_zscaler_ami = false
+#use_zscaler_ami                                = false
 
 ## 7. App Connector AWS EC2 Instance size selection. Uncomment #acvm_instance_type line with desired vm size to change.
 ##    (Default: m5.large)
@@ -148,3 +148,12 @@ aws_region = "us-west-2"
 ##     Uncomment if you want to use the same IAM Role/Instance Profile for ALL App Connectors (true or false. Default: false)
 
 #reuse_iam                                      = true
+
+## 15. By default, terraform will always query the AWS Marketplace for the latest App Connector AMI available.
+##     This variable is provided if a customer desires to override or retain an old ami for existing deployments rather than upgrading and forcing a replacement. 
+##     It is also inputted as a list to facilitate if a customer desired to manually upgrade only select ACs deployed based on the ac_count index
+
+##     Note: Customers should NOT be hard coding AMI IDs as Zscaler recommendation is to always be deploying/running the latest version.
+##           Leave this variable commented out unless you are absolutely certain why/that you need to set it and only temporarily.
+
+#ami_id                                         = ["ami-123456789"]

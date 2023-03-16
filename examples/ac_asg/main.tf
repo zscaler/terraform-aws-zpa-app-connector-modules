@@ -152,8 +152,9 @@ resource "local_file" "user_data_file" {
 locals {
   al2userdata = <<AL2USERDATA
 #!/usr/bin/bash
-sudo touch /etc/yum.repos.d/zscaler.repo
-sudo cat > /etc/yum.repos.d/zscaler.repo <<-EOT
+sleep 15
+touch /etc/yum.repos.d/zscaler.repo
+cat > /etc/yum.repos.d/zscaler.repo <<-EOT
 [zscaler]
 name=Zscaler Private Access Repository
 baseurl=https://yum.private.zscaler.com/yum/el7
@@ -190,7 +191,39 @@ resource "local_file" "al2_user_data_file" {
   filename = "../user_data"
 }
 
+
+################################################################################
+# Locate Latest App Connector AMI by product code
+################################################################################
+data "aws_ami" "appconnector" {
+  count       = var.use_zscaler_ami ? 1 : 0
+  most_recent = true
+
+  filter {
+    name   = "product-code"
+    values = ["by1wc5269g0048ix2nqvr0362"]
+  }
+
+  owners = ["aws-marketplace"]
+}
+
+
+################################################################################
+# Locate Latest Amazon Linux 2 AMI for instance use
+################################################################################
+data "aws_ssm_parameter" "amazon_linux_latest" {
+  count = var.use_zscaler_ami ? 0 : 1
+  name  = "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+}
+
+locals {
+  ami_selected = try(data.aws_ami.appconnector[0].id, data.aws_ssm_parameter.amazon_linux_latest[0].value)
+}
+
+
+################################################################################
 # Create the specified AC VMs via Launch Template and Autoscaling Group
+################################################################################
 module "ac_asg" {
   source                      = "../../modules/terraform-zsac-asg-aws"
   name_prefix                 = var.name_prefix
@@ -203,6 +236,7 @@ module "ac_asg" {
   iam_instance_profile        = module.ac_iam.iam_instance_profile_id
   security_group_id           = module.ac_sg.ac_security_group_id
   associate_public_ip_address = var.associate_public_ip_address
+  ami_id                      = contains(var.ami_id, "") ? [local.ami_selected] : var.ami_id
 
   max_size                  = var.max_size
   min_size                  = var.min_size
