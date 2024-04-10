@@ -31,6 +31,30 @@ variable "user_data" {
   description = "App Init data"
 }
 
+variable "ebs_block_device_name" {
+  type        = string
+  description = "EBS block device name"
+  default     = "/dev/xvda"
+}
+
+variable "ebs_encrypted" {
+  type        = bool
+  description = "Whether to encrypt the EBS volume"
+  default     = true
+}
+
+variable "ebs_volume_size" {
+  type        = number
+  description = "EBS volume size"
+  default     = 16
+}
+
+variable "ebs_volume_type" {
+  type        = string
+  description = "EBS volume type"
+  default     = "gp3"
+}
+
 variable "acvm_instance_type" {
   type        = string
   description = "App Connector Instance Type"
@@ -157,4 +181,14 @@ variable "target_cpu_util_value" {
   type        = number
   description = "Target value number for autoscaling policy CPU utilization target tracking. ie: trigger a scale in/out to keep average CPU Utliization percentage across all instances at/under this number"
   default     = 50
+}
+
+variable "metadata_options" {
+  description = "Metadata options for the instance"
+  type        = map(string)
+  default = {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 2
+  }
 }
