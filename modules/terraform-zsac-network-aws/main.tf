@@ -101,16 +101,18 @@ resource "aws_route_table" "public_rt" {
   count  = var.byo_ngw == false ? 1 : 0
   vpc_id = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
 
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = data.aws_internet_gateway.igw_selected.internet_gateway_id
-  }
-
   tags = merge(var.global_tags,
     { Name = "${var.name_prefix}-public-rt-${var.resource_tag}" }
   )
 }
 
+resource "aws_route" "public_rt_default" {
+  count = var.byo_ngw == false ? 1 : 0
+
+  route_table_id         = aws_route_table.public_rt[count.index].id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = data.aws_internet_gateway.igw_selected.internet_gateway_id
+}
 
 # Create equal number of Route Table associations to how many Public subnets exist. This will not be created if var.byo_ngw is set to True
 resource "aws_route_table_association" "public_rt_association" {
@@ -147,15 +149,19 @@ data "aws_subnet" "ac_subnet_selected" {
 resource "aws_route_table" "ac_rt" {
   count  = length(data.aws_subnet.ac_subnet_selected[*].id)
   vpc_id = try(data.aws_vpc.vpc_selected[0].id, aws_vpc.vpc[0].id)
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = var.associate_public_ip_address == false ? element(data.aws_nat_gateway.ngw_selected[*].id, count.index) : null
-    gateway_id     = var.associate_public_ip_address == true ? data.aws_internet_gateway.igw_selected.internet_gateway_id : null
-  }
 
   tags = merge(var.global_tags,
     { Name = "${var.name_prefix}-ac-rt-${count.index + 1}-${var.resource_tag}" }
   )
+}
+
+resource "aws_route" "ac_rt_default" {
+  count = length(data.aws_subnet.ac_subnet_selected[*].id)
+
+  route_table_id         = aws_route_table.ac_rt[count.index].id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = var.associate_public_ip_address == false ? element(data.aws_nat_gateway.ngw_selected[*].id, count.index) : null
+  gateway_id             = var.associate_public_ip_address == true ? data.aws_internet_gateway.igw_selected.internet_gateway_id : null
 }
 
 # AC subnet Route Table Association
