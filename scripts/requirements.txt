@@ -72,7 +72,7 @@ virtualenv==20.4.6
     # via
     #   -r requirements.txt
     #   pre-commit
-zipp==3.4.1
+zipp==3.19.1
     # via
     #   -r requirements.txt
     #   importlib-metadata
