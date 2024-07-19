@@ -167,19 +167,19 @@ variable "app_connector_group_enabled" {
 variable "app_connector_group_country_code" {
   type        = string
   description = "Optional: Country code of this App Connector Group. example 'US'"
-  default     = ""
+  default     = "US"
 }
 
 variable "app_connector_group_latitude" {
   type        = string
   description = "Latitude of the App Connector Group. Integer or decimal. With values in the range of -90 to 90"
-  default     = "37.3382082"
+  default     = "37.33874"
 }
 
 variable "app_connector_group_longitude" {
   type        = string
   description = "Longitude of the App Connector Group. Integer or decimal. With values in the range of -90 to 90"
-  default     = "-121.8863286"
+  default     = "-121.8852525"
 }
 
 variable "app_connector_group_location" {
@@ -203,7 +203,7 @@ variable "app_connector_group_upgrade_time_in_secs" {
 variable "app_connector_group_override_version_profile" {
   type        = bool
   description = "Optional: Whether the default version profile of the App Connector Group is applied or overridden. Default: false"
-  default     = false
+  default     = true
 }
 
 variable "app_connector_group_version_profile_id" {

@@ -51,7 +51,7 @@ variable "app_connector_group_upgrade_time_in_secs" {
 variable "app_connector_group_override_version_profile" {
   type        = bool
   description = "Optional: Whether the default version profile of the App Connector Group is applied or overridden. Default: false"
-  default     = false
+  default     = true
 }
 
 variable "app_connector_group_version_profile_id" {

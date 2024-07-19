@@ -27,7 +27,7 @@
 #app_connector_group_name                       = "new_group_name"
 #app_connector_group_description                = "group_description"
 #app_connector_group_enabled                    = true
-#app_connector_group_country_code               = "US"
+app_connector_group_country_code = "US"
 #app_connector_group_latitude                   = "37.3382082"
 #app_connector_group_longitude                  = "-121.8863286"
 #app_connector_group_location                   = "San Jose, CA, USA"
