@@ -7,6 +7,10 @@
 
 # Zscaler App Connector AWS Terraform Modules
 
+## Support Disclaimer
+
+-> **Disclaimer:** Please refer to our [General Support Statement](docs/guides/support.md) before proceeding with the use of this provider.
+
 ## Description
 This repository contains various modules and deployment configurations that can be used to deploy Zscaler App Connector appliances to securely connect to workloads within Amazon Web Services (AWS) via the Zscaler Zero Trust Exchange. The examples directory contains complete automation scripts for both greenfield/POV and brownfield/production use.
 
