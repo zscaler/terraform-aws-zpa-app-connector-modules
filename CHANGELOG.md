@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v1.3.1...v1.4.0) (2024-07-20)
+
+
+### Features
+
+* improve launch template for ASG AWS module ([#15](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/issues/15)) ([2efdd33](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/2efdd336b5e8c46e16143469594dad6c9a4a9c8b))
+
 ### [1.3.1](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v1.3.0...v1.3.1) (2023-03-16)
 
 
