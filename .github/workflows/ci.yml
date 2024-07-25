@@ -70,11 +70,11 @@ jobs:
           cd modules/terraform-zsac-network-aws
           terraform init   
 
-          - name: Terraform Validate
-          id: validate-zpa-app-connector-group
-          run: |
-            cd modules/terraform-zpa-app-connector-group
-            terraform validate -no-color
+      - name: Terraform Validate
+        id: validate-zpa-app-connector-group
+        run: |
+          cd modules/terraform-zpa-app-connector-group
+          terraform validate -no-color
   
       - name: Terraform Init
         id: init-zpa-app-connector-group
