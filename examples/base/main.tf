@@ -39,7 +39,7 @@ resource "aws_key_pair" "deployer" {
 
 resource "local_file" "private_key" {
   content         = tls_private_key.key.private_key_pem
-  filename        = "../${var.name_prefix}-key-${random_string.suffix.result}.pem"
+  filename        = "./${var.name_prefix}-key-${random_string.suffix.result}.pem"
   file_permission = "0600"
 }
 
