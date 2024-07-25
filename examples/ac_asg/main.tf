@@ -39,7 +39,7 @@ resource "aws_key_pair" "deployer" {
 
 resource "local_file" "private_key" {
   content         = tls_private_key.key.private_key_pem
-  filename        = "../${var.name_prefix}-key-${random_string.suffix.result}.pem"
+  filename        = "./${var.name_prefix}-key-${random_string.suffix.result}.pem"
   file_permission = "0600"
 }
 
@@ -141,7 +141,7 @@ APPUSERDATA
 resource "local_file" "rhel9_user_data_file" {
   count    = var.use_zscaler_ami == true ? 1 : 0
   content  = local.appuserdata
-  filename = "../user_data"
+  filename = "./user_data"
 }
 
 
@@ -163,7 +163,7 @@ name=Zscaler Private Access Repository
 baseurl=https://yum.private.zscaler.com/yum/el9
 enabled=1
 gpgcheck=1
-gpgkey=https://yum.private.zscaler.com/gpg
+gpgkey=https://yum.private.zscaler.com/yum/el9/gpg
 EOT
 
 # Sleep to allow the repo file to be registered
@@ -210,7 +210,7 @@ RHEL9USERDATA
 resource "local_file" "rhel9_rhel9_user_data_file" {
   count    = var.use_zscaler_ami == true ? 0 : 1
   content  = local.rhel9userdata
-  filename = "../user_data"
+  filename = "./user_data"
 }
 
 

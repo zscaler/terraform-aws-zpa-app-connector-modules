@@ -147,7 +147,7 @@ APPUSERDATA
 resource "local_file" "user_data_file" {
   count    = var.use_zscaler_ami == true ? 1 : 0
   content  = local.appuserdata
-  filename = "../user_data"
+  filename = "./user_data"
 }
 
 
@@ -169,7 +169,7 @@ name=Zscaler Private Access Repository
 baseurl=https://yum.private.zscaler.com/yum/el9
 enabled=1
 gpgcheck=1
-gpgkey=https://yum.private.zscaler.com/gpg
+gpgkey=https://yum.private.zscaler.com/yum/el9/gpg
 EOT
 
 # Sleep to allow the repo file to be registered
