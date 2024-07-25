@@ -8,7 +8,7 @@ This module creates all AWS EC2 instance resources needed to deploy App Connecto
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.58.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 5.59.0 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | ~> 2.5.0 |
 | <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.2.0 |
 
@@ -16,7 +16,7 @@ This module creates all AWS EC2 instance resources needed to deploy App Connecto
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.58.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 5.59.0 |
 
 ## Modules
 
