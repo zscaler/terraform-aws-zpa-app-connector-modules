@@ -207,7 +207,7 @@ RHEL9USERDATA
 }
 
 # Write the file to local filesystem for storage/reference
-resource "local_file" "al2_user_data_file" {
+resource "local_file" "rhel9_user_data_file" {
   count    = var.use_zscaler_ami == true ? 0 : 1
   content  = local.rhel9userdata
   filename = "../user_data"
@@ -269,9 +269,7 @@ module "ac_vm" {
   ami_id                      = contains(var.ami_id, "") ? [local.ami_selected] : var.ami_id
 
   depends_on = [
-    module.zpa_provisioning_key,
-    local_file.user_data_file,
-    local_file.al2_user_data_file,
+    local_file.rhel9_user_data_file,
   ]
 }
 

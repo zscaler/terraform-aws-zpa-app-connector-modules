@@ -281,8 +281,6 @@ module "ac_vm" {
 
   depends_on = [
     module.zpa_provisioning_key,
-    local_file.user_data_file,
-    local_file.rhel9_user_data_file,
   ]
 }
 
