@@ -11,6 +11,10 @@ resource "aws_instance" "ac_vm" {
   key_name                    = var.instance_key
   associate_public_ip_address = var.associate_public_ip_address
   user_data                   = base64encode(var.user_data)
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = var.imdsv2_enabled ? "required" : "optional"
+  }
 
   tags = merge(var.global_tags,
     { Name = "${var.name_prefix}-ac-vm-${count.index + 1}-${var.resource_tag}" }
