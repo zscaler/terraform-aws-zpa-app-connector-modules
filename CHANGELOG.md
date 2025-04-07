@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+### [1.5.1](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v1.5.0...v1.5.1) (2025-04-07)
+
+
+### Bug Fixes
+
+* Updated AWS provider version to v5.94.x ([#23](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/issues/23)) ([a7f73e8](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/a7f73e83e904b70e81938407dcc387e635b848e6))
+
 ### Bug Fixes
 
 ## [1.5.1](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v1.4.0...v1.5.1) (2025-04-07)
