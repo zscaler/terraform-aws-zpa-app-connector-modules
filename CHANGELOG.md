@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
+## [1.5.1](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v1.4.0...v1.5.1) (2025-04-07)
 * Updated AWS provider version to v5.94.x - (#PR21)[https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/pull/21]
 * Updated README with instructions for ZPA Terraform provider authentication via Legacy API framework and OneAPI - (#PR21)[https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/pull/21]
 * enforce imdsv2 only by default for new deployments (#PR20)[https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/pull/20]
