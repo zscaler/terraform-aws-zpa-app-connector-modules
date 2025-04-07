@@ -27,6 +27,8 @@ No modules.
 | [aws_eip.eip](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip) | resource |
 | [aws_internet_gateway.igw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/internet_gateway) | resource |
 | [aws_nat_gateway.ngw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/nat_gateway) | resource |
+| [aws_route.ac_rt_default](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route) | resource |
+| [aws_route.public_rt_default](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route) | resource |
 | [aws_route_table.ac_rt](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
 | [aws_route_table.public_rt](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table) | resource |
 | [aws_route_table_association.ac_rt_asssociation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route_table_association) | resource |
@@ -65,8 +67,10 @@ No modules.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_ac_route_table_ids"></a> [ac\_route\_table\_ids](#output\_ac\_route\_table\_ids) | App Connector Route Table IDs |
 | <a name="output_ac_subnet_ids"></a> [ac\_subnet\_ids](#output\_ac\_subnet\_ids) | App Connector Subnet IDs |
 | <a name="output_nat_gateway_ips"></a> [nat\_gateway\_ips](#output\_nat\_gateway\_ips) | NAT Gateway Public IP |
+| <a name="output_public_route_table_id"></a> [public\_route\_table\_id](#output\_public\_route\_table\_id) | Public Route Table ID |
 | <a name="output_public_subnet_ids"></a> [public\_subnet\_ids](#output\_public\_subnet\_ids) | Public Subnet ID |
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | VPC ID Selected |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
