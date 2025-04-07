@@ -40,14 +40,54 @@ Our Deployment scripts are leveraging Terraform v1.1.9 that includes full binary
 ### Zscaler requirements
 This module leverages the Zscaler Private Access [ZPA Terraform Provider](https://registry.terraform.io/providers/zscaler/zpa/latest/docs) for the automated onboarding process. Before proceeding make sure you have the following pre-requistes ready.
 
+## Legacy ZPA API Authentication Framework
+
 1. A valid Zscaler Private Access subscription and portal access
-2. Zscaler ZPA API Keys. Details on how to find and generate ZPA API keys can be located [here](https://help.zscaler.com/zpa/about-api-keys#:~:text=An%20API%20key%20is%20required,from%20the%20API%20Keys%20page)
-- Client ID
-- Client Secret
-- Customer ID
+2. Zscaler ZPA API Keys. Details on how to find and generate ZPA API keys can be located [here](https://registry.terraform.io/providers/zscaler/zpa/latest/docs#legacy-api-framework)
+- `zpa_client_id`
+- `zpa_client_secret`
+- `zpa_customer_id`
+- `zpa_cloud` - This authentication parameter is optional and only required if authenticating to a non-production cloud i.e `BETA`, `GOV`, `GOVUS`, `ZPATWO`
+- `use_legacy_client` - This parameter MUST be set to `true` if your tenant is NOT migrated to Zidentity.
+
+```hcl
+provider "zpa" {
+  zpa_client_id            = "zpa_client_id" # pragma: allowlist secret
+  zpa_client_secret        = "zpa_client_secret" # pragma: allowlist secret
+  zpa_customer_id          = "zpa_client_secret" # pragma: allowlist secret
+  zpa_cloud                = "zpa_cloud" # pragma: allowlist secret
+  use_legacy_client        = "true" # pragma: allowlist secret
+}
+```
+
 3. (Optional) An existing App Connector Group and Provisioning Key. Otherwise, you can follow the prompts in the examples terraform.tfvars to create a new Connector Group and Provisioning Key
 
 See: [Zscaler App Connector AWS Deployment Guide](https://help.zscaler.com/zpa/connector-deployment-guide-amazon-web-services) for additional prerequisite provisioning steps.
+
+## ZPA OneAPI Authentication Framework (OneAPI)
+
+1. A valid Zscaler Private Access subscription and portal access
+2. Zscaler tenant MUST be migrated to Zidentity platform.
+2. Details on how to authenticate to ZPA via Zidentity/OneAPI are located here [here](https://registry.terraform.io/providers/zscaler/zpa/latest/docs#authentication---oneapi-new-framework)
+- `client_id`
+- `client_secret`
+- `zpa_customer_id`
+- `vanity_domain`
+- `zscaler_cloud` - This authentication parameter is optional and only required if authenticating to a non-production cloud i.e `beta`
+
+```hcl
+provider "zpa" {
+  client_id = "client_id" # pragma: allowlist secret
+  client_secret = "client_secret" # pragma: allowlist secret
+  zpa_customer_id = "client_secret" # pragma: allowlist secret
+  vanity_domain = "vanity_domain" # pragma: allowlist secret
+  zscaler_cloud = "zscaler_cloud" # pragma: allowlist secret
+}
+```
+3. (Optional) An existing App Connector Group and Provisioning Key. Otherwise, you can follow the prompts in the examples terraform.tfvars to create a new Connector Group and Provisioning Key
+
+See: [Zscaler App Connector AWS Deployment Guide](https://help.zscaler.com/zpa/connector-deployment-guide-amazon-web-services) for additional prerequisite provisioning steps.
+
 
 ## How to deploy
 Provisioning templates are available for customer use/reference to successfully deploy fully operational App Connector appliances once the prerequisites have been completed. Please follow the instructions located in [examples](examples/README.md).

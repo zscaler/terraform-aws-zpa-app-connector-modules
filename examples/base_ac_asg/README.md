@@ -47,7 +47,7 @@ From base_ac_asg directory execute:
 | <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.2.0 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.6.0 |
 | <a name="requirement_tls"></a> [tls](#requirement\_tls) | ~> 4.0.0 |
-| <a name="requirement_zpa"></a> [zpa](#requirement\_zpa) | ~> 3.31.0 |
+| <a name="requirement_zpa"></a> [zpa](#requirement\_zpa) | ~> 4.0.0 |
 
 ## Providers
 
