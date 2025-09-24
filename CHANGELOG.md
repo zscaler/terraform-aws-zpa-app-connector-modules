@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 ### Features
 
 * add support for custom KMS key for EBS volume encryption ([#25](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/issues/25)) ([544b5cf](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/544b5cf0df4fa8a0cc7e3c5ade5c058877558fe4))
+* **zpa provider:** Removed version constraints to allow latest provider versions
+* **app connector group:** Changed default `app_connector_group_version_profile_id` from "2" to "0" (Default version profile)
 
 ### [1.5.1](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v1.5.0...v1.5.1) (2025-04-07)
 

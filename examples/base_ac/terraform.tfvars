@@ -34,7 +34,7 @@
 #app_connector_group_upgrade_day                = "SUNDAY"
 #app_connector_group_upgrade_time_in_secs       = "66600"
 # app_connector_group_override_version_profile   = true
-# app_connector_group_version_profile_id          = "2"
+# app_connector_group_version_profile_id          = "0"
 #app_connector_group_dns_query_type             = "IPV4_IPV6"
 
 

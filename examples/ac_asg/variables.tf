@@ -334,7 +334,7 @@ variable "app_connector_group_override_version_profile" {
 variable "app_connector_group_version_profile_id" {
   type        = string
   description = "Optional: ID of the version profile. To learn more, see Version Profile Use Cases. https://help.zscaler.com/zpa/configuring-version-profile"
-  default     = "2"
+  default     = "0"
 
   validation {
     condition = (
