@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.0](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v1.6.0...v1.7.0) (2025-09-24)
+
+
+### Features
+
+* update ZPA provider constraints and version profile defaults ([#26](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/issues/26)) ([452d712](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/452d712b6dd313603781c8c0941ccc6fa2ec03ac))
+
 ## [1.6.0](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v1.5.1...v1.6.0) (2025-09-24)
 
 
