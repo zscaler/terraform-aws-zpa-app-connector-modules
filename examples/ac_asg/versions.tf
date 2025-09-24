@@ -21,8 +21,7 @@ terraform {
       version = "~> 4.0.0"
     }
     zpa = {
-      source  = "zscaler/zpa"
-      version = "~> 4.0.0"
+      source = "zscaler/zpa"
     }
   }
 
