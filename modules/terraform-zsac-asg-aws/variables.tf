@@ -43,6 +43,12 @@ variable "ebs_encrypted" {
   default     = true
 }
 
+variable "ebs_kms_key_arn" {
+  type        = string
+  description = "KMS key ARN for EBS volume encryption. Either AWS managed keys or CMK managed keys are supported. Default uses AWS managed key"
+  default     = null
+}
+
 variable "ebs_volume_size" {
   type        = number
   description = "EBS volume size"

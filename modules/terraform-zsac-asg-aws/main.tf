@@ -17,6 +17,7 @@ resource "aws_launch_template" "ac_launch_template" {
       volume_size = var.ebs_volume_size
       volume_type = var.ebs_volume_type
       encrypted   = var.ebs_encrypted
+      kms_key_id  = var.ebs_encrypted ? var.ebs_kms_key_arn : null
     }
   }
 
