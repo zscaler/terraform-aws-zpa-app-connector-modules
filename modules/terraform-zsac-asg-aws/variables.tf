@@ -49,11 +49,6 @@ variable "ebs_kms_key_arn" {
   default     = null
 }
 
-variable "ebs_volume_size" {
-  type        = number
-  description = "EBS volume size"
-  default     = 16
-}
 
 variable "ebs_volume_type" {
   type        = string
@@ -187,6 +182,12 @@ variable "target_cpu_util_value" {
   type        = number
   description = "Target value number for autoscaling policy CPU utilization target tracking. ie: trigger a scale in/out to keep average CPU Utliization percentage across all instances at/under this number"
   default     = 50
+}
+
+variable "imdsv2_enabled" {
+  type        = bool
+  description = "true/false whether to force IMDSv2 only for instance bring up. Default is true"
+  default     = true
 }
 
 variable "metadata_options" {

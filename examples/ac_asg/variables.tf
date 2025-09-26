@@ -292,7 +292,7 @@ variable "app_connector_group_enabled" {
 variable "app_connector_group_country_code" {
   type        = string
   description = "Optional: Country code of this App Connector Group. example 'US'"
-  default     = ""
+  default     = "US"
 }
 
 variable "app_connector_group_latitude" {
