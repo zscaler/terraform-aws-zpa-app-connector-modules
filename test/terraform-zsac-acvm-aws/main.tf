@@ -30,6 +30,11 @@ resource "random_pet" "this" {
   length = 2
 }
 
+# Get latest Amazon Linux 2023 AMI from SSM Parameter Store
+data "aws_ssm_parameter" "amazon_linux_latest" {
+  name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-x86_64"
+}
+
 # Create temporary SSH key pair for testing
 resource "tls_private_key" "test_key" {
   algorithm = "RSA"
@@ -122,7 +127,7 @@ module "acvm" {
   instance_key       = aws_key_pair.test_key.key_name
   user_data          = var.user_data
   acvm_instance_type = var.acvm_instance_type
-  ami_id             = var.ami_id
+  ami_id             = [data.aws_ssm_parameter.amazon_linux_latest.value]
   ac_count           = var.ac_count
 
   # Optional parameters
