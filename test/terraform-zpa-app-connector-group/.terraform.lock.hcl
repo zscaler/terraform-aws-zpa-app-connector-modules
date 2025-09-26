@@ -1,0 +1,24 @@
+# This file is maintained automatically by "terraform init".
+# Manual edits may be lost in future updates.
+
+provider "registry.terraform.io/zscaler/zpa" {
+  version = "4.2.4"
+  hashes = [
+    "h1:TNIVl9DhI/joR3VendE9CDXPj6ps150bUKy46CBqMig=",
+    "zh:07e4919fd4711beb7ca00a80e819d288656a72ead52b23d78654a34e3f892f52",
+    "zh:2c8d84b5d5a44a4855e2ed798517786376be2215b1fcfdfea938a4c95ba75a5e",
+    "zh:350ba323f7ca176ded12f84c901979593040d43cec270b08f220a7577519e712",
+    "zh:457e6b00760734b338c628cae5aa403467cc992578a05144022aea410c4bb547",
+    "zh:5b4b1cb69e47997b25d8039e7e7869bc5587b168dc6bf88e54fb0ac02bc4e54a",
+    "zh:709e55363462f0a5d8a21c01a66e93444077d4114a5e5a9a590373d14f51d399",
+    "zh:73d7d6ab766110f76a6ff1fd36dbd32bcdcfc45460f904f8e015fdbd01a3f0d9",
+    "zh:787acbe276d293fd8ce8409c71e479c262e2b03bf4e8dd464174f7aa06cbe2a7",
+    "zh:973f4a83a6a8aeb252867451621a24a12f4f5f14e7c6b52a84456eef55e77700",
+    "zh:9e9cd0f23d0b2fae9a37f29b688570a04357d0b8983d3586c8187f9e6a9194a5",
+    "zh:a3f931ee35d8e1bc7d215802367eb083b70c79bd466357e7ce538ad3edbe182f",
+    "zh:a44a712c3d7feeea76a591f73ce086fc3d6637be5f971c2dba4b373583b84a77",
+    "zh:a658f194eb07af725e82ceb481dd4f053e583988461ef9727638526420efaf31",
+    "zh:f1d13f084215c3bbd4a3047fbd9a3087ad8e272b5bd25d61230cee2fba3d1069",
+    "zh:fb08b2536d3ad4f1db06c0429933fb503c4d562f1468abf01b4dbec7b3e0ab92",
+  ]
+}

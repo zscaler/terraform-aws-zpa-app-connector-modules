@@ -32,11 +32,6 @@ variable "instance_type" {
   default     = "t3.micro"
 }
 
-variable "disk_size" {
-  type        = number
-  description = "The size of the root volume in gigabytes."
-  default     = 10
-}
 
 variable "bastion_nsg_source_prefix" {
   type        = list(string)

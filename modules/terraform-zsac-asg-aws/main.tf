@@ -14,7 +14,6 @@ resource "aws_launch_template" "ac_launch_template" {
   block_device_mappings {
     device_name = var.ebs_block_device_name
     ebs {
-      volume_size = var.ebs_volume_size
       volume_type = var.ebs_volume_type
       encrypted   = var.ebs_encrypted
       kms_key_id  = var.ebs_encrypted ? var.ebs_kms_key_arn : null
@@ -26,7 +25,7 @@ resource "aws_launch_template" "ac_launch_template" {
     for_each = length(var.metadata_options) > 0 ? [var.metadata_options] : []
     content {
       http_endpoint               = lookup(metadata_options.value, "http_endpoint", null)
-      http_tokens                 = lookup(metadata_options.value, "http_tokens", null)
+      http_tokens                 = lookup(metadata_options.value, "http_tokens", var.imdsv2_enabled ? "required" : "optional")
       http_put_response_hop_limit = lookup(metadata_options.value, "http_put_response_hop_limit", null)
       http_protocol_ipv6          = lookup(metadata_options.value, "http_protocol_ipv6", null)
       instance_metadata_tags      = lookup(metadata_options.value, "instance_metadata_tags", null)

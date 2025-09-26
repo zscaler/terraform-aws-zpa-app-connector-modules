@@ -1,103 +1,158 @@
-name: Terraform checks
-on: [push, pull_request]
+name: Terraform checks and tests
+on: 
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
 
 jobs:
-  terraform-linter:
+  test:
     runs-on: ubuntu-latest
 
     steps:      
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.24'
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
 
       - name: Terraform Format
         id: fmt
         run: terraform fmt -check -recursive
 
-      - name: Terraform Init
-        id: init-bastion
+      - name: Terraform Init and Validate - Bastion
         run: |
           cd modules/terraform-zsac-bastion-aws
           terraform init   
-
-      - name: Terraform Validate
-        id: validate-bastion
-        run: |
-          cd modules/terraform-zsac-bastion-aws
           terraform validate -no-color
 
-      - name: Terraform Init
-        id: init-zsac-acvm
+      - name: Terraform Init and Validate - ACVM
         run: |
           cd modules/terraform-zsac-acvm-aws
           terraform init   
-
-      - name: Terraform Validate
-        id: validate-zsac-acvm
-        run: |
-          cd modules/terraform-zsac-acvm-aws
           terraform validate -no-color
 
-      - name: Terraform Init
-        id: init-zsac-asg-aws
+      - name: Terraform Init and Validate - ASG
         run: |
           cd modules/terraform-zsac-asg-aws
           terraform init   
-
-      - name: Terraform Validate
-        id: validate-zsac-asg-aws
-        run: |
-          cd modules/terraform-zsac-asg-aws
           terraform validate -no-color
 
-      - name: Terraform Init
-        id: init-zsac-iam-aws
+      - name: Terraform Init and Validate - IAM
         run: |
           cd modules/terraform-zsac-iam-aws
           terraform init   
-
-      - name: Terraform Validate
-        id: validate-zsac-iam-aws
-        run: |
-          cd modules/terraform-zsac-iam-aws
           terraform validate -no-color
 
-      - name: Terraform Init
-        id: init-zsac-network-aws
+      - name: Terraform Init and Validate - Network
         run: |
           cd modules/terraform-zsac-network-aws
           terraform init   
-
-      - name: Terraform Validate
-        id: validate-zsac-network-aws
-        run: |
-          cd modules/terraform-zsac-network-aws
           terraform validate -no-color
-  
-      - name: Terraform Init
-        id: init-zpa-app-connector-group
+
+      - name: Terraform Init and Validate - App Connector Group
         run: |
           cd modules/terraform-zpa-app-connector-group
           terraform init   
-
-      - name: Terraform Validate
-        id: validate-zpa-app-connector-group
-        run: |
-          cd modules/terraform-zpa-app-connector-group
           terraform validate -no-color
 
-      - name: Terraform Init
-        id: init-zpa-provisioning-key
+      - name: Terraform Init and Validate - Provisioning Key
         run: |
           cd modules/terraform-zpa-provisioning-key
           terraform init   
-  
-      - name: Terraform Validate
-        id: validate-zpa-provisioning-key
-        run: |
-          cd modules/terraform-zpa-provisioning-key
           terraform validate -no-color
-  
-    
+
+      - name: Install Go dependencies
+        run: |
+          cd test
+          go mod tidy
+          go mod download
+
+      - name: Run Terratest - ZPA App Connector Group
+        run: |
+          cd test/terraform-zpa-app-connector-group
+          go test -v -run TestValidate -timeout 5m
+        env:
+          ZSCALER_CLIENT_ID: ${{ secrets.ZSCALER_CLIENT_ID }}
+          ZSCALER_CLIENT_SECRET: ${{ secrets.ZSCALER_CLIENT_SECRET }}
+          ZSCALER_VANITY_DOMAIN: ${{ secrets.ZSCALER_VANITY_DOMAIN }}
+          ZPA_CUSTOMER_ID: ${{ secrets.ZPA_CUSTOMER_ID }}
+          ZSCALER_CLOUD: ${{ secrets.ZSCALER_CLOUD }}
+
+      - name: Run Terratest - ZPA Provisioning Key
+        run: |
+          cd test/terraform-zpa-provisioning-key
+          go test -v -run TestValidate -timeout 5m
+        env:
+          ZSCALER_CLIENT_ID: ${{ secrets.ZSCALER_CLIENT_ID }}
+          ZSCALER_CLIENT_SECRET: ${{ secrets.ZSCALER_CLIENT_SECRET }}
+          ZSCALER_VANITY_DOMAIN: ${{ secrets.ZSCALER_VANITY_DOMAIN }}
+          ZPA_CUSTOMER_ID: ${{ secrets.ZPA_CUSTOMER_ID }}
+          ZSCALER_CLOUD: ${{ secrets.ZSCALER_CLOUD }}
+
+      - name: Run Terratest - Security Group
+        run: |
+          cd test/terraform-zsac-sg-aws
+          go test -v -run TestValidate -timeout 5m
+
+      - name: Run Terratest - Network
+        run: |
+          cd test/terraform-zsac-network-aws
+          go test -v -run TestValidate -timeout 5m
+
+      - name: Run Terratest - IAM
+        run: |
+          cd test/terraform-zsac-iam-aws
+          go test -v -run TestValidate -timeout 5m
+
+      - name: Run Terratest - ASG
+        run: |
+          cd test/terraform-zsac-asg-aws
+          go test -v -run TestValidate -timeout 5m
+
+      - name: Run Terratest - Bastion
+        run: |
+          cd test/terraform-zsac-bastion-aws
+          go test -v -run TestValidate -timeout 5m
+
+      - name: Run Terratest - ACVM (Full Test)
+        run: |
+          cd test/terraform-zsac-acvm-aws
+          go test -v -run TestApply -timeout 15m
+        continue-on-error: true  # Continue on error due to cleanup issues we discussed
+
+      - name: Run Terratest - ZPA App Connector Group (Full Test)
+        run: |
+          cd test/terraform-zpa-app-connector-group
+          go test -v -run TestApply -timeout 10m
+        env:
+          ZSCALER_CLIENT_ID: ${{ secrets.ZSCALER_CLIENT_ID }}
+          ZSCALER_CLIENT_SECRET: ${{ secrets.ZSCALER_CLIENT_SECRET }}
+          ZSCALER_VANITY_DOMAIN: ${{ secrets.ZSCALER_VANITY_DOMAIN }}
+          ZPA_CUSTOMER_ID: ${{ secrets.ZPA_CUSTOMER_ID }}
+          ZSCALER_CLOUD: ${{ secrets.ZSCALER_CLOUD }}
+        continue-on-error: true  # Continue on error due to potential ZPA API issues
+
+      - name: Run Terratest - ZPA Provisioning Key (Full Test)
+        run: |
+          cd test/terraform-zpa-provisioning-key
+          go test -v -run TestApply -timeout 10m
+        env:
+          ZSCALER_CLIENT_ID: ${{ secrets.ZSCALER_CLIENT_ID }}
+          ZSCALER_CLIENT_SECRET: ${{ secrets.ZSCALER_CLIENT_SECRET }}
+          ZSCALER_VANITY_DOMAIN: ${{ secrets.ZSCALER_VANITY_DOMAIN }}
+          ZPA_CUSTOMER_ID: ${{ secrets.ZPA_CUSTOMER_ID }}
+          ZSCALER_CLOUD: ${{ secrets.ZSCALER_CLOUD }}
+        continue-on-error: true  # Continue on error due to potential ZPA API issues

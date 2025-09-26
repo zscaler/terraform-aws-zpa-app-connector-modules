@@ -1,0 +1,30 @@
+# Test variables for terraform-zsac-asg-aws
+aws_region                = "us-west-2"
+name_prefix               = "tasg"
+resource_tag              = "test"
+instance_key              = "test-key"
+user_data                 = "#!/bin/bash\necho 'Test user data for App Connector'"
+acvm_instance_type        = "t3.medium"
+ami_id                    = [""]
+min_size                  = 1
+max_size                  = 2
+health_check_grace_period = 300
+ebs_block_device_name     = "/dev/xvda"
+ebs_encrypted             = true
+ebs_kms_key_arn           = null
+ebs_volume_type           = "gp3"
+target_tracking_metric    = "ASGAverageCPUUtilization"
+target_cpu_util_value     = 50
+imdsv2_enabled            = true
+metadata_options = {
+  http_endpoint               = "enabled"
+  http_tokens                 = "required"
+  http_put_response_hop_limit = 2
+}
+associate_public_ip_address           = false
+warm_pool_enabled                     = false
+warm_pool_state                       = null
+warm_pool_min_size                    = null
+warm_pool_max_group_prepared_capacity = null
+reuse_on_scale_in                     = false
+launch_template_version               = "$Latest"
