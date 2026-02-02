@@ -36,3 +36,28 @@ resource "local_file" "testbed" {
   content  = local.testbedconfig
   filename = "./testbed.txt"
 }
+
+
+################################################################################
+# OAuth2 Token Outputs
+################################################################################
+output "oauth_user_codes" {
+  description = "OAuth2 user codes retrieved from SSM Parameter Store. Use 'terraform output -json oauth_user_codes | jq -r' to view."
+  value       = local.user_codes
+  sensitive   = true
+}
+
+output "app_connector_group_id" {
+  description = "ZPA App Connector Group ID"
+  value       = module.zpa_app_connector_group.app_connector_group_id
+}
+
+output "enrollment_cert_id" {
+  description = "ZPA Enrollment Certificate ID used for App Connector enrollment"
+  value       = data.zpa_enrollment_cert.connector_cert.id
+}
+
+output "ssm_parameter_names" {
+  description = "SSM Parameter Store paths where OAuth tokens are stored (managed by Terraform, updated by VMs)"
+  value       = local.ssm_parameter_names
+}

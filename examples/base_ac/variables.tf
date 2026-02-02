@@ -126,22 +126,10 @@ variable "ami_id" {
 }
 
 
-# ZPA Provider specific variables for App Connector Group and Provisioning Key creation
-variable "byo_provisioning_key" {
-  type        = bool
-  description = "Bring your own App Connector Provisioning Key. Setting this variable to true will effectively instruct this module to not create any resources and only reference data resources from values provided in byo_provisioning_key_name"
-  default     = false
-}
-
-variable "byo_provisioning_key_name" {
-  type        = string
-  description = "Existing App Connector Provisioning Key name"
-  default     = "provisioning-key-tf"
-}
-
+# ZPA Provider specific variables for App Connector Group creation
 variable "enrollment_cert" {
   type        = string
-  description = "Get name of ZPA enrollment cert to be used for App Connector provisioning"
+  description = "Name of ZPA enrollment cert to be used for App Connector enrollment via OAuth2"
   default     = "Connector"
 
   validation {
@@ -150,6 +138,19 @@ variable "enrollment_cert" {
     )
     error_message = "Input enrollment_cert must be set to an approved value."
   }
+}
+
+# AWS Systems Manager Parameter Store configuration for OAuth token storage
+variable "byo_ssm_parameter_name" {
+  type        = string
+  description = "Bring your own SSM Parameter Store base name for OAuth tokens. If specified, module will use existing parameters named '{value}-0', '{value}-1', etc. If empty, module creates new parameters. Default: '' (create new)"
+  default     = ""
+}
+
+variable "app_connector_group_name" {
+  type        = string
+  description = "Custom name for the App Connector Group. If empty, defaults to: {region}-{vpc-id}. Supports variables: {region}, {vpc_id}, {name_prefix}, {random_suffix}"
+  default     = ""
 }
 
 variable "app_connector_group_description" {
@@ -234,29 +235,4 @@ variable "app_connector_group_dns_query_type" {
     )
     error_message = "Input app_connector_group_dns_query_type must be set to an approved value."
   }
-}
-
-variable "provisioning_key_enabled" {
-  type        = bool
-  description = "Whether the provisioning key is enabled or not. Default: true"
-  default     = true
-}
-
-variable "provisioning_key_association_type" {
-  type        = string
-  description = "Specifies the provisioning key type for App Connectors or ZPA Private Service Edges. The supported values are CONNECTOR_GRP and SERVICE_EDGE_GRP"
-  default     = "CONNECTOR_GRP"
-
-  validation {
-    condition = (
-      var.provisioning_key_association_type == "CONNECTOR_GRP"
-    )
-    error_message = "Input provisioning_key_association_type must be set to an approved value."
-  }
-}
-
-variable "provisioning_key_max_usage" {
-  type        = number
-  description = "The maximum number of instances where this provisioning key can be used for enrolling an App Connector or Service Edge"
-  default     = 10
 }

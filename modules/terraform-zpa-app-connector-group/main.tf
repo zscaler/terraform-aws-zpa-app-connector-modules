@@ -1,7 +1,7 @@
 ################################################################################
 # Create ZPA App Connector Group
 ################################################################################
-# Create App Connector Group
+# Create App Connector Group with OAuth2 support
 resource "zpa_app_connector_group" "app_connector_group" {
   name                     = var.app_connector_group_name
   description              = var.app_connector_group_description
@@ -15,4 +15,8 @@ resource "zpa_app_connector_group" "app_connector_group" {
   override_version_profile = var.app_connector_group_override_version_profile
   version_profile_id       = var.app_connector_group_version_profile_id
   dns_query_type           = var.app_connector_group_dns_query_type
+
+  # OAuth2 enrollment support
+  enrollment_cert_id = var.enrollment_cert_id
+  user_codes         = var.user_codes
 }

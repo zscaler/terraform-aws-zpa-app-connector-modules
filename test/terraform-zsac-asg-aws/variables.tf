@@ -16,12 +16,6 @@ variable "resource_tag" {
   default     = "test"
 }
 
-variable "instance_key" {
-  type        = string
-  description = "SSH Key for instances"
-  default     = "test-key"
-}
-
 variable "user_data" {
   type        = string
   description = "User data script for App Connector initialization"

@@ -77,86 +77,96 @@ module "bastion" {
 
 
 ################################################################################
-# 3. Create ZPA App Connector Group
+# 3. SSM Parameter configuration for ASG
+#    VMs create parameters dynamically: {prefix}-{instance-id}
+#    No pre-creation - only running VMs have parameters
 ################################################################################
-module "zpa_app_connector_group" {
-  count                                        = var.byo_provisioning_key == true ? 0 : 1 # Only use this module if a new provisioning key is needed
-  source                                       = "../../modules/terraform-zpa-app-connector-group"
-  app_connector_group_name                     = "${var.aws_region}-${module.network.vpc_id}"
-  app_connector_group_description              = "${var.app_connector_group_description}-${var.aws_region}-${module.network.vpc_id}"
-  app_connector_group_enabled                  = var.app_connector_group_enabled
-  app_connector_group_country_code             = var.app_connector_group_country_code
-  app_connector_group_latitude                 = var.app_connector_group_latitude
-  app_connector_group_longitude                = var.app_connector_group_longitude
-  app_connector_group_location                 = var.app_connector_group_location
-  app_connector_group_upgrade_day              = var.app_connector_group_upgrade_day
-  app_connector_group_upgrade_time_in_secs     = var.app_connector_group_upgrade_time_in_secs
-  app_connector_group_override_version_profile = var.app_connector_group_override_version_profile
-  app_connector_group_version_profile_id       = var.app_connector_group_version_profile_id
-  app_connector_group_dns_query_type           = var.app_connector_group_dns_query_type
+locals {
+  ssm_parameter_prefix = var.byo_ssm_parameter_name == "" ? "/zpa/oauth-tokens/${var.name_prefix}-${var.aws_region}-asg" : var.byo_ssm_parameter_name
 }
 
 
 ################################################################################
-# 4. Create ZPA Provisioning Key (or reference existing if byo set)
-################################################################################
-module "zpa_provisioning_key" {
-  source                            = "../../modules/terraform-zpa-provisioning-key"
-  enrollment_cert                   = var.enrollment_cert
-  provisioning_key_name             = "${var.aws_region}-${module.network.vpc_id}"
-  provisioning_key_enabled          = var.provisioning_key_enabled
-  provisioning_key_association_type = var.provisioning_key_association_type
-  provisioning_key_max_usage        = var.provisioning_key_max_usage
-  app_connector_group_id            = try(module.zpa_app_connector_group[0].app_connector_group_id, "")
-  byo_provisioning_key              = var.byo_provisioning_key
-  byo_provisioning_key_name         = var.byo_provisioning_key_name
-}
-
-
-################################################################################
-# 5. Create specified number AC VMs per min_size / max_size which will span
+# 4. Create specified number AC VMs per min_size / max_size which will span
 #    equally across designated availability zones per az_count. E.g. min_size
 #    set to 4 and az_count set to 2 will create 2x ACs in AZ1 and 2x ACs in AZ2
 ################################################################################
 
 ################################################################################
-# A. Create the user_data file with necessary bootstrap variables for App
-#    Connector registration. Used if variable use_zscaler_ami is set to true.
+# A. Create the user_data file for App Connector ASG instances (Zscaler AMI).
+#    OAuth2 token is automatically generated and stored in SSM (dynamic claiming)
 ################################################################################
 locals {
   appuserdata = <<APPUSERDATA
 #!/bin/bash
-#Stop the App Connector service which was auto-started at boot time
-systemctl stop zpa-connector
-#Create a file from the App Connector provisioning key created in the ZPA Admin Portal
-#Make sure that the provisioning key is between double quotes
-echo "${module.zpa_provisioning_key.provisioning_key}" > /opt/zscaler/var/provision_key
-#Run a yum update to apply the latest patches
-yum update -y
-#Start the App Connector service to enroll it in the ZPA cloud
-systemctl start zpa-connector
-#Wait for the App Connector to download latest build
-sleep 60
-#Stop and then start the App Connector for the latest build
-systemctl stop zpa-connector
-systemctl start zpa-connector
+
+# Get instance ID and region from EC2 metadata service
+TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" 2>/dev/null)
+INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id 2>/dev/null)
+AVAILABILITY_ZONE=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/availability-zone 2>/dev/null)
+REGION=$(echo $AVAILABILITY_ZONE | sed 's/[a-z]$//')
+
+echo "Instance ID: $INSTANCE_ID, Region: $REGION"
+
+# Ensure zpa-connector service is running (for Zscaler AMI)
+sudo systemctl start zpa-connector 2>/dev/null || true
+sudo systemctl status zpa-connector
+
+# Wait for OAuth token to be generated (retry up to 30 times, 10 seconds each = 5 minutes)
+MAX_RETRIES=30
+RETRY_COUNT=0
+OAUTH_TOKEN=""
+
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+  # Try to retrieve OAuth token from /etc/issue
+  OAUTH_TOKEN=$(sudo cat /etc/issue 2>/dev/null | grep -Eo '[A-Z0-9]{5}-[A-Z0-9]{5}' | head -n 1)
+  
+  if [ -n "$OAUTH_TOKEN" ]; then
+    echo "OAuth token retrieved: $OAUTH_TOKEN"
+    break
+  fi
+  
+  echo "Waiting for OAuth token to be generated (attempt $((RETRY_COUNT + 1))/$MAX_RETRIES)..."
+  sleep 10
+  RETRY_COUNT=$((RETRY_COUNT + 1))
+done
+
+# SSM Parameter name (instance-id based)
+SSM_PARAMETER_NAME="${local.ssm_parameter_prefix}-$INSTANCE_ID"
+echo "SSM Parameter: $SSM_PARAMETER_NAME"
+
+# CREATE/UPDATE SSM parameter with OAuth token
+if [ -n "$OAUTH_TOKEN" ]; then
+  aws ssm put-parameter \
+    --name "$SSM_PARAMETER_NAME" \
+    --value "$OAUTH_TOKEN" \
+    --type "SecureString" \
+    --overwrite \
+    --region "$REGION" 2>&1 | tee -a /var/log/oauth-token-registration.log
+  
+  if [ $? -eq 0 ]; then
+    echo "SUCCESS: OAuth token stored in SSM: $SSM_PARAMETER_NAME"
+  else
+    echo "ERROR: Failed to store OAuth token in SSM"
+  fi
+else
+  echo "ERROR: Failed to retrieve OAuth token after $MAX_RETRIES attempts"
+fi
+
+echo "=== OAuth Registration Complete, starting yum update ===" 
+
+# Run yum update IN BACKGROUND so it doesn't block
+nohup yum update -y > /var/log/yum-update.log 2>&1 &
 APPUSERDATA
 }
 
-# Write the file to local filesystem for storage/reference
-resource "local_file" "user_data_file" {
-  count    = var.use_zscaler_ami == true ? 1 : 0
-  content  = local.appuserdata
-  filename = "./user_data"
-}
-
 
 ################################################################################
-# B. Create the user_data file with necessary bootstrap variables for App
-#     Connector registration. Used if variable use_zscaler_ami is set to false.
+# B. Create the user_data file for App Connector ASG instances (RHEL9).
+#    OAuth2 token is automatically generated and stored in SSM (dynamic claiming)
 ################################################################################
 locals {
-  rhel9userdata = <<RHEL9USERDATA
+  rhel9userdata = <<-RHEL9USERDATA
 #!/usr/bin/bash
 # Sleep to allow the system to initialize
 sleep 15
@@ -189,34 +199,70 @@ sudo ./aws/install --update -i /usr/bin/aws-cli -b /usr/bin
 # Install App Connector packages
 yum install -y zpa-connector
 
-# Stop the App Connector service which was auto-started at boot time
-systemctl stop zpa-connector
+# Start zpa-connector service to generate OAuth token
+sudo systemctl start zpa-connector
+sudo systemctl status zpa-connector
 
-# Create a file from the App Connector provisioning key created in the ZPA Admin Portal
-# Make sure that the provisioning key is between double quotes
-echo "${module.zpa_provisioning_key.provisioning_key}" > /opt/zscaler/var/provision_key
-chmod 644 /opt/zscaler/var/provision_key
+################################################################################
+# RETRIEVE AND STORE OAUTH TOKEN - EXACT same script as base_ac
+################################################################################
+
+# Get instance ID and region from EC2 metadata service
+TOKEN=$$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" 2>/dev/null)
+INSTANCE_ID=$$(curl -H "X-aws-ec2-metadata-token: $$TOKEN" http://169.254.169.254/latest/meta-data/instance-id 2>/dev/null)
+AVAILABILITY_ZONE=$$(curl -H "X-aws-ec2-metadata-token: $$TOKEN" http://169.254.169.254/latest/meta-data/placement/availability-zone 2>/dev/null)
+REGION=$$(echo $$AVAILABILITY_ZONE | sed 's/[a-z]$$//')
+
+echo "Instance ID: $$INSTANCE_ID, Region: $$REGION"
+
+# SSM Parameter name (instance-id based)
+SSM_PARAMETER_NAME="${local.ssm_parameter_prefix}-$$INSTANCE_ID"
+echo "SSM Parameter: $$SSM_PARAMETER_NAME"
+
+# Wait for OAuth token to be generated (retry up to 30 times, 10 seconds each = 5 minutes)
+MAX_RETRIES=30
+RETRY_COUNT=0
+OAUTH_TOKEN=""
+
+while [ $$RETRY_COUNT -lt $$MAX_RETRIES ]; do
+  # Try to retrieve OAuth token from /etc/issue
+  OAUTH_TOKEN=$$(sudo cat /etc/issue 2>/dev/null | grep -Eo '[A-Z0-9]{5}-[A-Z0-9]{5}' | head -n 1)
+  
+  if [ -n "$$OAUTH_TOKEN" ]; then
+    echo "OAuth token retrieved: $$OAUTH_TOKEN"
+    break
+  fi
+  
+  echo "Waiting for OAuth token to be generated (attempt $$((RETRY_COUNT + 1))/$$MAX_RETRIES)..."
+  sleep 10
+  RETRY_COUNT=$$((RETRY_COUNT + 1))
+done
+
+# UPDATE the SSM parameter with the OAuth token
+if [ -n "$$OAUTH_TOKEN" ]; then
+  /usr/bin/aws ssm put-parameter \
+    --name "$$SSM_PARAMETER_NAME" \
+    --value "$$OAUTH_TOKEN" \
+    --type "SecureString" \
+    --overwrite \
+    --region "$$REGION" 2>&1 | tee -a /var/log/oauth-token-registration.log
+  
+  if [ $$? -eq 0 ]; then
+    echo "OAuth token successfully updated in SSM Parameter Store: $$SSM_PARAMETER_NAME"
+  else
+    echo "ERROR: Failed to update OAuth token in SSM Parameter Store"
+  fi
+else
+  echo "ERROR: Failed to retrieve OAuth token after $$MAX_RETRIES attempts"
+fi
+
+################################################################################
+# NOW do yum update (takes a long time, but OAuth token already stored!)
+################################################################################
 
 # Run a yum update to apply the latest patches
 yum update -y
-
-# Start the App Connector service to enroll it in the ZPA cloud
-systemctl start zpa-connector
-
-# Wait for the App Connector to download the latest build
-sleep 60
-
-# Stop and then start the App Connector for the latest build
-systemctl stop zpa-connector
-systemctl start zpa-connector
 RHEL9USERDATA
-}
-
-# Write the file to local filesystem for storage/reference
-resource "local_file" "rhel9_user_data_file" {
-  count    = var.use_zscaler_ami == true ? 0 : 1
-  content  = local.rhel9userdata
-  filename = "./user_data"
 }
 
 
@@ -289,9 +335,6 @@ module "ac_asg" {
   reuse_on_scale_in                     = var.reuse_on_scale_in
   ### only utilzed if warm_pool_enabled set to true ###
 
-  depends_on = [
-    module.zpa_provisioning_key,
-  ]
 }
 
 
@@ -323,4 +366,118 @@ module "ac_sg" {
   resource_tag = random_string.suffix.result
   global_tags  = local.global_tags
   vpc_id       = module.network.vpc_id
+}
+
+
+################################################################################
+# 8. Wait for ASG instances to launch and register OAuth tokens
+################################################################################
+resource "time_sleep" "wait_for_asg_instances" {
+  depends_on = [module.ac_asg]
+
+  create_duration = "300s" # 5 minutes for ASG instances to launch and register tokens
+}
+
+
+################################################################################
+# 9. Discover running ASG instances and retrieve their OAuth tokens from SSM
+################################################################################
+
+# Use external data source to find ALL OAuth tokens in SSM (don't rely on instance discovery)
+data "external" "asg_oauth_tokens" {
+  program = ["bash", "-c", <<-EOT
+    TOKENS=""
+    
+    # List all SSM parameters matching our prefix
+    PARAMS=$(aws ssm describe-parameters \
+      --parameter-filters "Key=Name,Values=${local.ssm_parameter_prefix}" \
+      --query 'Parameters[*].Name' \
+      --output text \
+      --region ${var.aws_region})
+    
+    # Read each parameter and collect valid OAuth tokens
+    for param in $PARAMS; do
+      TOKEN=$(aws ssm get-parameter \
+        --name "$param" \
+        --with-decryption \
+        --query 'Parameter.Value' \
+        --output text \
+        --region ${var.aws_region} 2>/dev/null || echo "")
+      
+      # Only include if it matches OAuth token format (not PENDING, not empty)
+      if [[ "$TOKEN" =~ ^[A-Z0-9]{5}-[A-Z0-9]{5}$ ]]; then
+        if [ -z "$TOKENS" ]; then
+          TOKENS="$TOKEN"
+        else
+          TOKENS="$TOKENS,$TOKEN"
+        fi
+      fi
+    done
+    
+    echo "{\"tokens\": \"$TOKENS\"}"
+  EOT
+  ]
+
+  depends_on = [time_sleep.wait_for_asg_instances]
+}
+
+# Parse tokens from external data source
+locals {
+  user_codes = data.external.asg_oauth_tokens.result.tokens != "" ? split(",", data.external.asg_oauth_tokens.result.tokens) : []
+}
+
+
+################################################################################
+# 10. Retrieve ZPA Enrollment Certificate ID
+################################################################################
+data "zpa_enrollment_cert" "connector_cert" {
+  name = var.enrollment_cert
+}
+
+
+################################################################################
+# 11. Generate App Connector Group name with template variable support
+################################################################################
+locals {
+  # Default naming pattern if not specified
+  default_ac_group_name = "${var.aws_region}-${module.network.vpc_id}"
+
+  # User-provided name with variable substitution
+  custom_ac_group_name = var.app_connector_group_name != "" ? replace(
+    replace(
+      replace(
+        replace(var.app_connector_group_name, "{region}", var.aws_region),
+        "{vpc_id}", module.network.vpc_id
+      ),
+      "{name_prefix}", var.name_prefix
+    ),
+    "{random_suffix}", random_string.suffix.result
+  ) : local.default_ac_group_name
+}
+
+
+################################################################################
+# 12. Create ZPA App Connector Group with OAuth2 User Codes
+#     Uses tokens from ASG instances that successfully registered
+################################################################################
+module "zpa_app_connector_group" {
+  source                                       = "../../modules/terraform-zpa-app-connector-group"
+  app_connector_group_name                     = local.custom_ac_group_name
+  app_connector_group_description              = "${var.app_connector_group_description}-${var.aws_region}-${module.network.vpc_id}"
+  app_connector_group_enabled                  = var.app_connector_group_enabled
+  app_connector_group_country_code             = var.app_connector_group_country_code
+  app_connector_group_latitude                 = var.app_connector_group_latitude
+  app_connector_group_longitude                = var.app_connector_group_longitude
+  app_connector_group_location                 = var.app_connector_group_location
+  app_connector_group_upgrade_day              = var.app_connector_group_upgrade_day
+  app_connector_group_upgrade_time_in_secs     = var.app_connector_group_upgrade_time_in_secs
+  app_connector_group_override_version_profile = var.app_connector_group_override_version_profile
+  app_connector_group_version_profile_id       = var.app_connector_group_version_profile_id
+  app_connector_group_dns_query_type           = var.app_connector_group_dns_query_type
+  enrollment_cert_id                           = data.zpa_enrollment_cert.connector_cert.id
+  user_codes                                   = local.user_codes
+
+  depends_on = [
+    data.external.asg_oauth_tokens
+  ]
 }

@@ -12,11 +12,6 @@ app_connector_group_override_version_profile = true
 app_connector_group_version_profile_id       = "0"
 app_connector_group_dns_query_type           = "IPV4_IPV6"
 
-# Provisioning Key configuration
-provisioning_key_name             = "test-complete-provisioning-key"
-provisioning_key_enabled          = true
-provisioning_key_association_type = "CONNECTOR_GRP"
-provisioning_key_max_usage        = "10"
-byo_provisioning_key              = false
-byo_provisioning_key_name         = ""
-enrollment_cert                   = "Connector"
+# OAuth2 configuration
+enrollment_cert = "Connector"
+test_user_codes = ["TEST1-TOKEN", "TEST2-TOKEN"] # Mock tokens for testing

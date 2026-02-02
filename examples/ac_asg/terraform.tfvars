@@ -7,24 +7,49 @@
 #####################################################################################################################
 
 #####################################################################################################################
-##### Optional: ZPA Provider Resources. Skip to step 3. if you already have an  #####
-##### App Connector Group + Provisioning Key.                                   #####
+##### ZPA Provider Resources - OAuth2 Authentication (FULLY AUTOMATED)          #####
+##### NOTE: This module now uses OAuth2 user codes for App Connector enrollment #####
+##### The provisioning key method is no longer supported (BREAKING CHANGE)      #####
 #####################################################################################################################
 
-## 1. ZPA App Connector Provisioning Key variables. Uncomment and replace values as desired for your deployment.
-##    For any questions populating the below values, please reference: 
-##    https://registry.terraform.io/providers/zscaler/zpa/latest/docs/resources/zpa_provisioning_key
+## DEPLOYMENT WORKFLOW:
+## 
+## 1. Configure ZPA authentication (environment variables)
+## 2. Run: terraform apply -var-file=terraform.tfvars
+## 3. Module will:
+##    a) ASG launches instances
+##    b) VMs boot and register OAuth tokens to SSM (2-4 minutes)
+##    c) Terraform waits 5 minutes
+##    d) Discovers instances and reads their OAuth tokens
+##    e) Creates App Connector Group with tokens
+##    f) Enrolls App Connectors via OAuth2 API
+## 4. Done! (Total time: ~7-10 minutes)
+
+## 1. AWS Systems Manager Parameter Store for OAuth Token Storage
+##    By default, VMs CREATE SSM parameters dynamically: {prefix}-{instance-id}
+##    Uncomment to use existing SSM parameters (BYO - Bring Your Own)
+
+#byo_ssm_parameter_name                         = "/zpa/oauth-tokens/my-custom-prefix"
+
+## 2. ZPA Enrollment Certificate variable
 
 #enrollment_cert                                = "Connector"
-#provisioning_key_name                          = "new_key_name"
-#provisioning_key_enabled                       = true
-#provisioning_key_max_usage                     = 50
 
-## 2. ZPA App Connector Group variables. Uncomment and replace values as desired for your deployment. 
-##    For any questions populating the below values, please reference: 
-##    https://registry.terraform.io/providers/zscaler/zpa/latest/docs/resources/zpa_app_connector_group
+## 3. ZPA App Connector Group variables
 
-#app_connector_group_name                       = "new_group_name"
+## 3a. App Connector Group naming (optional)
+##     By default, the name is: {region}-{vpc_id} (e.g., us-west-2-vpc-abc123)
+##     
+##     You can customize with template variables:
+##     - {region}, {vpc_id}, {name_prefix}, {random_suffix}
+##
+##     Example: app_connector_group_name = "{name_prefix}-{region}-asg-group"
+##     Leave empty/commented for default: {region}-{vpc_id}
+
+#app_connector_group_name                       = "{name_prefix}-{region}-asg-group"
+
+## 3b. App Connector Group description and settings
+
 #app_connector_group_description                = "group_description"
 #app_connector_group_enabled                    = true
 #app_connector_group_country_code               = "US"
@@ -39,58 +64,44 @@
 
 
 #####################################################################################################################
-##### Optional: ZPA Provider Resources. Skip to step 5. if you added values for steps 1. and 2. #####
-##### meaning you do NOT have a provisioning key already.                                       #####
-#####################################################################################################################
-
-## 3. By default, this script will create a new App Connector Group Provisioning Key.
-##     Unccoment if you want to use an existing provisioning key (true or false. Default: false)
-
-#byo_provisioning_key                           = true
-
-## 4. Provide your existing provisioning key name. Only uncomment and modify if yo uset byo_provisioning_key to true
-
-#byo_provisioning_key_name                      = "example-key-name"
-
-
-#####################################################################################################################
 ##### Custom variables. Only change if required for your environment  #####
 #####################################################################################################################
 
-## 5. AWS region where App Connector resources will be deployed. This environment variable is automatically populated if running ZSEC script
+## 4. AWS region where App Connector resources will be deployed. This environment variable is automatically populated if running ZSEC script
 ##    and thus will override any value set here. Only uncomment and set this value if you are deploying terraform standalone. (Default: us-west-2)
 
 #aws_region                                 = "us-west-2"
 
-## 6. By default, App Connector will deploy via the Zscaler Latest AMI. Setting this to false will deploy the latest Amazon Linux 2 AMI instead"
+## 5. By default, App Connector will deploy via the Zscaler Latest AMI. Setting this to false will deploy the latest Amazon Linux 2 AMI instead"
 
 #use_zscaler_ami                                = false
 
-## 7. App Connector AWS EC2 Instance size selection. Uncomment acvm_instance_type line with desired vm size to change.
+## 6. App Connector AWS EC2 Instance size selection. Uncomment acvm_instance_type line with desired vm size to change.
 ##    (Default: m5a.xlarge)
 
 #acvm_instance_type                       = "t3.xlarge"  # recommended only for test/non-prod use
+#acvm_instance_type                       = "m5a.large"
 #acvm_instance_type                       = "m5a.xlarge"
 
-## 8. The number of App Connector Subnets to create in sequential availability zones. Available input range 1-3 (Default: 2)
+## 7. The number of App Connector Subnets to create in sequential availability zones. Available input range 1-3 (Default: 2)
 ##    **** NOTE - This value will be ignored if byo_vpc / byo_subnets
 
 #az_count                                   = 2
 
-## 9. The minumum number of App Connectors to maintain in an Autoscaling group. (Default: 2)
+## 8. The minumum number of App Connectors to maintain in an Autoscaling group. (Default: 2)
 ##    Recommendation is to maintain HA/Zonal resliency for production deployments
 
 #min_size                                   = 2
 
-## 10. The maximum number of App Connectors to maintain in an Autoscaling group. (Default: 4)
+## 9. The maximum number of App Connectors to maintain in an Autoscaling group. (Default: 4)
 
 #max_size                                   = 4
 
-## 11. The amount of time until EC2 Auto Scaling performs the first health check on new instances after they are put into service. (Default: 300 seconds/5 minutes)
+## 10. The amount of time until EC2 Auto Scaling performs the first health check on new instances after they are put into service. (Default: 300 seconds/5 minutes)
 
 #health_check_grace_period                  = 300
 
-## 12. Enable/Disable public IP addresses on App Connector instances. Default is false. Setting this to true will result in the following: 
+## 11. Enable/Disable public IP addresses on App Connector instances. Default is false. Setting this to true will result in the following: 
 ##    Dynamic Public IP address on the App Connector VM Instance will be enabled; 
 ##    No EIP or NAT Gateway resources will be created; 
 ##    The App Connector Route Table default route next-hop will be set as the IGW
@@ -100,7 +111,7 @@
 
 #associate_public_ip_address                    = true
 
-## 13. Network Configuration:
+## 12. Network Configuration:
 
 ##    IPv4 CIDR configured with VPC creation. All Subnet resources (Public / App Connector) will be created based off this prefix
 ##    /24 subnets are created assuming this cidr is a /16. If you require creating a VPC smaller than /16, you may need to explicitly define all other 
@@ -123,21 +134,21 @@
 #public_subnets                             = ["10.x.y.z/24","10.x.y.z/24"]
 #ac_subnets                                 = ["10.x.y.z/24","10.x.y.z/24"]
 
-## 14. Tag attribute "Owner" assigned to all resoure creation. (Default: "zsac-admin")
+## 13. Tag attribute "Owner" assigned to all resoure creation. (Default: "zsac-admin")
 
 #owner_tag                                  = "username@company.com"
 
-## 15. By default, this script will apply 1 Security Group per App Connector instance. 
+## 14. By default, this script will apply 1 Security Group per App Connector instance. 
 ##     Uncomment if you want to use the same Security Group for ALL App Connectors (true or false. Default: false)
 
 #reuse_security_group                       = true
 
-## 16. By default, this script will apply 1 IAM Role/Instance Profile per App Connector instance. 
+## 15. By default, this script will apply 1 IAM Role/Instance Profile per App Connector instance. 
 ##     Uncomment if you want to use the same IAM Role/Instance Profile for ALL App Connectors (true or false. Default: false)
 
 #reuse_iam                                  = true
 
-## 17. If set to true, add a warm pool to the specified Auto Scaling group. See [warm_pool](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group#warm_pool).
+## 16. If set to true, add a warm pool to the specified Auto Scaling group. See [warm_pool](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group#warm_pool).
 ##     Uncomment to enable. (Default: false)
 
 #warm_pool_enabled                          = true

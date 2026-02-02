@@ -4,7 +4,8 @@
 terraform {
   required_providers {
     zpa = {
-      source = "zscaler/zpa"
+      version = "4.3.81"
+      source  = "zscaler.com/zpa/zpa"
     }
   }
   required_version = ">= 0.13.7, < 2.0.0"
@@ -19,6 +20,12 @@ provider "zpa" {
 ################################################################################
 # Test Module - App Connector Group
 ################################################################################
+
+# Get enrollment certificate for OAuth2
+data "zpa_enrollment_cert" "connector_cert" {
+  name = var.enrollment_cert
+}
+
 module "zpa_app_connector_group" {
   source = "../../modules/terraform-zpa-app-connector-group"
 
@@ -37,20 +44,6 @@ module "zpa_app_connector_group" {
   app_connector_group_override_version_profile = var.app_connector_group_override_version_profile
   app_connector_group_version_profile_id       = var.app_connector_group_version_profile_id
   app_connector_group_dns_query_type           = var.app_connector_group_dns_query_type
-}
-
-# Test outputs - these validate the module is working correctly
-output "app_connector_group_id" {
-  description = "ZPA App Connector Group ID from module"
-  value       = module.zpa_app_connector_group.app_connector_group_id
-}
-
-output "app_connector_group_id_valid" {
-  description = "Validation that App Connector Group ID is valid"
-  value       = length(module.zpa_app_connector_group.app_connector_group_id) > 0 ? "true" : "false"
-}
-
-output "test_variables_set_correctly" {
-  description = "Validation that test variables are set correctly"
-  value       = var.app_connector_group_name != "" && var.app_connector_group_location != "" ? "true" : "false"
+  enrollment_cert_id                           = data.zpa_enrollment_cert.connector_cert.id
+  user_codes                                   = var.test_user_codes
 }

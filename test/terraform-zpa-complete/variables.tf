@@ -59,38 +59,15 @@ variable "app_connector_group_dns_query_type" {
   description = "DNS query type for the App Connector Group"
 }
 
-# Provisioning Key variables
-variable "provisioning_key_name" {
-  type        = string
-  description = "Name of the Provisioning Key"
-}
-
-variable "provisioning_key_enabled" {
-  type        = bool
-  description = "Whether the Provisioning Key is enabled"
-}
-
-variable "provisioning_key_association_type" {
-  type        = string
-  description = "Association type for the Provisioning Key"
-}
-
-variable "provisioning_key_max_usage" {
-  type        = string
-  description = "Maximum usage for the Provisioning Key"
-}
-
-variable "byo_provisioning_key" {
-  type        = bool
-  description = "Whether to bring your own provisioning key"
-}
-
-variable "byo_provisioning_key_name" {
-  type        = string
-  description = "Name of the BYO provisioning key"
-}
-
+# OAuth2 variables
 variable "enrollment_cert" {
   type        = string
-  description = "Enrollment certificate name"
+  description = "Enrollment certificate name for OAuth2"
+  default     = "Connector"
+}
+
+variable "test_user_codes" {
+  type        = list(string)
+  description = "Test OAuth2 user codes for testing purposes"
+  default     = []
 }

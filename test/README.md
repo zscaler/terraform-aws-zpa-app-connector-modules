@@ -20,12 +20,14 @@ test/
 │   ├── main_test.go
 │   ├── main.tf
 │   └── variables.tf
-├── terraform-zpa-provisioning-key/
+├── terraform-zpa-complete/
 │   ├── main_test.go
 │   ├── main.tf
 │   └── variables.tf
 └── README.md
 ```
+
+**Note:** As of version 2.0.0, the provisioning key module has been removed. All tests now use OAuth2 authentication.
 
 ## Running Tests
 
@@ -36,11 +38,11 @@ go test ./test/... -v
 
 ### Run specific module tests:
 ```bash
-# Test App Connector Group module
+# Test App Connector Group module (OAuth2)
 go test ./test/terraform-zpa-app-connector-group -v
 
-# Test Provisioning Key module
-go test ./test/terraform-zpa-provisioning-key -v
+# Test Complete OAuth2 flow
+go test ./test/terraform-zpa-complete -v
 ```
 
 ### Run specific test functions:

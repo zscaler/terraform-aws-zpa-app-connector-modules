@@ -69,3 +69,15 @@ variable "app_connector_group_dns_query_type" {
   description = "DNS query type"
   default     = "IPV4_IPV6"
 }
+
+variable "enrollment_cert" {
+  type        = string
+  description = "Enrollment certificate name"
+  default     = "Connector"
+}
+
+variable "test_user_codes" {
+  type        = list(string)
+  description = "Test OAuth2 user codes"
+  default     = []
+}

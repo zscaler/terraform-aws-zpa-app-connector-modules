@@ -19,6 +19,12 @@ user_data
 system-*.tar
 **/testbed*
 
+# OAuth2 token retrieval artifacts
+retrieve_oauth_token.sh
+.oauth_retrieved_*
+user_data_*
+debug_oauth_token.sh
+
 # Crash log files
 crash.log
 

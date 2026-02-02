@@ -8,12 +8,13 @@ This module provides the resources necessary to create a new ZPA App Connector G
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
+| <a name="requirement_zpa"></a> [zpa](#requirement\_zpa) | 4.3.81 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_zpa"></a> [zpa](#provider\_zpa) | n/a |
+| <a name="provider_zpa"></a> [zpa](#provider\_zpa) | 4.3.81 |
 
 ## Modules
 
@@ -23,7 +24,7 @@ No modules.
 
 | Name | Type |
 |------|------|
-| [zpa_app_connector_group.app_connector_group](https://registry.terraform.io/providers/zscaler/zpa/latest/docs/resources/app_connector_group) | resource |
+| zpa_app_connector_group.app_connector_group | resource |
 
 ## Inputs
 
@@ -41,6 +42,8 @@ No modules.
 | <a name="input_app_connector_group_upgrade_day"></a> [app\_connector\_group\_upgrade\_day](#input\_app\_connector\_group\_upgrade\_day) | Optional: App Connectors in this group will attempt to update to a newer version of the software during this specified day. Default value: SUNDAY. List of valid days (i.e., SUNDAY, MONDAY, etc) | `string` | `"SUNDAY"` | no |
 | <a name="input_app_connector_group_upgrade_time_in_secs"></a> [app\_connector\_group\_upgrade\_time\_in\_secs](#input\_app\_connector\_group\_upgrade\_time\_in\_secs) | Optional: App Connectors in this group will attempt to update to a newer version of the software during this specified time. Default value: 66600. Integer in seconds (i.e., 66600). The integer should be greater than or equal to 0 and less than 86400, in 15 minute intervals | `string` | `"66600"` | no |
 | <a name="input_app_connector_group_version_profile_id"></a> [app\_connector\_group\_version\_profile\_id](#input\_app\_connector\_group\_version\_profile\_id) | Optional: ID of the version profile. To learn more, see Version Profile Use Cases. https://help.zscaler.com/zpa/configuring-version-profile | `string` | `"0"` | no |
+| <a name="input_enrollment_cert_id"></a> [enrollment\_cert\_id](#input\_enrollment\_cert\_id) | ID of the ZPA enrollment certificate to be used for App Connector OAuth2 enrollment. Retrieve from zpa\_enrollment\_cert data source. | `string` | n/a | yes |
+| <a name="input_user_codes"></a> [user\_codes](#input\_user\_codes) | OAuth2 user codes retrieved from deployed App Connector VMs (/etc/issue). These codes are required for enrolling App Connectors using the new OAuth2 authentication method. | `list(string)` | `[]` | no |
 
 ## Outputs
 

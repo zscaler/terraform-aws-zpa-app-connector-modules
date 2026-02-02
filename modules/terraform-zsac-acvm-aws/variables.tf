@@ -27,8 +27,8 @@ variable "instance_key" {
 }
 
 variable "user_data" {
-  type        = string
-  description = "App Init data"
+  type        = list(string)
+  description = "App Init data (list of user_data scripts, one per VM)"
 }
 
 variable "acvm_instance_type" {
