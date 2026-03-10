@@ -1,13 +1,12 @@
 variable "name_prefix" {
   type        = string
   description = "A prefix to associate to all the App Connector module resources"
-  default     = null
 }
 
 variable "resource_tag" {
   type        = string
   description = "A tag to associate to all the App Connector module resources"
-  default     = null
+  default     = ""
 }
 
 variable "global_tags" {
