@@ -10,7 +10,7 @@ resource "aws_instance" "ac_vm" {
   subnet_id                   = element(var.ac_subnet_ids, count.index)
   key_name                    = var.instance_key
   associate_public_ip_address = var.associate_public_ip_address
-  user_data                   = base64encode(var.user_data)
+  user_data_base64            = base64encode(var.user_data)
   metadata_options {
     http_endpoint = "enabled"
     http_tokens   = var.imdsv2_enabled ? "required" : "optional"
