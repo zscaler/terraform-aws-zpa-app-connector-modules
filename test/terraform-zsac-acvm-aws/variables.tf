@@ -28,12 +28,6 @@ variable "acvm_instance_type" {
   default     = "t3.medium"
 }
 
-variable "ami_id" {
-  type        = list(string)
-  description = "AMI ID(s) to be used for deploying App Connector appliances"
-  default     = [""]
-}
-
 variable "ac_count" {
   type        = number
   description = "Number of App Connector appliances to create"

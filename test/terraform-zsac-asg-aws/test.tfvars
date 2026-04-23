@@ -2,7 +2,6 @@
 aws_region                = "us-west-2"
 name_prefix               = "tasg"
 resource_tag              = "test"
-instance_key              = "test-key"
 user_data                 = "#!/bin/bash\necho 'Test user data for App Connector'"
 acvm_instance_type        = "t3.medium"
 ami_id                    = [""]

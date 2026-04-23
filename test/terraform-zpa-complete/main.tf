@@ -1,9 +1,11 @@
 terraform {
   required_providers {
     zpa = {
-      source = "zscaler/zpa"
+      source  = "zscaler/zpa"
+      version = "~> 4.2"
     }
   }
+  required_version = ">= 0.13.7, < 2.0.0"
 }
 
 provider "zpa" {
@@ -37,16 +39,4 @@ module "provisioning_key" {
   byo_provisioning_key              = var.byo_provisioning_key
   byo_provisioning_key_name         = var.byo_provisioning_key_name
   enrollment_cert                   = var.enrollment_cert
-}
-
-# Test outputs - these validate the modules are working correctly
-output "app_connector_group_id" {
-  description = "ZPA App Connector Group ID from module"
-  value       = module.app_connector_group.app_connector_group_id
-}
-
-output "provisioning_key" {
-  description = "ZPA Provisioning Key from module"
-  value       = module.provisioning_key.provisioning_key
-  sensitive   = true
 }

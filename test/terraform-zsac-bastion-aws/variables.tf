@@ -16,12 +16,6 @@ variable "resource_tag" {
   default     = "test"
 }
 
-variable "instance_key" {
-  type        = string
-  description = "SSH Key for instances"
-  default     = "test-key"
-}
-
 variable "instance_type" {
   type        = string
   description = "The bastion host EC2 instance type"

@@ -4,7 +4,8 @@
 terraform {
   required_providers {
     zpa = {
-      source = "zscaler/zpa"
+      source  = "zscaler/zpa"
+      version = "~> 4.2"
     }
   }
   required_version = ">= 0.13.7, < 2.0.0"
@@ -33,21 +34,4 @@ module "zpa_provisioning_key" {
   provisioning_key_max_usage        = var.provisioning_key_max_usage
   byo_provisioning_key              = var.byo_provisioning_key
   byo_provisioning_key_name         = var.byo_provisioning_key_name
-}
-
-# Test outputs - these validate the module is working correctly
-output "provisioning_key" {
-  description = "ZPA Provisioning Key from module"
-  value       = module.zpa_provisioning_key.provisioning_key
-  sensitive   = true
-}
-
-output "provisioning_key_valid" {
-  description = "Validation that Provisioning Key is valid"
-  value       = length(module.zpa_provisioning_key.provisioning_key) > 0 ? "true" : "false"
-}
-
-output "test_variables_set_correctly" {
-  description = "Validation that test variables are set correctly"
-  value       = var.provisioning_key_name != "" && var.app_connector_group_id != "" ? "true" : "false"
 }
