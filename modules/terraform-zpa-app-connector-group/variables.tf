@@ -90,11 +90,6 @@ variable "app_connector_group_dns_query_type" {
   }
 }
 
-variable "enrollment_cert_id" {
-  type        = string
-  description = "ID of the ZPA enrollment certificate to be used for App Connector OAuth2 enrollment. Retrieve from zpa_enrollment_cert data source."
-}
-
 variable "user_codes" {
   type        = list(string)
   description = "OAuth2 user codes retrieved from deployed App Connector VMs (/etc/issue). These codes are required for enrolling App Connectors using the new OAuth2 authentication method."

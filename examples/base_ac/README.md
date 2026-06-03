@@ -60,7 +60,6 @@ From base_ac directory execute:
 | <a name="provider_random"></a> [random](#provider\_random) | ~> 3.6.0 |
 | <a name="provider_time"></a> [time](#provider\_time) | ~> 0.9.0 |
 | <a name="provider_tls"></a> [tls](#provider\_tls) | ~> 4.0.0 |
-| <a name="provider_zpa"></a> [zpa](#provider\_zpa) | ~> 4.4.0 |
 
 ## Modules
 
@@ -72,6 +71,8 @@ From base_ac directory execute:
 | <a name="module_bastion"></a> [bastion](#module\_bastion) | ../../modules/terraform-zsac-bastion-aws | n/a |
 | <a name="module_network"></a> [network](#module\_network) | ../../modules/terraform-zsac-network-aws | n/a |
 | <a name="module_zpa_app_connector_group"></a> [zpa\_app\_connector\_group](#module\_zpa\_app\_connector\_group) | ../../modules/terraform-zpa-app-connector-group | n/a |
+| <a name="module_zpa_app_connector_group_pk"></a> [zpa\_app\_connector\_group\_pk](#module\_zpa\_app\_connector\_group\_pk) | ../../modules/terraform-zpa-app-connector-group | n/a |
+| <a name="module_zpa_provisioning_key"></a> [zpa\_provisioning\_key](#module\_zpa\_provisioning\_key) | ../../modules/terraform-zpa-provisioning-key | n/a |
 
 ## Resources
 
@@ -87,7 +88,6 @@ From base_ac directory execute:
 | [aws_ami.appconnector](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_ami.rhel_9_latest](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_ssm_parameter.oauth_tokens](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
-| [zpa_enrollment_cert.connector_cert](https://registry.terraform.io/providers/zscaler/zpa/latest/docs/data-sources/enrollment_cert) | data source |
 
 ## Inputs
 
@@ -114,10 +114,16 @@ From base_ac directory execute:
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | The AWS region. | `string` | `"us-west-2"` | no |
 | <a name="input_az_count"></a> [az\_count](#input\_az\_count) | Default number of subnets to create based on availability zone input | `number` | `2` | no |
 | <a name="input_bastion_nsg_source_prefix"></a> [bastion\_nsg\_source\_prefix](#input\_bastion\_nsg\_source\_prefix) | CIDR blocks of trusted networks for bastion host ssh access | `list(string)` | <pre>[<br/>  "0.0.0.0/0"<br/>]</pre> | no |
+| <a name="input_byo_provisioning_key"></a> [byo\_provisioning\_key](#input\_byo\_provisioning\_key) | Bring your own existing App Connector provisioning key. Implies the provisioning key onboarding method. When true, byo\_provisioning\_key\_name must be set and no new App Connector Group / provisioning key is created. | `bool` | `false` | no |
+| <a name="input_byo_provisioning_key_name"></a> [byo\_provisioning\_key\_name](#input\_byo\_provisioning\_key\_name) | Name of the existing App Connector provisioning key to use. Only required when byo\_provisioning\_key is true. | `string` | `null` | no |
 | <a name="input_byo_ssm_parameter_name"></a> [byo\_ssm\_parameter\_name](#input\_byo\_ssm\_parameter\_name) | Bring your own SSM Parameter Store base name for OAuth tokens. If specified, module will use existing parameters named '{value}-0', '{value}-1', etc. If empty, module creates new parameters. Default: '' (create new) | `string` | `""` | no |
-| <a name="input_enrollment_cert"></a> [enrollment\_cert](#input\_enrollment\_cert) | Name of ZPA enrollment cert to be used for App Connector enrollment via OAuth2 | `string` | `"Connector"` | no |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | The name prefix for all your resources | `string` | `"zsdemo"` | no |
+| <a name="input_onboarding_method"></a> [onboarding\_method](#input\_onboarding\_method) | App Connector onboarding method. 'oauth' (default) enrolls connectors via OAuth2 user codes retrieved from each VM. 'provisioning\_key' uses the legacy provisioning key flow. | `string` | `"oauth"` | no |
 | <a name="input_owner_tag"></a> [owner\_tag](#input\_owner\_tag) | populate custom owner tag attribute | `string` | `"zsac-admin"` | no |
+| <a name="input_provisioning_key_association_type"></a> [provisioning\_key\_association\_type](#input\_provisioning\_key\_association\_type) | Provisioning key association type. Supported value for App Connectors: CONNECTOR\_GRP. | `string` | `"CONNECTOR_GRP"` | no |
+| <a name="input_provisioning_key_enabled"></a> [provisioning\_key\_enabled](#input\_provisioning\_key\_enabled) | Whether the new provisioning key is enabled. Only used for the provisioning key flow. | `bool` | `true` | no |
+| <a name="input_provisioning_key_max_usage"></a> [provisioning\_key\_max\_usage](#input\_provisioning\_key\_max\_usage) | Maximum number of App Connectors that can enroll with the new provisioning key. Only used for the provisioning key flow. | `number` | `10` | no |
+| <a name="input_provisioning_key_name"></a> [provisioning\_key\_name](#input\_provisioning\_key\_name) | Name for the new provisioning key. If empty, the App Connector Group name is reused. Only used when onboarding\_method = 'provisioning\_key' and byo\_provisioning\_key = false. | `string` | `""` | no |
 | <a name="input_public_subnets"></a> [public\_subnets](#input\_public\_subnets) | Public/NAT GW Subnets to create in VPC. This is only required if you want to override the default subnets that this code creates via vpc\_cidr variable. | `list(string)` | `null` | no |
 | <a name="input_reuse_iam"></a> [reuse\_iam](#input\_reuse\_iam) | Specifies whether the SG module should create 1:1 IAM per instance or 1 IAM for all instances | `bool` | `false` | no |
 | <a name="input_reuse_security_group"></a> [reuse\_security\_group](#input\_reuse\_security\_group) | Specifies whether the SG module should create 1:1 security groups per instance or 1 security group for all instances | `bool` | `false` | no |
@@ -130,8 +136,8 @@ From base_ac directory execute:
 | Name | Description |
 | ---- | ----------- |
 | <a name="output_app_connector_group_id"></a> [app\_connector\_group\_id](#output\_app\_connector\_group\_id) | ZPA App Connector Group ID |
-| <a name="output_enrollment_cert_id"></a> [enrollment\_cert\_id](#output\_enrollment\_cert\_id) | ZPA Enrollment Certificate ID used for App Connector enrollment |
-| <a name="output_oauth_user_codes"></a> [oauth\_user\_codes](#output\_oauth\_user\_codes) | OAuth2 user codes retrieved from SSM Parameter Store. Use 'terraform output -json oauth\_user\_codes \| jq -r' to view. |
-| <a name="output_ssm_parameter_names"></a> [ssm\_parameter\_names](#output\_ssm\_parameter\_names) | SSM Parameter Store paths where OAuth tokens are stored (managed by Terraform, updated by VMs) |
+| <a name="output_oauth_user_codes"></a> [oauth\_user\_codes](#output\_oauth\_user\_codes) | OAuth2 user codes retrieved from SSM Parameter Store (empty when using the provisioning key flow). Use 'terraform output -json oauth\_user\_codes \| jq -r' to view. |
+| <a name="output_onboarding_method"></a> [onboarding\_method](#output\_onboarding\_method) | Onboarding method used for this deployment (oauth or provisioning\_key) |
+| <a name="output_ssm_parameter_names"></a> [ssm\_parameter\_names](#output\_ssm\_parameter\_names) | SSM Parameter Store paths where OAuth tokens are stored (managed by Terraform, updated by VMs). Empty when using the provisioning key flow. |
 | <a name="output_testbedconfig"></a> [testbedconfig](#output\_testbedconfig) | AWS Testbed results |
 <!-- END_TF_DOCS -->

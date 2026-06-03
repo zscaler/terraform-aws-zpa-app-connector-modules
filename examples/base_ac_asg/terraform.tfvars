@@ -35,11 +35,26 @@
 
 #byo_ssm_parameter_name                         = "/zpa/oauth-tokens/my-custom-prefix"
 
-## 2. ZPA Enrollment Certificate variable
-##    For any questions populating the below values, please reference:
-##    https://registry.terraform.io/providers/zscaler/zpa/latest/docs/data-sources/zpa_enrollment_cert
+## 2. App Connector onboarding method. Default is "oauth" (recommended): ASG instances publish their OAuth2 user
+##    codes to AWS SSM Parameter Store and Terraform reads them back to enroll the App Connector Group.
+##    Set to "provisioning_key" to use the legacy provisioning key flow instead. For autoscaling deployments the
+##    provisioning key flow is the more robust choice, since new instances self-enroll on scale-out without a
+##    Terraform run. The provisioning key is created by the ZPA provider and written into the launch template
+##    user_data; no SSM Parameter Store is used in that mode.
 
-#enrollment_cert                                = "Connector"
+#onboarding_method                              = "provisioning_key"
+
+## 2a. ZPA App Connector Provisioning Key variables (only used when onboarding_method = "provisioning_key")
+##     https://registry.terraform.io/providers/zscaler/zpa/latest/docs/resources/zpa_provisioning_key
+
+#provisioning_key_name                          = "new_key_name"
+#provisioning_key_enabled                       = true
+#provisioning_key_max_usage                     = 100
+
+## 2b. Bring your own existing provisioning key (sets the provisioning key flow automatically)
+
+#byo_provisioning_key                           = true
+#byo_provisioning_key_name                      = "example-key-name"
 
 ## 3. ZPA App Connector Group variables
 ##    For any questions populating the below values, please reference:
@@ -72,7 +87,7 @@
 #app_connector_group_latitude                   = "37.3382082"
 #app_connector_group_longitude                  = "-121.8863286"
 #app_connector_group_location                   = "San Jose, CA, USA"
-app_connector_group_city_country = "San Jose, US"
+#app_connector_group_city_country               = "San Jose, US"
 #app_connector_group_upgrade_day                = "SUNDAY"
 #app_connector_group_upgrade_time_in_secs       = "66600"
 #app_connector_group_override_version_profile   = true
@@ -90,7 +105,7 @@ app_connector_group_city_country = "San Jose, US"
 
 ## 5. By default, App Connector will deploy via the Zscaler Latest AMI. Setting this to false will deploy the latest Amazon Linux 2 AMI instead"
 
-use_zscaler_ami = true
+#use_zscaler_ami                                = true
 
 ## 6. App Connector AWS EC2 Instance size selection. Uncomment acvm_instance_type line with desired vm size to change.
 ##    (Default: m5a.xlarge)

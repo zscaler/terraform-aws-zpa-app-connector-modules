@@ -34,11 +34,24 @@
 
 #byo_ssm_parameter_name                         = "/zpa/oauth-tokens/my-custom-prefix"
 
-## 2. ZPA Enrollment Certificate variable. This is used to retrieve the enrollment cert ID for OAuth2 enrollment
-##    For any questions populating the below values, please reference:
-##    https://registry.terraform.io/providers/zscaler/zpa/latest/docs/data-sources/zpa_enrollment_cert
+## 2. App Connector onboarding method. Default is "oauth" (recommended): connectors enroll via OAuth2 user codes
+##    that each VM publishes to AWS SSM Parameter Store and Terraform reads back to enroll the App Connector Group.
+##    Set to "provisioning_key" to use the legacy provisioning key flow instead. The provisioning key is created
+##    by the ZPA provider and written into each VM's user_data; no SSM Parameter Store is used in that mode.
 
-#enrollment_cert                                = "Connector"
+#onboarding_method                             = "provisioning_key"
+
+## 2a. ZPA App Connector Provisioning Key variables (only used when onboarding_method = "provisioning_key")
+##     https://registry.terraform.io/providers/zscaler/zpa/latest/docs/resources/zpa_provisioning_key
+
+#provisioning_key_name                         = "new_key_name"
+#provisioning_key_enabled                      = true
+#provisioning_key_max_usage                    = 10
+
+## 2b. Bring your own existing provisioning key (sets the provisioning key flow automatically)
+
+#byo_provisioning_key                          = true
+#byo_provisioning_key_name                     = "example-key-name"
 
 ## 3. ZPA App Connector Group variables. Uncomment and replace default values as desired for your deployment.
 ##    For any questions populating the below values, please reference:
@@ -57,7 +70,7 @@
 ##
 ##     Examples:
 ##     app_connector_group_name = "prod-{region}-{name_prefix}"          → prod-us-west-2-zsdemo
-##     app_connector_group_name = "{name_prefix}-{region}-ac-group"      → zsdemo-us-west-2-ac-group
+#     app_connector_group_name = "{name_prefix}-{region}-ac-group"      → zsdemo-us-west-2-ac-group
 ##     app_connector_group_name = "mycompany-{region}-connectors"        → mycompany-us-west-2-connectors
 ##     
 ##     Leave empty/commented for default: {region}-{vpc_id}
@@ -66,18 +79,17 @@
 
 ## 3b. App Connector Group description and settings
 
-#app_connector_group_description                = "group_description"
-#app_connector_group_enabled                    = true
-#app_connector_group_country_code               = "US"
-#app_connector_group_latitude                   = "37.3382082"
-#app_connector_group_longitude                  = "-121.8863286"
-#app_connector_group_location                   = "San Jose, CA, USA"
-app_connector_group_city_country = "San Jose, US"
-#app_connector_group_upgrade_day                = "SUNDAY"
-#app_connector_group_upgrade_time_in_secs       = "66600"
-# app_connector_group_override_version_profile  = true
-# app_connector_group_version_profile_id        = "0"
-#app_connector_group_dns_query_type             = "IPV4_IPV6"
+#app_connector_group_description               = "group_description"
+#app_connector_group_enabled                   = true
+#app_connector_group_country_code              = "US"
+#app_connector_group_latitude                  = "37.3382082"
+#app_connector_group_longitude                 = "-121.8863286"
+#app_connector_group_location                  = "San Jose, CA, USA"
+#app_connector_group_city_country              = "San Jose, US"
+#app_connector_group_upgrade_day               = "SUNDAY"
+#app_connector_group_upgrade_time_in_secs      = "66600"
+#app_connector_group_override_version_profile  = true
+#app_connector_group_dns_query_type            = "IPV4_IPV6"
 
 
 #####################################################################################################################

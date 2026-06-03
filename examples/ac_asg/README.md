@@ -59,9 +59,7 @@ From ac_asg directory execute:
 | <a name="provider_external"></a> [external](#provider\_external) | ~> 2.3.0 |
 | <a name="provider_local"></a> [local](#provider\_local) | ~> 2.5.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | ~> 3.6.0 |
-| <a name="provider_time"></a> [time](#provider\_time) | ~> 0.9.0 |
 | <a name="provider_tls"></a> [tls](#provider\_tls) | ~> 4.0.0 |
-| <a name="provider_zpa"></a> [zpa](#provider\_zpa) | ~> 4.4.0 |
 
 ## Modules
 
@@ -72,6 +70,8 @@ From ac_asg directory execute:
 | <a name="module_ac_sg"></a> [ac\_sg](#module\_ac\_sg) | ../../modules/terraform-zsac-sg-aws | n/a |
 | <a name="module_network"></a> [network](#module\_network) | ../../modules/terraform-zsac-network-aws | n/a |
 | <a name="module_zpa_app_connector_group"></a> [zpa\_app\_connector\_group](#module\_zpa\_app\_connector\_group) | ../../modules/terraform-zpa-app-connector-group | n/a |
+| <a name="module_zpa_app_connector_group_pk"></a> [zpa\_app\_connector\_group\_pk](#module\_zpa\_app\_connector\_group\_pk) | ../../modules/terraform-zpa-app-connector-group | n/a |
+| <a name="module_zpa_provisioning_key"></a> [zpa\_provisioning\_key](#module\_zpa\_provisioning\_key) | ../../modules/terraform-zpa-provisioning-key | n/a |
 
 ## Resources
 
@@ -81,12 +81,10 @@ From ac_asg directory execute:
 | [local_file.private_key](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.testbed](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [random_string.suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) | resource |
-| [time_sleep.wait_for_asg_instances](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) | resource |
 | [tls_private_key.key](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
 | [aws_ami.appconnector](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_ami.rhel_9_latest](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [external_external.asg_oauth_tokens](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external) | data source |
-| [zpa_enrollment_cert.connector_cert](https://registry.terraform.io/providers/zscaler/zpa/latest/docs/data-sources/enrollment_cert) | data source |
 
 ## Inputs
 
@@ -117,6 +115,8 @@ From ac_asg directory execute:
 | <a name="input_byo_igw_id"></a> [byo\_igw\_id](#input\_byo\_igw\_id) | User provided existing AWS Internet Gateway ID | `string` | `null` | no |
 | <a name="input_byo_ngw"></a> [byo\_ngw](#input\_byo\_ngw) | Bring your own AWS NAT Gateway(s) App Connector | `bool` | `false` | no |
 | <a name="input_byo_ngw_ids"></a> [byo\_ngw\_ids](#input\_byo\_ngw\_ids) | User provided existing AWS NAT Gateway IDs | `list(string)` | `null` | no |
+| <a name="input_byo_provisioning_key"></a> [byo\_provisioning\_key](#input\_byo\_provisioning\_key) | Bring your own existing App Connector provisioning key. Implies the provisioning key onboarding method. When true, byo\_provisioning\_key\_name must be set and no new App Connector Group / provisioning key is created. | `bool` | `false` | no |
+| <a name="input_byo_provisioning_key_name"></a> [byo\_provisioning\_key\_name](#input\_byo\_provisioning\_key\_name) | Name of the existing App Connector provisioning key to use. Only required when byo\_provisioning\_key is true. | `string` | `null` | no |
 | <a name="input_byo_security_group"></a> [byo\_security\_group](#input\_byo\_security\_group) | Bring your own Security Group for App Connector | `bool` | `false` | no |
 | <a name="input_byo_security_group_id"></a> [byo\_security\_group\_id](#input\_byo\_security\_group\_id) | Management Security Group ID for App Connector association | `list(string)` | `null` | no |
 | <a name="input_byo_ssm_parameter_name"></a> [byo\_ssm\_parameter\_name](#input\_byo\_ssm\_parameter\_name) | Bring your own SSM Parameter Store base name for OAuth tokens. If specified, module will use existing parameters named '{value}-1', '{value}-2', etc. If empty, module creates new parameters. Default: '' (create new) | `string` | `""` | no |
@@ -124,13 +124,17 @@ From ac_asg directory execute:
 | <a name="input_byo_subnets"></a> [byo\_subnets](#input\_byo\_subnets) | Bring your own AWS Subnets for App Connector | `bool` | `false` | no |
 | <a name="input_byo_vpc"></a> [byo\_vpc](#input\_byo\_vpc) | Bring your own AWS VPC for App Connector | `bool` | `false` | no |
 | <a name="input_byo_vpc_id"></a> [byo\_vpc\_id](#input\_byo\_vpc\_id) | User provided existing AWS VPC ID | `string` | `null` | no |
-| <a name="input_enrollment_cert"></a> [enrollment\_cert](#input\_enrollment\_cert) | Name of ZPA enrollment cert to be used for App Connector enrollment via OAuth2 | `string` | `"Connector"` | no |
 | <a name="input_health_check_grace_period"></a> [health\_check\_grace\_period](#input\_health\_check\_grace\_period) | The amount of time until EC2 Auto Scaling performs the first health check on new instances after they are put into service. Default is 5 minutes | `number` | `300` | no |
 | <a name="input_launch_template_version"></a> [launch\_template\_version](#input\_launch\_template\_version) | Launch template version. Can be version number, `$Latest` or `$Default` | `string` | `"$Latest"` | no |
 | <a name="input_max_size"></a> [max\_size](#input\_max\_size) | Maxinum number of App Connectors to maintain in Autoscaling group | `number` | `4` | no |
 | <a name="input_min_size"></a> [min\_size](#input\_min\_size) | Mininum number of App Connectors to maintain in Autoscaling group | `number` | `2` | no |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | The name prefix for all your resources | `string` | `"zsdemo"` | no |
+| <a name="input_onboarding_method"></a> [onboarding\_method](#input\_onboarding\_method) | App Connector onboarding method. 'oauth' (default) enrolls connectors via OAuth2 user codes retrieved from each VM. 'provisioning\_key' uses the legacy provisioning key flow (recommended for autoscaling deployments). | `string` | `"oauth"` | no |
 | <a name="input_owner_tag"></a> [owner\_tag](#input\_owner\_tag) | populate custom owner tag attribute | `string` | `"zsac-admin"` | no |
+| <a name="input_provisioning_key_association_type"></a> [provisioning\_key\_association\_type](#input\_provisioning\_key\_association\_type) | Provisioning key association type. Supported value for App Connectors: CONNECTOR\_GRP. | `string` | `"CONNECTOR_GRP"` | no |
+| <a name="input_provisioning_key_enabled"></a> [provisioning\_key\_enabled](#input\_provisioning\_key\_enabled) | Whether the new provisioning key is enabled. Only used for the provisioning key flow. | `bool` | `true` | no |
+| <a name="input_provisioning_key_max_usage"></a> [provisioning\_key\_max\_usage](#input\_provisioning\_key\_max\_usage) | Maximum number of App Connectors that can enroll with the new provisioning key. For autoscaling deployments this should comfortably exceed max\_size. Only used for the provisioning key flow. | `number` | `100` | no |
+| <a name="input_provisioning_key_name"></a> [provisioning\_key\_name](#input\_provisioning\_key\_name) | Name for the new provisioning key. If empty, the App Connector Group name is reused. Only used when onboarding\_method = 'provisioning\_key' and byo\_provisioning\_key = false. | `string` | `""` | no |
 | <a name="input_public_subnets"></a> [public\_subnets](#input\_public\_subnets) | Public/NAT GW Subnets to create in VPC. This is only required if you want to override the default subnets that this code creates via vpc\_cidr variable. | `list(string)` | `null` | no |
 | <a name="input_reuse_on_scale_in"></a> [reuse\_on\_scale\_in](#input\_reuse\_on\_scale\_in) | Specifies whether instances in the Auto Scaling group can be returned to the warm pool on scale in. | `bool` | `"false"` | no |
 | <a name="input_target_cpu_util_value"></a> [target\_cpu\_util\_value](#input\_target\_cpu\_util\_value) | Target value number for autoscaling policy CPU utilization target tracking. ie: trigger a scale in/out to keep average CPU Utliization percentage across all instances at/under this number | `number` | `50` | no |
@@ -148,9 +152,9 @@ From ac_asg directory execute:
 | Name | Description |
 | ---- | ----------- |
 | <a name="output_app_connector_group_id"></a> [app\_connector\_group\_id](#output\_app\_connector\_group\_id) | ZPA App Connector Group ID |
-| <a name="output_enrollment_cert_id"></a> [enrollment\_cert\_id](#output\_enrollment\_cert\_id) | ZPA Enrollment Certificate ID used for App Connector enrollment |
-| <a name="output_oauth_token_count"></a> [oauth\_token\_count](#output\_oauth\_token\_count) | Number of OAuth tokens found in SSM and passed to ZPA |
-| <a name="output_oauth_user_codes"></a> [oauth\_user\_codes](#output\_oauth\_user\_codes) | OAuth2 user codes from ASG instances. Use 'terraform output -json oauth\_user\_codes \| jq -r' to view. |
-| <a name="output_ssm_parameter_prefix"></a> [ssm\_parameter\_prefix](#output\_ssm\_parameter\_prefix) | SSM Parameter Store prefix - instances create: {prefix}-{instance-id} |
+| <a name="output_oauth_token_count"></a> [oauth\_token\_count](#output\_oauth\_token\_count) | Number of OAuth user codes found in SSM and passed to ZPA |
+| <a name="output_oauth_user_codes"></a> [oauth\_user\_codes](#output\_oauth\_user\_codes) | OAuth2 user codes from ASG instances (empty when using the provisioning key flow). Use 'terraform output -json oauth\_user\_codes \| jq -r' to view. |
+| <a name="output_onboarding_method"></a> [onboarding\_method](#output\_onboarding\_method) | Onboarding method used for this deployment (oauth or provisioning\_key) |
+| <a name="output_ssm_parameter_prefix"></a> [ssm\_parameter\_prefix](#output\_ssm\_parameter\_prefix) | SSM Parameter Store prefix - instances create: {prefix}-{instance-id}. Empty when using the provisioning key flow. |
 | <a name="output_testbedconfig"></a> [testbedconfig](#output\_testbedconfig) | AWS Testbed results |
 <!-- END_TF_DOCS -->

@@ -183,18 +183,56 @@ variable "ami_id" {
 }
 
 
-# ZPA Provider specific variables for App Connector Group creation
-variable "enrollment_cert" {
+# Onboarding method switch
+variable "onboarding_method" {
   type        = string
-  description = "Name of ZPA enrollment cert to be used for App Connector enrollment via OAuth2"
-  default     = "Connector"
+  description = "App Connector onboarding method. 'oauth' (default) enrolls connectors via OAuth2 user codes retrieved from each VM. 'provisioning_key' uses the legacy provisioning key flow (recommended for autoscaling deployments)."
+  default     = "oauth"
 
   validation {
     condition = (
-      var.enrollment_cert == "Connector"
+      var.onboarding_method == "oauth" ||
+      var.onboarding_method == "provisioning_key"
     )
-    error_message = "Input enrollment_cert must be set to an approved value."
+    error_message = "Input onboarding_method must be either 'oauth' or 'provisioning_key'."
   }
+}
+
+# Provisioning key variables (only used when onboarding_method = "provisioning_key")
+variable "byo_provisioning_key" {
+  type        = bool
+  description = "Bring your own existing App Connector provisioning key. Implies the provisioning key onboarding method. When true, byo_provisioning_key_name must be set and no new App Connector Group / provisioning key is created."
+  default     = false
+}
+
+variable "byo_provisioning_key_name" {
+  type        = string
+  description = "Name of the existing App Connector provisioning key to use. Only required when byo_provisioning_key is true."
+  default     = null
+}
+
+variable "provisioning_key_name" {
+  type        = string
+  description = "Name for the new provisioning key. If empty, the App Connector Group name is reused. Only used when onboarding_method = 'provisioning_key' and byo_provisioning_key = false."
+  default     = ""
+}
+
+variable "provisioning_key_enabled" {
+  type        = bool
+  description = "Whether the new provisioning key is enabled. Only used for the provisioning key flow."
+  default     = true
+}
+
+variable "provisioning_key_association_type" {
+  type        = string
+  description = "Provisioning key association type. Supported value for App Connectors: CONNECTOR_GRP."
+  default     = "CONNECTOR_GRP"
+}
+
+variable "provisioning_key_max_usage" {
+  type        = number
+  description = "Maximum number of App Connectors that can enroll with the new provisioning key. For autoscaling deployments this should comfortably exceed max_size. Only used for the provisioning key flow."
+  default     = 100
 }
 
 # AWS Systems Manager Parameter Store configuration for OAuth token storage

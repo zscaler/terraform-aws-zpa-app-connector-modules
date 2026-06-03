@@ -18,6 +18,11 @@ locals {
     Vendor                                                                               = "Zscaler"
     "zs-app-connector-cluster/${var.name_prefix}-cluster-${random_string.suffix.result}" = "shared"
   }
+
+  # Onboarding method switch. Default is OAuth2; set onboarding_method to
+  # "provisioning_key" (or byo_provisioning_key = true) to use the legacy
+  # provisioning key flow instead.
+  use_provisioning_key = var.onboarding_method == "provisioning_key" || var.byo_provisioning_key
 }
 
 
@@ -71,28 +76,85 @@ module "network" {
 
 
 ################################################################################
-# 2. SSM Parameter configuration for ASG
-#    VMs create parameters dynamically: {prefix}-{instance-id}
-#    No pre-creation - only running VMs have parameters
+# 2. Generate App Connector Group name with template variable support
 ################################################################################
 locals {
-  ssm_parameter_prefix = var.byo_ssm_parameter_name == "" ? "/zpa/oauth-tokens/${var.name_prefix}-${var.aws_region}-asg" : var.byo_ssm_parameter_name
+  # Default naming pattern if not specified
+  default_ac_group_name = "${var.aws_region}-${module.network.vpc_id}"
+
+  # User-provided name with variable substitution
+  custom_ac_group_name = var.app_connector_group_name != "" ? replace(
+    replace(
+      replace(
+        replace(var.app_connector_group_name, "{region}", var.aws_region),
+        "{vpc_id}", module.network.vpc_id
+      ),
+      "{name_prefix}", var.name_prefix
+    ),
+    "{random_suffix}", random_string.suffix.result
+  ) : local.default_ac_group_name
 }
 
 
 ################################################################################
-# 3. Create specified number AC VMs per min_size / max_size which will span
-#    equally across designated availability zones per az_count. E.g. min_size
-#    set to 4 and az_count set to 2 will create 2x ACs in AZ1 and 2x ACs in AZ2
+# 3. (Provisioning key flow only) Create the ZPA App Connector Group and
+#    Provisioning Key up front so the key can be baked into the launch template
+#    user_data. New ASG instances self-enroll using the provisioning key, which
+#    is the recommended approach for autoscaling deployments.
 ################################################################################
+module "zpa_app_connector_group_pk" {
+  count                                        = local.use_provisioning_key && var.byo_provisioning_key == false ? 1 : 0
+  source                                       = "../../modules/terraform-zpa-app-connector-group"
+  app_connector_group_name                     = local.custom_ac_group_name
+  app_connector_group_description              = "${var.app_connector_group_description}-${var.aws_region}-${module.network.vpc_id}"
+  app_connector_group_enabled                  = var.app_connector_group_enabled
+  app_connector_group_country_code             = var.app_connector_group_country_code
+  app_connector_group_city_country             = var.app_connector_group_city_country
+  app_connector_group_latitude                 = var.app_connector_group_latitude
+  app_connector_group_longitude                = var.app_connector_group_longitude
+  app_connector_group_location                 = var.app_connector_group_location
+  app_connector_group_upgrade_day              = var.app_connector_group_upgrade_day
+  app_connector_group_upgrade_time_in_secs     = var.app_connector_group_upgrade_time_in_secs
+  app_connector_group_override_version_profile = var.app_connector_group_override_version_profile
+  app_connector_group_version_profile_id       = var.app_connector_group_version_profile_id
+  app_connector_group_dns_query_type           = var.app_connector_group_dns_query_type
+}
+
+module "zpa_provisioning_key" {
+  count                             = local.use_provisioning_key ? 1 : 0
+  source                            = "../../modules/terraform-zpa-provisioning-key"
+  provisioning_key_name             = var.provisioning_key_name != "" ? var.provisioning_key_name : local.custom_ac_group_name
+  provisioning_key_enabled          = var.provisioning_key_enabled
+  provisioning_key_association_type = var.provisioning_key_association_type
+  provisioning_key_max_usage        = var.provisioning_key_max_usage
+  app_connector_group_id            = try(module.zpa_app_connector_group_pk[0].app_connector_group_id, "")
+  byo_provisioning_key              = var.byo_provisioning_key
+  byo_provisioning_key_name         = var.byo_provisioning_key_name
+}
+
 
 ################################################################################
-# Generate user_data using centralized scripts
-# Zscaler AMI or RHEL9 based on use_zscaler_ami variable
+# 4. (OAuth2 flow only) SSM Parameter configuration for ASG.
+#    Instances create parameters dynamically: {prefix}-{instance-id}.
+#    No pre-creation - only running VMs have parameters.
 ################################################################################
 locals {
+  ssm_parameter_prefix = var.byo_ssm_parameter_name == "" ? "/zpa/oauth-tokens/${var.name_prefix}-${var.aws_region}-asg-${random_string.suffix.result}" : var.byo_ssm_parameter_name
+}
+
+
+################################################################################
+# 5. Generate user_data using centralized scripts (Zscaler AMI or RHEL9 based
+#    on use_zscaler_ami). The onboarding_method flag selects between OAuth2 and
+#    provisioning key bootstrap logic inside the script.
+################################################################################
+locals {
+  provisioning_key_value = local.use_provisioning_key ? try(module.zpa_provisioning_key[0].provisioning_key, "") : ""
+
   # Zscaler AMI user_data (for ASG)
   appuserdata = templatefile("${path.module}/../../scripts/user_data_zscaler.sh", {
+    onboarding_method    = local.use_provisioning_key ? "provisioning_key" : "oauth"
+    provisioning_key     = local.provisioning_key_value
     ssm_parameter_name   = "" # Not used for ASG
     ssm_parameter_prefix = local.ssm_parameter_prefix
     is_asg               = true
@@ -100,6 +162,8 @@ locals {
 
   # RHEL9 user_data (for ASG)
   rhel9userdata = templatefile("${path.module}/../../scripts/user_data_rhel9.sh", {
+    onboarding_method    = local.use_provisioning_key ? "provisioning_key" : "oauth"
+    provisioning_key     = local.provisioning_key_value
     ssm_parameter_name   = "" # Not used for ASG
     ssm_parameter_prefix = local.ssm_parameter_prefix
     is_asg               = true
@@ -126,8 +190,6 @@ data "aws_ami" "appconnector" {
 ################################################################################
 # Locate Latest Red Hat Enterprise Linux 9 AMI for instance use
 ################################################################################
-
-# Data source to retrieve RHEL 9.4.0 AMI
 data "aws_ami" "rhel_9_latest" {
   count       = var.use_zscaler_ami ? 0 : 1
   most_recent = true
@@ -146,7 +208,7 @@ locals {
 }
 
 ################################################################################
-# Create the specified AC VMs via Launch Template and Autoscaling Group
+# 6. Create the specified AC VMs via Launch Template and Autoscaling Group
 ################################################################################
 module "ac_asg" {
   source                      = "../../modules/terraform-zsac-asg-aws"
@@ -181,7 +243,7 @@ module "ac_asg" {
 
 
 ################################################################################
-# 5. Create IAM Policy, Roles, and Instance Profiles to be assigned to AC.
+# 7. Create IAM Policy, Roles, and Instance Profiles to be assigned to AC.
 #    Default behavior will create 1 of each IAM resource per AC VM. Set variable
 #    "reuse_iam" to true if you would like a single IAM profile created and
 #    assigned to ALL App Connectors instead.
@@ -201,7 +263,7 @@ module "ac_iam" {
 
 
 ################################################################################
-# 6. Create Security Group and rules to be assigned to the App Connector
+# 8. Create Security Group and rules to be assigned to the App Connector
 #    interface. Default behavior will create 1 of each SG resource per AC VM.
 #    Set variable "reuse_security_group" to true if you would like a single
 #    security group created and assigned to ALL App Connectors instead.
@@ -222,133 +284,95 @@ module "ac_sg" {
 
 
 ################################################################################
-# 7. Wait for ASG instances to launch and register OAuth tokens
+# 9. (OAuth2 flow only) Discover the OAuth user codes registered by the ASG
+#    instances and feed them to the ZPA App Connector Group.
+#
+#    The discovery is scoped to THIS stack's ASG (by name) and reads each
+#    instance's dedicated SSM parameter ({prefix}-{instance-id}). It paginates
+#    SSM via get-parameters-by-path and retries patiently to absorb the boot
+#    lag between an instance reaching "running" and the OAuth code becoming
+#    available in /etc/issue. This is intentionally precise (no wildcard tag
+#    matching) so concurrent or leftover deployments cannot pollute the result.
 ################################################################################
-resource "time_sleep" "wait_for_asg_instances" {
-  depends_on = [module.ac_asg]
-
-  create_duration = "480s" # 8 minutes for ASG instances to launch and register tokens
-}
-
-
-################################################################################
-# 8. Discover running ASG instances and retrieve their OAuth tokens from SSM
-################################################################################
-
-# Use external data source to find ALL OAuth tokens in SSM (don't rely on instance discovery)
 data "external" "asg_oauth_tokens" {
+  count = local.use_provisioning_key ? 0 : 1
+
   program = ["bash", "-c", <<-EOT
-    # Get number of running instances
-    INSTANCE_COUNT=$(aws ec2 describe-instances \
-      --filters "Name=tag:Name,Values=*-acvm-asg-*" "Name=instance-state-name,Values=running" \
-      --query 'length(Reservations[*].Instances[*])' \
-      --output text \
-      --region ${var.aws_region})
-    
-    echo "Expected instances: $INSTANCE_COUNT" >&2
-    
-    # Poll until we have tokens for all instances (max 20 attempts, 30s each = 10 min)
-    MAX_ATTEMPTS=20
+    set -o pipefail
+    REGION="${var.aws_region}"
+    ASG_NAME="${module.ac_asg.autoscaling_group_name}"
+    SSM_PREFIX="${local.ssm_parameter_prefix}"
+
+    # Desired capacity is the authoritative expected instance count for this ASG.
+    DESIRED=$(aws autoscaling describe-auto-scaling-groups \
+      --auto-scaling-group-names "$ASG_NAME" \
+      --query 'AutoScalingGroups[0].DesiredCapacity' \
+      --output text --region "$REGION" 2>/dev/null)
+    if [ -z "$DESIRED" ] || [ "$DESIRED" = "None" ]; then DESIRED=0; fi
+    echo "ASG $ASG_NAME desired capacity: $DESIRED" >&2
+
+    # Poll: list this stack's instances, read each instance's SSM parameter,
+    # collect codes that match the OAuth user-code format. Retry until we have a
+    # code for every in-service instance, or we time out.
+    MAX_ATTEMPTS=24   # 24 * 30s = 12 minutes
     ATTEMPT=0
-    
-    while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+    TOKENS=""
+
+    while [ "$ATTEMPT" -lt "$MAX_ATTEMPTS" ]; do
+      INSTANCE_IDS=$(aws autoscaling describe-auto-scaling-groups \
+        --auto-scaling-group-names "$ASG_NAME" \
+        --query 'AutoScalingGroups[0].Instances[?LifecycleState==`InService`].InstanceId' \
+        --output text --region "$REGION" 2>/dev/null)
+
       TOKENS=""
-      
-      # List all SSM parameters matching our prefix
-      PARAMS=$(aws ssm describe-parameters \
-        --region ${var.aws_region} \
-        --query 'Parameters[?contains(Name, `${local.ssm_parameter_prefix}-i`)].Name' \
-        --output text)
-      
-      # Read each parameter and collect valid OAuth tokens
-      for param in $PARAMS; do
-        TOKEN=$(aws ssm get-parameter \
-          --name "$param" \
+      FOUND=0
+      EXPECTED=0
+      for IID in $INSTANCE_IDS; do
+        EXPECTED=$((EXPECTED + 1))
+        VALUE=$(aws ssm get-parameter \
+          --name "$SSM_PREFIX-$IID" \
           --with-decryption \
           --query 'Parameter.Value' \
-          --output text \
-          --region ${var.aws_region} 2>/dev/null || echo "")
-        
-        # Only include if it matches OAuth token format
-        if [[ "$TOKEN" =~ ^[A-Z0-9]{5}-[A-Z0-9]{5}$ ]]; then
-          if [ -z "$TOKENS" ]; then
-            TOKENS="$TOKEN"
-          else
-            TOKENS="$TOKENS,$TOKEN"
-          fi
+          --output text --region "$REGION" 2>/dev/null || echo "")
+        if printf '%s' "$VALUE" | grep -Eq '^[A-Z0-9]{5}-[A-Z0-9]{5}$'; then
+          FOUND=$((FOUND + 1))
+          if [ -z "$TOKENS" ]; then TOKENS="$VALUE"; else TOKENS="$TOKENS,$VALUE"; fi
         fi
       done
-      
-      # Count tokens
-      if [ -z "$TOKENS" ]; then
-        TOKEN_COUNT=0
-      else
-        TOKEN_COUNT=$(echo "$TOKENS" | tr ',' '\n' | wc -l)
+
+      echo "Attempt $((ATTEMPT + 1))/$MAX_ATTEMPTS: in-service=$EXPECTED desired=$DESIRED codes=$FOUND" >&2
+
+      # Done when we have a code for every in-service instance and at least the
+      # desired capacity has reported in.
+      if [ "$EXPECTED" -ge "$DESIRED" ] && [ "$DESIRED" -gt 0 ] && [ "$FOUND" -ge "$DESIRED" ]; then
+        echo "All OAuth codes retrieved." >&2
+        break
       fi
-      
-      echo "Attempt $((ATTEMPT + 1))/$MAX_ATTEMPTS: Found $TOKEN_COUNT tokens, expecting $INSTANCE_COUNT" >&2
-      
-      # If we have all tokens, exit
-      if [ "$TOKEN_COUNT" -ge "$INSTANCE_COUNT" ]; then
-        echo "All tokens retrieved!" >&2
-        echo "{\"tokens\": \"$TOKENS\"}"
-        exit 0
-      fi
-      
-      # Wait and retry
+
       sleep 30
       ATTEMPT=$((ATTEMPT + 1))
     done
-    
-    # Return what we have even if not all
-    echo "Timeout: Only found $TOKEN_COUNT of $INSTANCE_COUNT tokens" >&2
-    echo "{\"tokens\": \"$TOKENS\"}"
+
+    printf '{"tokens":"%s"}' "$TOKENS"
   EOT
   ]
 
-  depends_on = [time_sleep.wait_for_asg_instances]
+  depends_on = [module.ac_asg]
 }
 
-# Parse tokens from external data source
+# Parse codes from the external data source
 locals {
-  user_codes = data.external.asg_oauth_tokens.result.tokens != "" ? split(",", data.external.asg_oauth_tokens.result.tokens) : []
+  asg_tokens_raw = local.use_provisioning_key ? "" : try(data.external.asg_oauth_tokens[0].result.tokens, "")
+  user_codes     = local.use_provisioning_key ? [] : (local.asg_tokens_raw != "" ? split(",", local.asg_tokens_raw) : [])
 }
 
 
 ################################################################################
-# 9. Retrieve ZPA Enrollment Certificate ID
-################################################################################
-data "zpa_enrollment_cert" "connector_cert" {
-  name = var.enrollment_cert
-}
-
-
-################################################################################
-# 10. Generate App Connector Group name with template variable support
-################################################################################
-locals {
-  # Default naming pattern if not specified
-  default_ac_group_name = "${var.aws_region}-${module.network.vpc_id}"
-
-  # User-provided name with variable substitution
-  custom_ac_group_name = var.app_connector_group_name != "" ? replace(
-    replace(
-      replace(
-        replace(var.app_connector_group_name, "{region}", var.aws_region),
-        "{vpc_id}", module.network.vpc_id
-      ),
-      "{name_prefix}", var.name_prefix
-    ),
-    "{random_suffix}", random_string.suffix.result
-  ) : local.default_ac_group_name
-}
-
-
-################################################################################
-# 11. Create ZPA App Connector Group with OAuth2 User Codes
-#     Uses tokens from ASG instances that successfully registered
+# 10. (OAuth2 flow only) Create the ZPA App Connector Group with OAuth2 user
+#     codes from the ASG instances that successfully registered.
 ################################################################################
 module "zpa_app_connector_group" {
+  count                                        = local.use_provisioning_key ? 0 : 1
   source                                       = "../../modules/terraform-zpa-app-connector-group"
   app_connector_group_name                     = local.custom_ac_group_name
   app_connector_group_description              = "${var.app_connector_group_description}-${var.aws_region}-${module.network.vpc_id}"
@@ -363,7 +387,6 @@ module "zpa_app_connector_group" {
   app_connector_group_override_version_profile = var.app_connector_group_override_version_profile
   app_connector_group_version_profile_id       = var.app_connector_group_version_profile_id
   app_connector_group_dns_query_type           = var.app_connector_group_dns_query_type
-  enrollment_cert_id                           = data.zpa_enrollment_cert.connector_cert.id
   user_codes                                   = local.user_codes
 
   depends_on = [
