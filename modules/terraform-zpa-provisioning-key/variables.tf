@@ -1,17 +1,3 @@
-variable "enrollment_cert" {
-  type        = string
-  description = "Get name of ZPA enrollment cert to be used for App Connector provisioning"
-  default     = "Connector"
-
-  validation {
-    condition = (
-      var.enrollment_cert == "Connector"
-
-    )
-    error_message = "Input enrollment_cert must be set to an approved value."
-  }
-}
-
 variable "provisioning_key_name" {
   type        = string
   description = "Name of the provisioning key"
@@ -55,6 +41,5 @@ variable "byo_provisioning_key_name" {
 
 variable "app_connector_group_id" {
   type        = string
-  description = "ID of App Connector Group from zpa-app-connector-group module"
-  default     = null
+  description = "ID of the ZPA App Connector Group that the provisioning key will be bound to (zcomponent_id). Typically wired from the terraform-zpa-app-connector-group module output."
 }

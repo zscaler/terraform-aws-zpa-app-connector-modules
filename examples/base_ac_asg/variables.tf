@@ -183,30 +183,69 @@ variable "ami_id" {
 }
 
 
-# ZPA Provider specific variables for App Connector Group and Provisioning Key creation
+# Onboarding method switch
+variable "onboarding_method" {
+  type        = string
+  description = "App Connector onboarding method. 'oauth' (default) enrolls connectors via OAuth2 user codes retrieved from each VM. 'provisioning_key' uses the legacy provisioning key flow (recommended for autoscaling deployments)."
+  default     = "oauth"
+
+  validation {
+    condition = (
+      var.onboarding_method == "oauth" ||
+      var.onboarding_method == "provisioning_key"
+    )
+    error_message = "Input onboarding_method must be either 'oauth' or 'provisioning_key'."
+  }
+}
+
+# Provisioning key variables (only used when onboarding_method = "provisioning_key")
 variable "byo_provisioning_key" {
   type        = bool
-  description = "Bring your own App Connector Provisioning Key. Setting this variable to true will effectively instruct this module to not create any resources and only reference data resources from values provided in byo_provisioning_key_name"
+  description = "Bring your own existing App Connector provisioning key. Implies the provisioning key onboarding method. When true, byo_provisioning_key_name must be set and no new App Connector Group / provisioning key is created."
   default     = false
 }
 
 variable "byo_provisioning_key_name" {
   type        = string
-  description = "Existing App Connector Provisioning Key name"
+  description = "Name of the existing App Connector provisioning key to use. Only required when byo_provisioning_key is true."
   default     = null
 }
 
-variable "enrollment_cert" {
+variable "provisioning_key_name" {
   type        = string
-  description = "Get name of ZPA enrollment cert to be used for App Connector provisioning"
-  default     = "Connector"
+  description = "Name for the new provisioning key. If empty, the App Connector Group name is reused. Only used when onboarding_method = 'provisioning_key' and byo_provisioning_key = false."
+  default     = ""
+}
 
-  validation {
-    condition = (
-      var.enrollment_cert == "Connector"
-    )
-    error_message = "Input enrollment_cert must be set to an approved value."
-  }
+variable "provisioning_key_enabled" {
+  type        = bool
+  description = "Whether the new provisioning key is enabled. Only used for the provisioning key flow."
+  default     = true
+}
+
+variable "provisioning_key_association_type" {
+  type        = string
+  description = "Provisioning key association type. Supported value for App Connectors: CONNECTOR_GRP."
+  default     = "CONNECTOR_GRP"
+}
+
+variable "provisioning_key_max_usage" {
+  type        = number
+  description = "Maximum number of App Connectors that can enroll with the new provisioning key. For autoscaling deployments this should comfortably exceed max_size. Only used for the provisioning key flow."
+  default     = 100
+}
+
+# AWS Systems Manager Parameter Store configuration for OAuth token storage
+variable "byo_ssm_parameter_name" {
+  type        = string
+  description = "Bring your own SSM Parameter Store base name for OAuth tokens. If specified, module will use existing parameters named '{value}-1', '{value}-2', etc. If empty, module creates new parameters. Default: '' (create new)"
+  default     = ""
+}
+
+variable "app_connector_group_name" {
+  type        = string
+  description = "Custom name for the App Connector Group. If empty, defaults to: {region}-{vpc-id}. Supports variables: {region}, {vpc_id}, {name_prefix}, {random_suffix}"
+  default     = ""
 }
 
 variable "app_connector_group_description" {
@@ -224,7 +263,13 @@ variable "app_connector_group_enabled" {
 variable "app_connector_group_country_code" {
   type        = string
   description = "Optional: Country code of this App Connector Group. example 'US'"
-  default     = ""
+  default     = "US"
+}
+
+variable "app_connector_group_city_country" {
+  type        = string
+  description = "Optional: City and country of this App Connector Group. example 'San Jose, US'"
+  default     = "San Jose, US"
 }
 
 variable "app_connector_group_latitude" {
@@ -291,29 +336,4 @@ variable "app_connector_group_dns_query_type" {
     )
     error_message = "Input app_connector_group_dns_query_type must be set to an approved value."
   }
-}
-
-variable "provisioning_key_enabled" {
-  type        = bool
-  description = "Whether the provisioning key is enabled or not. Default: true"
-  default     = true
-}
-
-variable "provisioning_key_association_type" {
-  type        = string
-  description = "Specifies the provisioning key type for App Connectors or ZPA Private Service Edges. The supported values are CONNECTOR_GRP and SERVICE_EDGE_GRP"
-  default     = "CONNECTOR_GRP"
-
-  validation {
-    condition = (
-      var.provisioning_key_association_type == "CONNECTOR_GRP"
-    )
-    error_message = "Input provisioning_key_association_type must be set to an approved value."
-  }
-}
-
-variable "provisioning_key_max_usage" {
-  type        = number
-  description = "The maximum number of instances where this provisioning key can be used for enrolling an App Connector or Service Edge"
-  default     = 10
 }

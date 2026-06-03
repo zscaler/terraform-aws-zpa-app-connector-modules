@@ -1,13 +1,12 @@
 variable "name_prefix" {
   type        = string
   description = "A prefix to associate to all the App Connector module resources"
-  default     = null
 }
 
 variable "resource_tag" {
   type        = string
   description = "A tag to associate to all the App Connector module resources"
-  default     = null
+  default     = ""
 }
 
 variable "global_tags" {
@@ -27,8 +26,8 @@ variable "instance_key" {
 }
 
 variable "user_data" {
-  type        = string
-  description = "App Init data"
+  type        = list(string)
+  description = "App Init data (list of user_data scripts, one per VM)"
 }
 
 variable "acvm_instance_type" {

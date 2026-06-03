@@ -7,35 +7,44 @@
 #####################################################################################################################
 
 #####################################################################################################################
-##### Optional: ZPA Provider Resources. Skip to step 3. if you already have an  #####
-##### App Connector Group + Provisioning Key.                                   #####
+##### Onboarding method selection                                                                              #####
+#####################################################################################################################
+
+## 0. App Connector onboarding method. Default is "oauth" (recommended): connectors enroll via OAuth2 user codes
+##    that each VM publishes to AWS SSM Parameter Store and Terraform reads back to enroll the App Connector Group.
+##    Set to "provisioning_key" to use the legacy provisioning key flow instead. The provisioning key is created
+##    by the ZPA provider and written into each VM's user_data; no SSM Parameter Store is used in that mode.
+
+#onboarding_method                             = "provisioning_key"
+
+
+#####################################################################################################################
+##### Optional: ZPA Provisioning Key variables (only used when onboarding_method = "provisioning_key")          #####
 #####################################################################################################################
 
 ## 1. ZPA App Connector Provisioning Key variables. Uncomment and replace values as desired for your deployment.
 ##    For any questions populating the below values, please reference:
 ##    https://registry.terraform.io/providers/zscaler/zpa/latest/docs/resources/zpa_provisioning_key
 
-#enrollment_cert                                = "Connector"
-#provisioning_key_name                          = "new_key_name"
-#provisioning_key_enabled                       = true
-#provisioning_key_max_usage                     = 50
+#provisioning_key_name                         = "new_key_name"
+#provisioning_key_enabled                      = true
+#provisioning_key_max_usage                    = 10
 
 ## 2. ZPA App Connector Group variables. Uncomment and replace values as desired for your deployment.
 ##    For any questions populating the below values, please reference:
 ##    https://registry.terraform.io/providers/zscaler/zpa/latest/docs/resources/zpa_app_connector_group
 
-#app_connector_group_name                       = "new_group_name"
-#app_connector_group_description                = "group_description"
-#app_connector_group_enabled                    = true
-app_connector_group_country_code = "US"
-#app_connector_group_latitude                   = "37.3382082"
-#app_connector_group_longitude                  = "-121.8863286"
-#app_connector_group_location                   = "San Jose, CA, USA"
-#app_connector_group_upgrade_day                = "SUNDAY"
-#app_connector_group_upgrade_time_in_secs       = "66600"
-#app_connector_group_override_version_profile   = true
-#app_connector_group_version_profile_id         = "0"
-#app_connector_group_dns_query_type             = "IPV4_IPV6"
+#app_connector_group_name                      = "new_group_name"
+#app_connector_group_description               = "group_description"
+#app_connector_group_enabled                   = true
+#app_connector_group_country_code              = "US"
+#app_connector_group_latitude                  = "37.3382082"
+#app_connector_group_longitude                 = "-121.8863286"
+#app_connector_group_location                  = "San Jose, CA, USA"
+#app_connector_group_upgrade_day               = "SUNDAY"
+#app_connector_group_upgrade_time_in_secs      = "66600"
+#app_connector_group_override_version_profile  = true
+#app_connector_group_dns_query_type            = "IPV4_IPV6"
 
 
 #####################################################################################################################

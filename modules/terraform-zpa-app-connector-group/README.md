@@ -2,18 +2,19 @@
 
 This module provides the resources necessary to create a new ZPA App Connector Group to be used with App Connector appliance deployment and provisioining. This module is not intended to be used for any existing ZPA App Connector Groups created outside of Terraform.
 
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
+| <a name="requirement_zpa"></a> [zpa](#requirement\_zpa) | ~> 4.4.0 |
 
 ## Providers
 
 | Name | Version |
-|------|---------|
-| <a name="provider_zpa"></a> [zpa](#provider\_zpa) | n/a |
+| ---- | ------- |
+| <a name="provider_zpa"></a> [zpa](#provider\_zpa) | ~> 4.4.0 |
 
 ## Modules
 
@@ -22,13 +23,14 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [zpa_app_connector_group.app_connector_group](https://registry.terraform.io/providers/zscaler/zpa/latest/docs/resources/app_connector_group) | resource |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_app_connector_group_city_country"></a> [app\_connector\_group\_city\_country](#input\_app\_connector\_group\_city\_country) | Optional: City and country of this App Connector Group. example 'San Jose, US' | `string` | `""` | no |
 | <a name="input_app_connector_group_country_code"></a> [app\_connector\_group\_country\_code](#input\_app\_connector\_group\_country\_code) | Optional: Country code of this App Connector Group. example 'US' | `string` | `""` | no |
 | <a name="input_app_connector_group_description"></a> [app\_connector\_group\_description](#input\_app\_connector\_group\_description) | Optional: Description of the App Connector Group | `string` | `""` | no |
 | <a name="input_app_connector_group_dns_query_type"></a> [app\_connector\_group\_dns\_query\_type](#input\_app\_connector\_group\_dns\_query\_type) | Whether to enable IPv4 or IPv6, or both, for DNS resolution of all applications in the App Connector Group | `string` | `"IPV4_IPV6"` | no |
@@ -41,10 +43,11 @@ No modules.
 | <a name="input_app_connector_group_upgrade_day"></a> [app\_connector\_group\_upgrade\_day](#input\_app\_connector\_group\_upgrade\_day) | Optional: App Connectors in this group will attempt to update to a newer version of the software during this specified day. Default value: SUNDAY. List of valid days (i.e., SUNDAY, MONDAY, etc) | `string` | `"SUNDAY"` | no |
 | <a name="input_app_connector_group_upgrade_time_in_secs"></a> [app\_connector\_group\_upgrade\_time\_in\_secs](#input\_app\_connector\_group\_upgrade\_time\_in\_secs) | Optional: App Connectors in this group will attempt to update to a newer version of the software during this specified time. Default value: 66600. Integer in seconds (i.e., 66600). The integer should be greater than or equal to 0 and less than 86400, in 15 minute intervals | `string` | `"66600"` | no |
 | <a name="input_app_connector_group_version_profile_id"></a> [app\_connector\_group\_version\_profile\_id](#input\_app\_connector\_group\_version\_profile\_id) | Optional: ID of the version profile. To learn more, see Version Profile Use Cases. https://help.zscaler.com/zpa/configuring-version-profile | `string` | `"0"` | no |
+| <a name="input_user_codes"></a> [user\_codes](#input\_user\_codes) | OAuth2 user codes retrieved from deployed App Connector VMs (/etc/issue). These codes are required for enrolling App Connectors using the new OAuth2 authentication method. | `list(string)` | `[]` | no |
 
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_app_connector_group_id"></a> [app\_connector\_group\_id](#output\_app\_connector\_group\_id) | ZPA App Connector Group ID |
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- END_TF_DOCS -->

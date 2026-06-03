@@ -1,52 +1,27 @@
-# ZPA App Connector Modules Makefile
+.PHONY: all invalidate help
 
-.PHONY: help test test-validate test-plan test-apply test-idempotence test-clean install-deps
+all:
+	@echo "Run [make help] for usage details."
 
-# Default target
+invalidate:
+
 help:
-	@echo "Available targets:"
-	@echo "  install-deps     - Install Go dependencies"
-	@echo "  test            - Run all tests"
-	@echo "  test-validate   - Run validation tests only"
-	@echo "  test-plan       - Run plan tests only"
-	@echo "  test-apply      - Run apply tests only"
-	@echo "  test-idempotence - Run idempotence tests only"
-	@echo "  test-clean      - Clean up test artifacts"
+	@echo "This Makefile is run by specifying a module path as a target name." ; \
+	echo "It takes one argument: ACTION. Value of this argument is specific to a particular module." ; \
+	echo "It represents the name of a Terratest test function." ; \
+	echo "Typically this will be: Validate, Plan, Apply, Idempotence, but it should be verified with" ; \
+	echo "  module's main_test.go file." ; \
+	echo ; \
+	echo "Example:" ; \
+	echo "  make examples/base_ac ACTION=Plan" ; \
+	echo
 
-# Install dependencies
-install-deps:
-	@echo "Installing Go dependencies..."
-	go mod tidy
-	go mod download
-
-# Run all tests
-test: install-deps
-	@echo "Running all tests..."
-	go test ./test/... -v
-
-# Run validation tests only
-test-validate: install-deps
-	@echo "Running validation tests..."
-	go test ./test/... -v -run TestValidate
-
-# Run plan tests only
-test-plan: install-deps
-	@echo "Running plan tests..."
-	go test ./test/... -v -run TestPlan
-
-# Run apply tests only
-test-apply: install-deps
-	@echo "Running apply tests..."
-	go test ./test/... -v -run TestApply
-
-# Run idempotence tests only
-test-idempotence: install-deps
-	@echo "Running idempotence tests..."
-	go test ./test/... -v -run TestIdempotence
-
-# Clean up test artifacts
-test-clean:
-	@echo "Cleaning up test artifacts..."
-	find ./test -name ".terraform" -type d -exec rm -rf {} + 2>/dev/null || true
-	find ./test -name "terraform.tfstate*" -type f -exec rm -f {} + 2>/dev/null || true
-	find ./test -name ".terraform.lock.hcl" -type f -exec rm -f {} + 2>/dev/null || true
+%: invalidate %/main.tf
+	@cd $@ && \
+	echo "::group::DOWNLOADING GO DEPENDENCIES" && \
+	go get -v -t -d  && \
+	go mod tidy && \
+	echo "::endgroup::" && \
+	echo "::group::ACTION >>$(ACTION)<<" && \
+	go test -run $(ACTION) -timeout 60m -count=1 && \
+	echo "::endgroup::"

@@ -11,6 +11,53 @@
 
 -> **Disclaimer:** Please refer to our [General Support Statement](docs/guides/support.md) before proceeding with the use of this provider.
 
+## BREAKING CHANGES - OAuth2 Authentication
+
+~> **BREAKING CHANGE** As of version 2.0.0 of this module, App Connector enrollment has migrated from the **Provisioning Key** method to the new **OAuth2 User Code** authentication method. This is a **breaking change** that requires modifications to existing deployments.
+
+### What Changed
+
+**Old Flow (Deprecated):**
+1. Create App Connector Group
+2. Create Provisioning Key
+3. Deploy VMs with Provisioning Key injected via user_data
+4. App Connectors auto-enroll using the Provisioning Key
+
+**New Flow (OAuth2):**
+1. Deploy App Connector VMs
+2. Retrieve OAuth2 User Codes from VMs (located at `/etc/issue`)
+3. Create App Connector Group with User Codes and Enrollment Certificate ID
+4. App Connectors are enrolled via OAuth2 verification API
+
+### Migration Impact
+
+- **Module Removed**: The `terraform-zpa-provisioning-key` module has been completely removed
+- **Variables Removed**: All provisioning key related variables (`byo_provisioning_key`, `byo_provisioning_key_name`, `provisioning_key_enabled`, `provisioning_key_association_type`, `provisioning_key_max_usage`)
+- **New Variables**: Added `enrollment_cert` (default: "Connector") and `user_codes` (list of OAuth tokens)
+- **Deployment Order**: App Connector Group is now created **after** VM deployment (reversed order)
+- **SSH Requirement**: The module now requires SSH access to deployed VMs to retrieve OAuth tokens
+
+### Implementation Notes
+
+The module uses `null_resource` with local-exec provisioners to:
+- SSH into each deployed App Connector VM
+- Extract the OAuth2 user code from `/etc/issue`
+- Pass the codes to the App Connector Group resource for enrollment
+
+**For base_ac deployments**: SSH occurs through the bastion host
+**For ac deployments**: SSH occurs directly to VMs (requires public IP)
+**For ASG deployments**: OAuth2 enrollment requires additional automation (Lambda, SSM, or manual process)
+
+### Upgrade Path
+
+Existing deployments using provisioning keys will continue to function, but **cannot** be managed by version 2.0.0+ of this module. To upgrade:
+
+1. Destroy existing App Connector Group and VMs
+2. Update to module version 2.0.0+
+3. Re-deploy using the new OAuth2 flow
+
+**Note**: This is a one-way migration. Once migrated to OAuth2, you cannot revert to provisioning keys.
+
 ## Description
 This repository contains various modules and deployment configurations that can be used to deploy Zscaler App Connector appliances to securely connect to workloads within Amazon Web Services (AWS) via the Zscaler Zero Trust Exchange. The examples directory contains complete automation scripts for both greenfield/POV and brownfield/production use.
 
@@ -60,7 +107,7 @@ provider "zpa" {
 }
 ```
 
-3. (Optional) An existing App Connector Group and Provisioning Key. Otherwise, you can follow the prompts in the examples terraform.tfvars to create a new Connector Group and Provisioning Key
+3. **OAuth2 Authentication**: This module uses OAuth2 user codes for App Connector enrollment. User codes are automatically generated at `/etc/issue` on deployed VMs and retrieved via SSH.
 
 See: [Zscaler App Connector AWS Deployment Guide](https://help.zscaler.com/zpa/connector-deployment-guide-amazon-web-services) for additional prerequisite provisioning steps.
 
@@ -84,7 +131,7 @@ provider "zpa" {
   zscaler_cloud = "zscaler_cloud" # pragma: allowlist secret
 }
 ```
-3. (Optional) An existing App Connector Group and Provisioning Key. Otherwise, you can follow the prompts in the examples terraform.tfvars to create a new Connector Group and Provisioning Key
+3. **OAuth2 Authentication**: This module uses OAuth2 user codes for App Connector enrollment. User codes are automatically generated at `/etc/issue` on deployed VMs and retrieved via SSH.
 
 See: [Zscaler App Connector AWS Deployment Guide](https://help.zscaler.com/zpa/connector-deployment-guide-amazon-web-services) for additional prerequisite provisioning steps.
 

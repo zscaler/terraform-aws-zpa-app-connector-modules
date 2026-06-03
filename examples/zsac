@@ -1,11 +1,113 @@
 #!/bin/bash
 set -e
 
+################################################################################
+# Branding - Zscaler ASCII logo
+################################################################################
+_ZSCALER_ART=(
+"███████╗███████╗ ██████╗ █████╗ ██╗     ███████╗██████╗ "
+"╚══███╔╝██╔════╝██╔════╝██╔══██╗██║     ██╔════╝██╔══██╗"
+"  ███╔╝ ███████╗██║     ███████║██║     █████╗  ██████╔╝"
+" ███╔╝  ╚════██║██║     ██╔══██║██║     ██╔══╝  ██╔══██╗"
+"███████╗███████║╚██████╗██║  ██║███████╗███████╗██║  ██║"
+"╚══════╝╚══════╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝"
+)
+_TAGLINE="App Connector for AWS"
+
+# Detect whether the terminal supports 24-bit truecolor for the gradient.
+_supports_truecolor() {
+    [ -t 1 ] || return 1
+    [ -n "$NO_COLOR" ] && return 1
+    case "${COLORTERM:-}" in truecolor|24bit) return 0 ;; esac
+    case "${TERM:-}" in *256color*|*kitty*|*iterm*) return 0 ;; esac
+    return 1
+}
+
+print_zscaler_logo() {
+    # No color when not a TTY or NO_COLOR is set: print plain logo.
+    if [ ! -t 1 ] || [ -n "$NO_COLOR" ]; then
+        printf '%s\n' "${_ZSCALER_ART[@]}"
+        printf '%s\n\n' "$_TAGLINE"
+        return
+    fi
+
+    local reset='\033[0m'
+    if _supports_truecolor; then
+        # Blue gradient from (37,99,235) to (147,197,253), matching the
+        # Zscaler MCP server branding.
+        local start_r=37 start_g=99 start_b=235
+        local end_r=147 end_g=197 end_b=253
+        local n=${#_ZSCALER_ART[@]}
+        local i
+        for i in "${!_ZSCALER_ART[@]}"; do
+            local denom=$(( n - 1 )); [ "$denom" -lt 1 ] && denom=1
+            local r=$(( start_r + (end_r - start_r) * i / denom ))
+            local g=$(( start_g + (end_g - start_g) * i / denom ))
+            local b=$(( start_b + (end_b - start_b) * i / denom ))
+            printf '\033[38;2;%d;%d;%dm%s%b\n' "$r" "$g" "$b" "${_ZSCALER_ART[$i]}" "$reset"
+        done
+        printf '\033[38;2;96;165;250m%s%b\n' "$_TAGLINE" "$reset"
+    else
+        local line
+        for line in "${_ZSCALER_ART[@]}"; do
+            printf '\033[34m%s%b\n' "$line" "$reset"
+        done
+        printf '\033[36m%s%b\n' "$_TAGLINE" "$reset"
+    fi
+    printf '\n'
+}
+
+################################################################################
+# select_menu - render a numbered menu and return the chosen value.
+#
+# Usage:
+#   choice=$(select_menu "Prompt text" [default_index] -- "value1" "value2" ...)
+#
+# Prints a numbered list to stderr, reads the user's numeric selection, and
+# echoes the selected value to stdout. If default_index (1-based) is provided,
+# pressing Enter selects that option. Re-prompts until a valid choice is made.
+################################################################################
+select_menu() {
+    local prompt="$1"
+    local default_index="$2"
+    shift 2
+    [ "$1" == "--" ] && shift
+    local options=("$@")
+    local n=${#options[@]}
+    local default_hint=""
+    if [ -n "$default_index" ]; then
+        default_hint=" [Default=${default_index}) ${options[$((default_index - 1))]}]"
+    fi
+
+    while true; do
+        {
+            echo "$prompt"
+            local i
+            for i in "${!options[@]}"; do
+                printf "  %d) %s\n" "$((i + 1))" "${options[$i]}"
+            done
+        } >&2
+        local reply
+        read -r -p "Enter selection (1-${n})${default_hint}: " reply
+        # Apply default on empty input when a default is configured
+        if [ -z "$reply" ] && [ -n "$default_index" ]; then
+            reply="$default_index"
+        fi
+        if [[ "$reply" =~ ^[0-9]+$ ]] && [ "$reply" -ge 1 ] && [ "$reply" -le "$n" ]; then
+            echo "${options[$((reply - 1))]}"
+            return 0
+        fi
+        echo "Invalid selection: '${reply}'. Please enter a number between 1 and ${n}." >&2
+    done
+}
+
 usage()
 {
     echo "Usage: $0 <up|destroy>"
     exit 1
 }
+
+print_zscaler_logo
 
 if [ $# -ne 1 ] ; then
     usage
@@ -23,49 +125,16 @@ fi
 if [[ "$oper" == "up" ]]; then
     # shellcheck disable=SC2153
     if [ -z "$dtype" ]; then
-    while true; do
-     read -r -p "Deployment: ( greenfield | brownfield ): " deploy
+    deploy=$(select_menu "Deployment:" "" -- "greenfield" "brownfield")
+    echo "Deployment: ${deploy}"
 
-    case $deploy in
-      greenfield)
-          break
-      ;;
-      brownfield)
-          break
-      ;;    
-      *)
-          echo "Invalid Deployment Type: ${dtype}"
-      ;;
-    esac
-  done
-
-    while [ "$deploy" == "greenfield" ]; do
-     read -r -p "Deployment Type: ( base | base_ac | base_ac_asg ): " dtype
-
-    case $dtype in
-      base|base_ac|base_ac_asg)
-          echo "Deployment Type: ${dtype}"
-          break
-      ;;
-      *)
-          echo "Invalid Deployment Type: ${dtype}"
-      ;;
-    esac
-  done
-
-  while [ "$deploy" == "brownfield" ]; do
-     read -r -p "Deployment Type: ( ac | ac_asg ) : " dtype
-
-    case $dtype in
-      ac|ac_asg)
-          echo "Deployment Type: ${dtype}"
-          break
-      ;;
-      *)
-          echo "Invalid Deployment Type: ${dtype}"
-      ;;
-    esac
-  done
+    if [ "$deploy" == "greenfield" ]; then
+        dtype=$(select_menu "Deployment Type:" "" -- "base" "base_ac" "base_ac_asg")
+        echo "Deployment Type: ${dtype}"
+    else
+        dtype=$(select_menu "Deployment Type:" "" -- "ac" "ac_asg")
+        echo "Deployment Type: ${dtype}"
+    fi
     else
       dtype=$dtype
     fi
@@ -251,36 +320,9 @@ if [[ "$oper" == "up" && "$dtype" != base && ! -e ./.zsacrc ]]; then
     echo "export AWS_SESSION_TOKEN='$aws_session_token'" >> .zsacrc 
     fi
     
-    zpa_cloud_default=PRODUCTION
-    while true; do
-        read -r -p "Enter ZPA Cloud Name (PRODUCTION, BETA, GOV, or PREVIEW) [Default=$zpa_cloud_default]: " zpa_cloud_input
-        zpa_cloud=${zpa_cloud_input:-$zpa_cloud_default}
-        case $zpa_cloud in
-        PROD*|prod*|PRODUCTION|production)
-          echo "ZPA Cloud selected: PRODUCTION"
-          echo "export ZPA_CLOUD=\"PRODUCTION\"" >> .zsacrc
-          break
-          ;;
-        BETA|beta|b|B)
-          echo "ZPA Cloud selected: BETA"
-          echo "export ZPA_CLOUD=\"BETA\"" >> .zsacrc
-          break
-          ;;
-        GOV|gov|g|G)
-          echo "ZPA Cloud selected: GOV"
-          echo "export ZPA_CLOUD=\"GOV\"" >> .zsacrc
-          break
-          ;;
-        PREVIEW|preview|pre*|PRE*)
-          echo "ZPA Cloud selected: PREVIEW"
-          echo "export ZPA_CLOUD=\"PREVIEW\"" >> .zsacrc
-          break
-          ;;
-          *)
-          echo "Invalid Cloud. Supported values are PRODUCTION, BETA, GOV, or PREVIEW: ${zpa_cloud}."
-      ;;
-        esac
-    done
+    zpa_cloud=$(select_menu "Select ZPA Cloud Name:" 1 -- "PRODUCTION" "BETA" "GOV" "PREVIEW")
+    echo "ZPA Cloud selected: ${zpa_cloud}"
+    echo "export ZPA_CLOUD=\"${zpa_cloud}\"" >> .zsacrc
     read -r -p "Enter ZPA Client ID: " zpa_client_id
     echo "export ZPA_CLIENT_ID='$zpa_client_id'" >> .zsacrc
     read -r -p "Enter ZPA Client Secret: " zpa_client_secret
@@ -288,44 +330,49 @@ if [[ "$oper" == "up" && "$dtype" != base && ! -e ./.zsacrc ]]; then
     read -r -p "Enter ZPA Customer ID: " zpa_customer_id
     echo "export ZPA_CUSTOMER_ID='$zpa_customer_id'" >> .zsacrc
 
-    while true; do
-        read -r -p "Do you already have an App Connector provisioning key to use? [yes/no] " prov_key_response
-        case $prov_key_response in 
-	    yes|y ) 
-        read -r -p "Enter the name of your existing App Connector provisioning key: " byo_provisioning_key_name
-        echo "export TF_VAR_byo_provisioning_key=true" >> .zsacrc
-        echo "export TF_VAR_byo_provisioning_key_name='$byo_provisioning_key_name'" >> .zsacrc
-        break
-        ;;
-	    no|n )
-        echo "Terraform will be creating a new App Connector Group and provisioning key"
-        echo "Before proceeding, make sure you have entered all variable requirements from steps 1 and 2 in $dtype/terraform.tfvars"
-        break
-        ;;
-	    * ) echo "invalid response. Please enter yes or no";;
-        esac
-    done
+    # App Connector onboarding method. OAuth2 is the default and recommended
+    # approach; the provisioning key flow remains supported for those who
+    # prefer it or who already have an existing provisioning key.
+    onboarding_method=$(select_menu "Select App Connector onboarding method:" 1 -- "oauth" "provisioning_key")
+    if [[ "$onboarding_method" == "oauth" ]]; then
+        echo "Onboarding method: oauth (App Connectors enroll via OAuth2 user codes)"
+    else
+        echo "Onboarding method: provisioning_key"
+    fi
+    echo "export TF_VAR_onboarding_method='${onboarding_method}'" >> .zsacrc
 
-ami_default=zscaler
-    while true; do
-    read -r -p "Please enter the AMI you would like to use. (zscaler or al2) [Default=$ami_default]: " ami_input
-ami=${ami_input:-$ami_default}
-    case $ami in 
-	zscaler|z|zs|zpa ) 
-    echo "Deploying the Latest Zscaler App Connector AMI..."
-    echo "export TF_VAR_use_zscaler_ami=true" >> .zsacrc
-    use_zs_ami=true
-    break
-    ;;
-	al2|al|amazon|aws )
-    echo "Deploying the Latest Amazon Linux 2 AMI..."
-    echo "export TF_VAR_use_zscaler_ami=false" >> .zsacrc
-    use_zs_ami=false
-    break
-    ;;
-	* ) echo "invalid response. Please enter either zscaler or al2 for ami name";;
-    esac
-done
+    # Only when using the provisioning key flow, ask whether to reuse an
+    # existing key or let Terraform create a new App Connector Group + key.
+    if [[ "$onboarding_method" == "provisioning_key" ]]; then
+        while true; do
+            read -r -p "Do you already have an App Connector provisioning key to use? [yes/no] " prov_key_response
+            case $prov_key_response in
+            yes|y )
+            read -r -p "Enter the name of your existing App Connector provisioning key: " byo_provisioning_key_name
+            echo "export TF_VAR_byo_provisioning_key=true" >> .zsacrc
+            echo "export TF_VAR_byo_provisioning_key_name='$byo_provisioning_key_name'" >> .zsacrc
+            break
+            ;;
+            no|n )
+            echo "Terraform will be creating a new App Connector Group and provisioning key"
+            echo "Before proceeding, make sure you have entered all variable requirements from steps 1 and 2 in $dtype/terraform.tfvars"
+            break
+            ;;
+            * ) echo "invalid response. Please enter yes or no";;
+            esac
+        done
+    fi
+
+ami=$(select_menu "Select the AMI you would like to use:" 1 -- "zscaler" "al2")
+    if [[ "$ami" == "zscaler" ]]; then
+        echo "Deploying the Latest Zscaler App Connector AMI..."
+        echo "export TF_VAR_use_zscaler_ami=true" >> .zsacrc
+        use_zs_ami=true
+    else
+        echo "Deploying the Latest Amazon Linux 2 AMI..."
+        echo "export TF_VAR_use_zscaler_ami=false" >> .zsacrc
+        use_zs_ami=false
+    fi
 
 
     
@@ -547,21 +594,9 @@ warm_pool_max_group_prepared_capacity=${warm_pool_max_group_prepared_capacity_in
     esac
     fi
 done
-warm_pool_state_default=Stopped
-    while true; do
-    read -r -p "Enter the desired Warm Pool instance state to transition to after the lifecycle hooks finish [Default=$warm_pool_state_default]: " warm_pool_state_input
-warm_pool_state=${warm_pool_state_input:-$warm_pool_state_default}
-    case $warm_pool_state in
-      Stopped|Running|Hibernated)
-          echo "Warm Pool State: ${warm_pool_state}"
-          echo "export TF_VAR_warm_pool_state=${warm_pool_state}" >> .zsacrc
-          break
-      ;;
-      *)
-          echo "Invalid Warm Pool State: ${warm_pool_state}. Enter either Stopped, Running, or Hibernated"
-      ;;
-    esac
-done
+warm_pool_state=$(select_menu "Select the desired Warm Pool instance state to transition to after the lifecycle hooks finish:" 1 -- "Stopped" "Running" "Hibernated")
+echo "Warm Pool State: ${warm_pool_state}"
+echo "export TF_VAR_warm_pool_state=${warm_pool_state}" >> .zsacrc
 
     while true; do
     read -r -p "Do you want ASG instances to return to the warm pool on scale in? (yes/no): " reuse_on_scale_in_response
