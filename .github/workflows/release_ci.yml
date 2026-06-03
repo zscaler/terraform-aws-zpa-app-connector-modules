@@ -21,6 +21,10 @@ jobs:
     with:
       cloud: aws
       validate_max_parallel: 20
-      test_max_parallel: 5
+      # Each example provisions its own VPC during the Idempotence apply. The
+      # account's default VPCs-per-Region quota (5) plus the existing default
+      # VPC means running too many examples in parallel hits VpcLimitExceeded.
+      # Cap concurrent apply jobs at 2 to stay safely under the quota.
+      test_max_parallel: 2
       fail_fast: false
       terratest_action: Idempotence # keep in mind that this has to start with capital letter
