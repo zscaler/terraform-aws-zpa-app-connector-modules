@@ -171,6 +171,12 @@ variable "app_connector_group_country_code" {
   default     = "US"
 }
 
+variable "app_connector_group_city_country" {
+  type        = string
+  description = "Optional: City and country of this App Connector Group. example 'San Jose, US'"
+  default     = "San Jose, US"
+}
+
 variable "app_connector_group_latitude" {
   type        = string
   description = "Latitude of the App Connector Group. Integer or decimal. With values in the range of -90 to 90"

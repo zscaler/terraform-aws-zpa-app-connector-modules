@@ -93,177 +93,26 @@ locals {
 ################################################################################
 
 ################################################################################
-# A. Create the user_data file for App Connector ASG instances (Zscaler AMI).
-#    OAuth2 token is automatically generated and stored in SSM (dynamic claiming)
+# Generate user_data using centralized scripts
+# Zscaler AMI or RHEL9 based on use_zscaler_ami variable
 ################################################################################
 locals {
-  appuserdata = <<APPUSERDATA
-#!/bin/bash
+  # Zscaler AMI user_data (for ASG)
+  appuserdata = templatefile("${path.module}/../../scripts/user_data_zscaler.sh", {
+    ssm_parameter_name   = "" # Not used for ASG
+    ssm_parameter_prefix = local.ssm_parameter_prefix
+    is_asg               = true
+  })
 
-# Get instance ID and region from EC2 metadata service
-TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" 2>/dev/null)
-INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id 2>/dev/null)
-AVAILABILITY_ZONE=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/availability-zone 2>/dev/null)
-REGION=$(echo $AVAILABILITY_ZONE | sed 's/[a-z]$//')
-
-echo "Instance ID: $INSTANCE_ID, Region: $REGION"
-
-# Ensure zpa-connector service is running (for Zscaler AMI)
-sudo systemctl start zpa-connector 2>/dev/null || true
-sudo systemctl status zpa-connector
-
-# Wait for OAuth token to be generated (retry up to 30 times, 10 seconds each = 5 minutes)
-MAX_RETRIES=30
-RETRY_COUNT=0
-OAUTH_TOKEN=""
-
-while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-  # Try to retrieve OAuth token from /etc/issue
-  OAUTH_TOKEN=$(sudo cat /etc/issue 2>/dev/null | grep -Eo '[A-Z0-9]{5}-[A-Z0-9]{5}' | head -n 1)
-  
-  if [ -n "$OAUTH_TOKEN" ]; then
-    echo "OAuth token retrieved: $OAUTH_TOKEN"
-    break
-  fi
-  
-  echo "Waiting for OAuth token to be generated (attempt $((RETRY_COUNT + 1))/$MAX_RETRIES)..."
-  sleep 10
-  RETRY_COUNT=$((RETRY_COUNT + 1))
-done
-
-# SSM Parameter name (instance-id based)
-SSM_PARAMETER_NAME="${local.ssm_parameter_prefix}-$INSTANCE_ID"
-echo "SSM Parameter: $SSM_PARAMETER_NAME"
-
-# CREATE/UPDATE SSM parameter with OAuth token
-if [ -n "$OAUTH_TOKEN" ]; then
-  aws ssm put-parameter \
-    --name "$SSM_PARAMETER_NAME" \
-    --value "$OAUTH_TOKEN" \
-    --type "SecureString" \
-    --overwrite \
-    --region "$REGION" 2>&1 | tee -a /var/log/oauth-token-registration.log
-  
-  if [ $? -eq 0 ]; then
-    echo "SUCCESS: OAuth token stored in SSM: $SSM_PARAMETER_NAME"
-  else
-    echo "ERROR: Failed to store OAuth token in SSM"
-  fi
-else
-  echo "ERROR: Failed to retrieve OAuth token after $MAX_RETRIES attempts"
-fi
-
-echo "=== OAuth Registration Complete, starting yum update ===" 
-
-# Run yum update IN BACKGROUND so it doesn't block
-nohup yum update -y > /var/log/yum-update.log 2>&1 &
-APPUSERDATA
+  # RHEL9 user_data (for ASG)
+  rhel9userdata = templatefile("${path.module}/../../scripts/user_data_rhel9.sh", {
+    ssm_parameter_name   = "" # Not used for ASG
+    ssm_parameter_prefix = local.ssm_parameter_prefix
+    is_asg               = true
+  })
 }
 
 
-################################################################################
-# B. Create the user_data file for App Connector ASG instances (RHEL9).
-#    OAuth2 token is automatically generated and stored in SSM (dynamic claiming)
-################################################################################
-locals {
-  rhel9userdata = <<-RHEL9USERDATA
-#!/usr/bin/bash
-# Sleep to allow the system to initialize
-sleep 15
-
-# Create the Zscaler repository file
-touch /etc/yum.repos.d/zscaler.repo
-cat > /etc/yum.repos.d/zscaler.repo <<-EOT
-[zscaler]
-name=Zscaler Private Access Repository
-baseurl=https://yum.private.zscaler.com/yum/el9
-enabled=1
-gpgcheck=1
-gpgkey=https://yum.private.zscaler.com/yum/el9/gpg
-EOT
-
-# Sleep to allow the repo file to be registered
-sleep 60
-
-# Install unzip
-yum install -y unzip
-
-# Download and install AWS CLI v2
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install --update -i /usr/bin/aws-cli -b /usr/bin
-
-# Verify AWS CLI installation
-/usr/bin/aws --version
-
-# Install App Connector packages
-yum install -y zpa-connector
-
-# Start zpa-connector service to generate OAuth token
-sudo systemctl start zpa-connector
-sudo systemctl status zpa-connector
-
-################################################################################
-# RETRIEVE AND STORE OAUTH TOKEN - EXACT same script as base_ac
-################################################################################
-
-# Get instance ID and region from EC2 metadata service
-TOKEN=$$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" 2>/dev/null)
-INSTANCE_ID=$$(curl -H "X-aws-ec2-metadata-token: $$TOKEN" http://169.254.169.254/latest/meta-data/instance-id 2>/dev/null)
-AVAILABILITY_ZONE=$$(curl -H "X-aws-ec2-metadata-token: $$TOKEN" http://169.254.169.254/latest/meta-data/placement/availability-zone 2>/dev/null)
-REGION=$$(echo $$AVAILABILITY_ZONE | sed 's/[a-z]$$//')
-
-echo "Instance ID: $$INSTANCE_ID, Region: $$REGION"
-
-# SSM Parameter name (instance-id based)
-SSM_PARAMETER_NAME="${local.ssm_parameter_prefix}-$$INSTANCE_ID"
-echo "SSM Parameter: $$SSM_PARAMETER_NAME"
-
-# Wait for OAuth token to be generated (retry up to 30 times, 10 seconds each = 5 minutes)
-MAX_RETRIES=30
-RETRY_COUNT=0
-OAUTH_TOKEN=""
-
-while [ $$RETRY_COUNT -lt $$MAX_RETRIES ]; do
-  # Try to retrieve OAuth token from /etc/issue
-  OAUTH_TOKEN=$$(sudo cat /etc/issue 2>/dev/null | grep -Eo '[A-Z0-9]{5}-[A-Z0-9]{5}' | head -n 1)
-  
-  if [ -n "$$OAUTH_TOKEN" ]; then
-    echo "OAuth token retrieved: $$OAUTH_TOKEN"
-    break
-  fi
-  
-  echo "Waiting for OAuth token to be generated (attempt $$((RETRY_COUNT + 1))/$$MAX_RETRIES)..."
-  sleep 10
-  RETRY_COUNT=$$((RETRY_COUNT + 1))
-done
-
-# UPDATE the SSM parameter with the OAuth token
-if [ -n "$$OAUTH_TOKEN" ]; then
-  /usr/bin/aws ssm put-parameter \
-    --name "$$SSM_PARAMETER_NAME" \
-    --value "$$OAUTH_TOKEN" \
-    --type "SecureString" \
-    --overwrite \
-    --region "$$REGION" 2>&1 | tee -a /var/log/oauth-token-registration.log
-  
-  if [ $$? -eq 0 ]; then
-    echo "OAuth token successfully updated in SSM Parameter Store: $$SSM_PARAMETER_NAME"
-  else
-    echo "ERROR: Failed to update OAuth token in SSM Parameter Store"
-  fi
-else
-  echo "ERROR: Failed to retrieve OAuth token after $$MAX_RETRIES attempts"
-fi
-
-################################################################################
-# NOW do yum update (takes a long time, but OAuth token already stored!)
-################################################################################
-
-# Run a yum update to apply the latest patches
-yum update -y
-RHEL9USERDATA
-}
 
 
 ################################################################################
@@ -375,7 +224,7 @@ module "ac_sg" {
 resource "time_sleep" "wait_for_asg_instances" {
   depends_on = [module.ac_asg]
 
-  create_duration = "300s" # 5 minutes for ASG instances to launch and register tokens
+  create_duration = "480s" # 8 minutes for ASG instances to launch and register tokens
 }
 
 
@@ -386,34 +235,70 @@ resource "time_sleep" "wait_for_asg_instances" {
 # Use external data source to find ALL OAuth tokens in SSM (don't rely on instance discovery)
 data "external" "asg_oauth_tokens" {
   program = ["bash", "-c", <<-EOT
-    TOKENS=""
-    
-    # List all SSM parameters matching our prefix
-    PARAMS=$(aws ssm describe-parameters \
-      --parameter-filters "Key=Name,Values=${local.ssm_parameter_prefix}" \
-      --query 'Parameters[*].Name' \
+    # Get number of running instances
+    INSTANCE_COUNT=$(aws ec2 describe-instances \
+      --filters "Name=tag:Name,Values=*-acvm-asg-*" "Name=instance-state-name,Values=running" \
+      --query 'length(Reservations[*].Instances[*])' \
       --output text \
       --region ${var.aws_region})
     
-    # Read each parameter and collect valid OAuth tokens
-    for param in $PARAMS; do
-      TOKEN=$(aws ssm get-parameter \
-        --name "$param" \
-        --with-decryption \
-        --query 'Parameter.Value' \
-        --output text \
-        --region ${var.aws_region} 2>/dev/null || echo "")
+    echo "Expected instances: $INSTANCE_COUNT" >&2
+    
+    # Poll until we have tokens for all instances (max 20 attempts, 30s each = 10 min)
+    MAX_ATTEMPTS=20
+    ATTEMPT=0
+    
+    while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+      TOKENS=""
       
-      # Only include if it matches OAuth token format (not PENDING, not empty)
-      if [[ "$TOKEN" =~ ^[A-Z0-9]{5}-[A-Z0-9]{5}$ ]]; then
-        if [ -z "$TOKENS" ]; then
-          TOKENS="$TOKEN"
-        else
-          TOKENS="$TOKENS,$TOKEN"
+      # List all SSM parameters matching our prefix
+      PARAMS=$(aws ssm describe-parameters \
+        --region ${var.aws_region} \
+        --query 'Parameters[?contains(Name, `${local.ssm_parameter_prefix}-i`)].Name' \
+        --output text)
+      
+      # Read each parameter and collect valid OAuth tokens
+      for param in $PARAMS; do
+        TOKEN=$(aws ssm get-parameter \
+          --name "$param" \
+          --with-decryption \
+          --query 'Parameter.Value' \
+          --output text \
+          --region ${var.aws_region} 2>/dev/null || echo "")
+        
+        # Only include if it matches OAuth token format
+        if [[ "$TOKEN" =~ ^[A-Z0-9]{5}-[A-Z0-9]{5}$ ]]; then
+          if [ -z "$TOKENS" ]; then
+            TOKENS="$TOKEN"
+          else
+            TOKENS="$TOKENS,$TOKEN"
+          fi
         fi
+      done
+      
+      # Count tokens
+      if [ -z "$TOKENS" ]; then
+        TOKEN_COUNT=0
+      else
+        TOKEN_COUNT=$(echo "$TOKENS" | tr ',' '\n' | wc -l)
       fi
+      
+      echo "Attempt $((ATTEMPT + 1))/$MAX_ATTEMPTS: Found $TOKEN_COUNT tokens, expecting $INSTANCE_COUNT" >&2
+      
+      # If we have all tokens, exit
+      if [ "$TOKEN_COUNT" -ge "$INSTANCE_COUNT" ]; then
+        echo "All tokens retrieved!" >&2
+        echo "{\"tokens\": \"$TOKENS\"}"
+        exit 0
+      fi
+      
+      # Wait and retry
+      sleep 30
+      ATTEMPT=$((ATTEMPT + 1))
     done
     
+    # Return what we have even if not all
+    echo "Timeout: Only found $TOKEN_COUNT of $INSTANCE_COUNT tokens" >&2
     echo "{\"tokens\": \"$TOKENS\"}"
   EOT
   ]
@@ -466,6 +351,7 @@ module "zpa_app_connector_group" {
   app_connector_group_description              = "${var.app_connector_group_description}-${var.aws_region}-${module.network.vpc_id}"
   app_connector_group_enabled                  = var.app_connector_group_enabled
   app_connector_group_country_code             = var.app_connector_group_country_code
+  app_connector_group_city_country             = var.app_connector_group_city_country
   app_connector_group_latitude                 = var.app_connector_group_latitude
   app_connector_group_longitude                = var.app_connector_group_longitude
   app_connector_group_location                 = var.app_connector_group_location

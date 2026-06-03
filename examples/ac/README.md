@@ -36,35 +36,35 @@ From the examples directory, run the zsac bash script that walks to all required
 From ac directory execute:
 - terraform destroy
 
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.30.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.47.0 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | ~> 2.5.0 |
 | <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.2.0 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.6.0 |
 | <a name="requirement_time"></a> [time](#requirement\_time) | ~> 0.9.0 |
 | <a name="requirement_tls"></a> [tls](#requirement\_tls) | ~> 4.0.0 |
-| <a name="requirement_zpa"></a> [zpa](#requirement\_zpa) | 4.3.81 |
+| <a name="requirement_zpa"></a> [zpa](#requirement\_zpa) | ~> 4.4.0 |
 
 ## Providers
 
 | Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.30.0 |
+| ---- | ------- |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.47.0 |
 | <a name="provider_local"></a> [local](#provider\_local) | ~> 2.5.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | ~> 3.6.0 |
 | <a name="provider_time"></a> [time](#provider\_time) | ~> 0.9.0 |
 | <a name="provider_tls"></a> [tls](#provider\_tls) | ~> 4.0.0 |
-| <a name="provider_zpa"></a> [zpa](#provider\_zpa) | 4.3.81 |
+| <a name="provider_zpa"></a> [zpa](#provider\_zpa) | ~> 4.4.0 |
 
 ## Modules
 
 | Name | Source | Version |
-|------|--------|---------|
+| ---- | ------ | ------- |
 | <a name="module_ac_iam"></a> [ac\_iam](#module\_ac\_iam) | ../../modules/terraform-zsac-iam-aws | n/a |
 | <a name="module_ac_sg"></a> [ac\_sg](#module\_ac\_sg) | ../../modules/terraform-zsac-sg-aws | n/a |
 | <a name="module_ac_vm"></a> [ac\_vm](#module\_ac\_vm) | ../../modules/terraform-zsac-acvm-aws | n/a |
@@ -74,7 +74,7 @@ From ac directory execute:
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [aws_key_pair.deployer](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/key_pair) | resource |
 | [aws_ssm_parameter.oauth_tokens](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [local_file.private_key](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
@@ -85,12 +85,12 @@ From ac directory execute:
 | [aws_ami.appconnector](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_ami.rhel_9_latest](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_ssm_parameter.oauth_tokens](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
-| zpa_enrollment_cert.connector_cert | data source |
+| [zpa_enrollment_cert.connector_cert](https://registry.terraform.io/providers/zscaler/zpa/latest/docs/data-sources/enrollment_cert) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_ac_count"></a> [ac\_count](#input\_ac\_count) | Default number of App Connector appliances to create | `number` | `2` | no |
 | <a name="input_ac_subnets"></a> [ac\_subnets](#input\_ac\_subnets) | App Connector Subnets to create in VPC. This is only required if you want to override the default subnets that this code creates via vpc\_cidr variable. | `list(string)` | `null` | no |
 | <a name="input_acvm_instance_type"></a> [acvm\_instance\_type](#input\_acvm\_instance\_type) | App Connector Instance Type | `string` | `"m5a.xlarge"` | no |
@@ -136,10 +136,10 @@ From ac directory execute:
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_app_connector_group_id"></a> [app\_connector\_group\_id](#output\_app\_connector\_group\_id) | ZPA App Connector Group ID |
 | <a name="output_enrollment_cert_id"></a> [enrollment\_cert\_id](#output\_enrollment\_cert\_id) | ZPA Enrollment Certificate ID used for App Connector enrollment |
 | <a name="output_oauth_user_codes"></a> [oauth\_user\_codes](#output\_oauth\_user\_codes) | OAuth2 user codes retrieved from SSM Parameter Store. Use 'terraform output -json oauth\_user\_codes \| jq -r' to view. |
 | <a name="output_ssm_parameter_names"></a> [ssm\_parameter\_names](#output\_ssm\_parameter\_names) | SSM Parameter Store paths where OAuth tokens are stored (managed by Terraform, updated by VMs) |
 | <a name="output_testbedconfig"></a> [testbedconfig](#output\_testbedconfig) | AWS Testbed results |
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- END_TF_DOCS -->

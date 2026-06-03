@@ -72,6 +72,7 @@
 #app_connector_group_latitude                   = "37.3382082"
 #app_connector_group_longitude                  = "-121.8863286"
 #app_connector_group_location                   = "San Jose, CA, USA"
+app_connector_group_city_country = "San Jose, US"
 #app_connector_group_upgrade_day                = "SUNDAY"
 #app_connector_group_upgrade_time_in_secs       = "66600"
 # app_connector_group_override_version_profile  = true
@@ -90,7 +91,7 @@
 
 ## 5. By default, App Connector will deploy via the Zscaler Latest AMI. Setting this to false will deploy the latest Amazon Linux 2 AMI instead"
 
-use_zscaler_ami = false
+#use_zscaler_ami = false
 
 ## 6. App Connector AWS EC2 Instance size selection. Uncomment #acvm_instance_type line with desired vm size to change.
 ##    (Default: m5.large)

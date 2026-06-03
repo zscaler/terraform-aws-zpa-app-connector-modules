@@ -7,6 +7,7 @@ resource "zpa_app_connector_group" "app_connector_group" {
   description              = var.app_connector_group_description
   enabled                  = var.app_connector_group_enabled
   country_code             = var.app_connector_group_country_code
+  city_country             = var.app_connector_group_city_country
   latitude                 = var.app_connector_group_latitude
   longitude                = var.app_connector_group_longitude
   location                 = var.app_connector_group_location

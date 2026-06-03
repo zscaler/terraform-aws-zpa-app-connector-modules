@@ -2,7 +2,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 6.30.0"
+      version = "~> 6.47.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -25,8 +25,8 @@ terraform {
       version = "~> 0.9.0"
     }
     zpa = {
-      version = "4.3.81"
-      source  = "zscaler.com/zpa/zpa"
+      version = "~> 4.4.0"
+      source  = "zscaler/zpa"
     }
   }
 

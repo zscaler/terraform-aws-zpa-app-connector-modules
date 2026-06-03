@@ -36,37 +36,37 @@ From the examples directory, run the zsac bash script that walks to all required
 From ac_asg directory execute:
 - terraform destroy
 
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.30.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.47.0 |
 | <a name="requirement_external"></a> [external](#requirement\_external) | ~> 2.3.0 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | ~> 2.5.0 |
 | <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.2.0 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | ~> 3.6.0 |
 | <a name="requirement_time"></a> [time](#requirement\_time) | ~> 0.9.0 |
 | <a name="requirement_tls"></a> [tls](#requirement\_tls) | ~> 4.0.0 |
-| <a name="requirement_zpa"></a> [zpa](#requirement\_zpa) | 4.3.81 |
+| <a name="requirement_zpa"></a> [zpa](#requirement\_zpa) | ~> 4.4.0 |
 
 ## Providers
 
 | Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.30.0 |
+| ---- | ------- |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.47.0 |
 | <a name="provider_external"></a> [external](#provider\_external) | ~> 2.3.0 |
 | <a name="provider_local"></a> [local](#provider\_local) | ~> 2.5.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | ~> 3.6.0 |
 | <a name="provider_time"></a> [time](#provider\_time) | ~> 0.9.0 |
 | <a name="provider_tls"></a> [tls](#provider\_tls) | ~> 4.0.0 |
-| <a name="provider_zpa"></a> [zpa](#provider\_zpa) | 4.3.81 |
+| <a name="provider_zpa"></a> [zpa](#provider\_zpa) | ~> 4.4.0 |
 
 ## Modules
 
 | Name | Source | Version |
-|------|--------|---------|
+| ---- | ------ | ------- |
 | <a name="module_ac_asg"></a> [ac\_asg](#module\_ac\_asg) | ../../modules/terraform-zsac-asg-aws | n/a |
 | <a name="module_ac_iam"></a> [ac\_iam](#module\_ac\_iam) | ../../modules/terraform-zsac-iam-aws | n/a |
 | <a name="module_ac_sg"></a> [ac\_sg](#module\_ac\_sg) | ../../modules/terraform-zsac-sg-aws | n/a |
@@ -76,7 +76,7 @@ From ac_asg directory execute:
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [aws_key_pair.deployer](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/key_pair) | resource |
 | [local_file.private_key](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.testbed](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
@@ -86,15 +86,16 @@ From ac_asg directory execute:
 | [aws_ami.appconnector](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_ami.rhel_9_latest](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [external_external.asg_oauth_tokens](https://registry.terraform.io/providers/hashicorp/external/latest/docs/data-sources/external) | data source |
-| zpa_enrollment_cert.connector_cert | data source |
+| [zpa_enrollment_cert.connector_cert](https://registry.terraform.io/providers/zscaler/zpa/latest/docs/data-sources/enrollment_cert) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_ac_subnets"></a> [ac\_subnets](#input\_ac\_subnets) | App Connector Subnets to create in VPC. This is only required if you want to override the default subnets that this code creates via vpc\_cidr variable. | `list(string)` | `null` | no |
 | <a name="input_acvm_instance_type"></a> [acvm\_instance\_type](#input\_acvm\_instance\_type) | App Connector Instance Type | `string` | `"m5.large"` | no |
 | <a name="input_ami_id"></a> [ami\_id](#input\_ami\_id) | AMI ID(s) to be used for deploying App Connector appliances. Ideally all VMs should be on the same AMI ID as templates always pull the latest from AWS Marketplace. This variable is provided if a customer desires to override/retain an old ami for existing deployments rather than upgrading and forcing a replacement. It is also inputted as a list to facilitate if a customer desired to manually upgrade select ACs deployed based on the ac\_count index | `list(string)` | <pre>[<br/>  ""<br/>]</pre> | no |
+| <a name="input_app_connector_group_city_country"></a> [app\_connector\_group\_city\_country](#input\_app\_connector\_group\_city\_country) | Optional: City and country of this App Connector Group. example 'San Jose, US' | `string` | `"San Jose, US"` | no |
 | <a name="input_app_connector_group_country_code"></a> [app\_connector\_group\_country\_code](#input\_app\_connector\_group\_country\_code) | Optional: Country code of this App Connector Group. example 'US' | `string` | `"US"` | no |
 | <a name="input_app_connector_group_description"></a> [app\_connector\_group\_description](#input\_app\_connector\_group\_description) | Optional: Description of the App Connector Group | `string` | `"This App Connector Group belongs to: "` | no |
 | <a name="input_app_connector_group_dns_query_type"></a> [app\_connector\_group\_dns\_query\_type](#input\_app\_connector\_group\_dns\_query\_type) | Whether to enable IPv4 or IPv6, or both, for DNS resolution of all applications in the App Connector Group | `string` | `"IPV4_IPV6"` | no |
@@ -145,11 +146,11 @@ From ac_asg directory execute:
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_app_connector_group_id"></a> [app\_connector\_group\_id](#output\_app\_connector\_group\_id) | ZPA App Connector Group ID |
 | <a name="output_enrollment_cert_id"></a> [enrollment\_cert\_id](#output\_enrollment\_cert\_id) | ZPA Enrollment Certificate ID used for App Connector enrollment |
 | <a name="output_oauth_token_count"></a> [oauth\_token\_count](#output\_oauth\_token\_count) | Number of OAuth tokens found in SSM and passed to ZPA |
 | <a name="output_oauth_user_codes"></a> [oauth\_user\_codes](#output\_oauth\_user\_codes) | OAuth2 user codes from ASG instances. Use 'terraform output -json oauth\_user\_codes \| jq -r' to view. |
 | <a name="output_ssm_parameter_prefix"></a> [ssm\_parameter\_prefix](#output\_ssm\_parameter\_prefix) | SSM Parameter Store prefix - instances create: {prefix}-{instance-id} |
 | <a name="output_testbedconfig"></a> [testbedconfig](#output\_testbedconfig) | AWS Testbed results |
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+<!-- END_TF_DOCS -->

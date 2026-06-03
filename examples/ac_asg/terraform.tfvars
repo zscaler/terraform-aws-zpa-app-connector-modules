@@ -56,6 +56,7 @@
 #app_connector_group_latitude                   = "37.3382082"
 #app_connector_group_longitude                  = "-121.8863286"
 #app_connector_group_location                   = "San Jose, CA, USA"
+app_connector_group_city_country = "San Jose, US"
 #app_connector_group_upgrade_day                = "SUNDAY"
 #app_connector_group_upgrade_time_in_secs       = "66600"
 #app_connector_group_override_version_profile   = true
@@ -91,11 +92,11 @@
 ## 8. The minumum number of App Connectors to maintain in an Autoscaling group. (Default: 2)
 ##    Recommendation is to maintain HA/Zonal resliency for production deployments
 
-#min_size                                   = 2
+min_size = 2
 
 ## 9. The maximum number of App Connectors to maintain in an Autoscaling group. (Default: 4)
 
-#max_size                                   = 4
+max_size = 4
 
 ## 10. The amount of time until EC2 Auto Scaling performs the first health check on new instances after they are put into service. (Default: 300 seconds/5 minutes)
 
