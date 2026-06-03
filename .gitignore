@@ -15,15 +15,22 @@ examples/**/*.tfstate.*
 *.pub
 examples/.*rc*
 **/bin/*
-user_data
+# Generated user_data file written by examples at apply time (local_file resource
+# writes ./user_data). Scoped to example dirs so it does NOT match the source
+# templates committed under scripts/.
+examples/**/user_data
 system-*.tar
 **/testbed*
 
 # OAuth2 token retrieval artifacts
 retrieve_oauth_token.sh
 .oauth_retrieved_*
-user_data_*
 debug_oauth_token.sh
+
+# Never ignore the source user_data template scripts (they are referenced by
+# examples via templatefile() and must be present in the repo / CI checkout).
+!scripts/user_data_zscaler.sh
+!scripts/user_data_rhel9.sh
 
 # Crash log files
 crash.log
