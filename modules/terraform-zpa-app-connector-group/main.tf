@@ -23,4 +23,14 @@ resource "zpa_app_connector_group" "app_connector_group" {
   # "Connector" certificate by name), so enrollment_cert_id is intentionally not
   # set here. Leave user_codes empty when onboarding via provisioning key.
   user_codes = var.user_codes
+
+  lifecycle {
+    # The ZPA API derives city_country from the supplied latitude/longitude and
+    # returns it on read, but the provider schema marks the field Optional
+    # (not Computed). When city_country is left empty in config, Terraform reads
+    # the API-derived value into state and then perpetually plans to reset it to
+    # "", making the apply non-idempotent. Ignoring post-create changes to this
+    # API-managed field keeps plans clean.
+    ignore_changes = [city_country]
+  }
 }
