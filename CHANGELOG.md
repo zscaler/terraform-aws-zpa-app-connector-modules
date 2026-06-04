@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.8.0](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v1.7.1...v1.8.0) (2026-06-04)
+
+### Features
+
+* add centralized CI workflows and Terratest test suite ([#43](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/issues/43)) ([36e4c22](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/36e4c22038c2d61306f1f3bb5e20daa8512ca6b3))
+
+### Bug Fixes
+
+* ignore ZPA-derived city_country drift on app connector group ([#45](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/issues/45)) ([0cbbd37](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/0cbbd37837e7d0a83df31190387adf04d9797cd2))
+* make example applies idempotent and avoid VPC quota exhaustion ([#44](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/issues/44)) ([4ecc0ba](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/4ecc0baa1bced1c297e6c627ccdd80994e3b1483))
+
 ### [1.7.1](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v1.7.0...v1.7.1) (2025-09-26)
 
 
