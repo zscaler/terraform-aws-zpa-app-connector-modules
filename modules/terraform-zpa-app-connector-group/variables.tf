@@ -57,21 +57,22 @@ variable "app_connector_group_upgrade_time_in_secs" {
 variable "app_connector_group_override_version_profile" {
   type        = bool
   description = "Optional: Whether the default version profile of the App Connector Group is applied or overridden. Default: false"
-  default     = true
+  default     = false
 }
 
 variable "app_connector_group_version_profile_id" {
   type        = string
-  description = "Optional: ID of the version profile. To learn more, see Version Profile Use Cases. https://help.zscaler.com/zpa/configuring-version-profile"
-  default     = "0"
+  description = "Optional: ID of the version profile to pin App Connectors to, used only when app_connector_group_override_version_profile is true. Leave empty (the default) to let the module resolve the 'Default' customer version profile automatically. When app_connector_group_override_version_profile is false, this value is ignored and the API is sent 0. To learn more, see https://help.zscaler.com/zpa/configuring-version-profile"
+  default     = ""
 
   validation {
     condition = (
-      var.app_connector_group_version_profile_id == "0" || #Default = 0
-      var.app_connector_group_version_profile_id == "1" || #Previous Default = 1
-      var.app_connector_group_version_profile_id == "2"    #New Release = 2
+      var.app_connector_group_version_profile_id == "" ||  # Not explicitly set; module resolves Default
+      var.app_connector_group_version_profile_id == "0" || # Default = 0
+      var.app_connector_group_version_profile_id == "1" || # Previous Default = 1
+      var.app_connector_group_version_profile_id == "2"    # New Release = 2
     )
-    error_message = "Input app_connector_group_version_profile_id must be set to an approved value."
+    error_message = "Input app_connector_group_version_profile_id must be empty or set to an approved value (0, 1, or 2)."
   }
 }
 

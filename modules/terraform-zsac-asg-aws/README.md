@@ -10,13 +10,13 @@ This module creates a AWS Launch Template, Autoscaling Group, and Policy resourc
 | Name | Version |
 | ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.47.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.47.0 |
 
 ## Providers
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.47.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.47.0 |
 
 ## Modules
 
