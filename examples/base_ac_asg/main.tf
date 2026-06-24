@@ -306,9 +306,14 @@ data "external" "asg_oauth_tokens" {
     if [ -z "$DESIRED" ] || [ "$DESIRED" = "None" ]; then DESIRED=0; fi
     echo "ASG $ASG_NAME desired capacity: $DESIRED" >&2
 
-    MAX_ATTEMPTS=24   # 24 * 30s = 12 minutes
+    # The window must comfortably exceed the slowest instance's time-to-publish:
+    # an instance can reach InService well before the zpa-connector service has
+    # generated /etc/issue and written its code to SSM, and on a multi-instance
+    # ASG the last instance has been observed to need >13 minutes. 40 * 30s = 20m.
+    MAX_ATTEMPTS=40
     ATTEMPT=0
     TOKENS=""
+    FOUND=0
 
     while [ "$ATTEMPT" -lt "$MAX_ATTEMPTS" ]; do
       INSTANCE_IDS=$(aws autoscaling describe-auto-scaling-groups \
@@ -342,6 +347,17 @@ data "external" "asg_oauth_tokens" {
       sleep 30
       ATTEMPT=$((ATTEMPT + 1))
     done
+
+    # Fail LOUDLY if we never collected a code for every desired instance.
+    # Returning a partial set here would create the App Connector Group with
+    # fewer user_codes than instances, and the next plan would then discover the
+    # late-arriving codes and want to update user_codes -- breaking idempotence
+    # and leaving instances unenrolled. Surfacing the timeout is correct.
+    if [ "$DESIRED" -le 0 ] || [ "$FOUND" -lt "$DESIRED" ]; then
+      echo "[asg-oauth] TIMED OUT: collected $FOUND/$DESIRED OAuth user codes from ASG '$ASG_NAME' after $((MAX_ATTEMPTS * 30))s." >&2
+      echo "[asg-oauth] Check that all instances booted, started the zpa-connector service, wrote their /etc/issue code to SSM ($SSM_PREFIX-<instance-id>), and that the instance role can write SSM." >&2
+      exit 1
+    fi
 
     printf '{"tokens":"%s"}' "$TOKENS"
   EOT
