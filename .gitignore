@@ -74,3 +74,6 @@ override.tf.json
 .todo
 local_test
 /local_test
+
+# detect-secrets baseline must never be committed (removed; hook no longer used)
+.secrets.baseline

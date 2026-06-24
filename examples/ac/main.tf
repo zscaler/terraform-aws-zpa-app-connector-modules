@@ -109,6 +109,7 @@ module "zpa_app_connector_group_pk" {
   app_connector_group_description              = "${var.app_connector_group_description}-${var.aws_region}-${module.network.vpc_id}"
   app_connector_group_enabled                  = var.app_connector_group_enabled
   app_connector_group_country_code             = var.app_connector_group_country_code
+  app_connector_group_city_country             = var.app_connector_group_city_country
   app_connector_group_latitude                 = var.app_connector_group_latitude
   app_connector_group_longitude                = var.app_connector_group_longitude
   app_connector_group_location                 = var.app_connector_group_location
@@ -333,6 +334,7 @@ module "zpa_app_connector_group" {
   app_connector_group_description              = "${var.app_connector_group_description}-${var.aws_region}-${module.network.vpc_id}"
   app_connector_group_enabled                  = var.app_connector_group_enabled
   app_connector_group_country_code             = var.app_connector_group_country_code
+  app_connector_group_city_country             = var.app_connector_group_city_country
   app_connector_group_latitude                 = var.app_connector_group_latitude
   app_connector_group_longitude                = var.app_connector_group_longitude
   app_connector_group_location                 = var.app_connector_group_location
