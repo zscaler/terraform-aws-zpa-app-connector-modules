@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.0](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v1.8.0...v1.9.0) (2026-06-24)
+
+### Features
+
+* add OAuth2 onboarding model and provider/version fixes ([8eda279](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/8eda279f328e77cc34ce7a8b5a1f9f339bad650f))
+* add OAuth2 onboarding model and provider/version fixes ([0385fdc](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/0385fdc2eccd21ac8c95b82193df9446026b6485))
+* add OAuth2 onboarding model and provider/version fixes ([#46](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/issues/46)) ([fb4607b](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/fb4607b7bdf02b6f24885a531ca653595022b1bc))
+
 ## [1.8.0](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v1.7.1...v1.8.0) (2026-06-04)
 
 ### Features
