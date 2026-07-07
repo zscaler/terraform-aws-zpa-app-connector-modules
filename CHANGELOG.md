@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.0](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v1.9.0...v2.0.0) (2026-07-07)
+
+### ⚠ BREAKING CHANGES
+
+* OAuth2 user-code onboarding is the default enrollment method,
+replacing provisioning keys, and several tfvars/variables changed across
+examples and modules. Consumers relying on the previous provisioning-key
+defaults must opt in explicitly and review the updated variables.
+
+### Features
+
+* promote OAuth2 user-code onboarding as the supported default ([49f728d](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/49f728dd0e15931d15d6ca2e10dc351619e70eae))
+
 ## [1.9.0](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v1.8.0...v1.9.0) (2026-06-24)
 
 ### Features
