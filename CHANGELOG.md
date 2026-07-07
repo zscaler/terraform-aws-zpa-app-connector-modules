@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.1](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v2.0.0...v2.0.1) (2026-07-07)
+
+### Bug Fixes
+
+* correct v2.0.0 README to present provisioning key as supported secondary method ([d1aa616](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/d1aa616d530c6d6441200361330412c7dc9f6abf))
+
 ## [2.0.0](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v1.9.0...v2.0.0) (2026-07-07)
 
 ### ⚠ BREAKING CHANGES
