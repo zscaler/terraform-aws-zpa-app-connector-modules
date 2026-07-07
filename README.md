@@ -13,50 +13,55 @@
 
 ## BREAKING CHANGES - OAuth2 Authentication
 
-~> **BREAKING CHANGE** As of version 2.0.0 of this module, App Connector enrollment has migrated from the **Provisioning Key** method to the new **OAuth2 User Code** authentication method. This is a **breaking change** that requires modifications to existing deployments.
+~> **BREAKING CHANGE** As of version 2.0.0 of this module, the **default** App Connector enrollment method changed from the **Provisioning Key** method to the new **OAuth2 User Code** method. The provisioning key method is **not deprecated or removed** — it remains fully supported as the secondary onboarding method. Because the default behavior changed, upgrading existing deployments that relied on the previous provisioning-key default requires an explicit opt-in (see [Upgrade Path](#upgrade-path)).
+
+### Onboarding Methods
+
+Both methods are selectable per deployment via the `onboarding_method` variable:
+
+- **`oauth` (default):** Enrolls connectors via OAuth2 user codes. Each VM publishes its user code (from `/etc/issue`) to AWS SSM Parameter Store using its instance role; Terraform reads the codes back and creates the App Connector Group with the collected `user_codes`.
+- **`provisioning_key` (secondary):** The classic flow. A provisioning key is created (or supplied via `byo_provisioning_key`) and injected into VM `user_data`, and App Connectors auto-enroll on boot.
+
+To use the provisioning key method, set `onboarding_method = "provisioning_key"` (or `byo_provisioning_key = true`) in your `terraform.tfvars`.
 
 ### What Changed
 
-**Old Flow (Deprecated):**
-1. Create App Connector Group
-2. Create Provisioning Key
-3. Deploy VMs with Provisioning Key injected via user_data
-4. App Connectors auto-enroll using the Provisioning Key
-
-**New Flow (OAuth2):**
+**OAuth2 flow (new default):**
 1. Deploy App Connector VMs
-2. Retrieve OAuth2 User Codes from VMs (located at `/etc/issue`)
-3. Create App Connector Group with User Codes and Enrollment Certificate ID
-4. App Connectors are enrolled via OAuth2 verification API
+2. Each VM publishes its OAuth2 user code (from `/etc/issue`) to SSM Parameter Store
+3. Terraform reads the user codes back from SSM
+4. Create the App Connector Group with the collected `user_codes`; connectors enroll via the OAuth2 verification API
+
+**Provisioning key flow (still supported):**
+1. Create App Connector Group and Provisioning Key
+2. Deploy VMs with the provisioning key injected via `user_data`
+3. App Connectors auto-enroll using the provisioning key
 
 ### Migration Impact
 
-- **Module Removed**: The `terraform-zpa-provisioning-key` module has been completely removed
-- **Variables Removed**: All provisioning key related variables (`byo_provisioning_key`, `byo_provisioning_key_name`, `provisioning_key_enabled`, `provisioning_key_association_type`, `provisioning_key_max_usage`)
-- **New Variables**: Added `enrollment_cert` (default: "Connector") and `user_codes` (list of OAuth tokens)
-- **Deployment Order**: App Connector Group is now created **after** VM deployment (reversed order)
-- **SSH Requirement**: The module now requires SSH access to deployed VMs to retrieve OAuth tokens
+- **Default method changed:** New deployments default to OAuth2. Set `onboarding_method = "provisioning_key"` to keep the previous behavior.
+- **Provisioning key retained:** The `terraform-zpa-provisioning-key` module and all provisioning-key variables (`byo_provisioning_key`, `byo_provisioning_key_name`, `provisioning_key_enabled`, `provisioning_key_association_type`, `provisioning_key_max_usage`) are still present.
+- **New variables:** Added `onboarding_method` (default: `oauth`) and `user_codes` (list of OAuth2 user codes) on the App Connector Group module.
+- **Deployment order (OAuth2 only):** With OAuth2, the App Connector Group is created **after** VM deployment so the user codes can be collected first. The provisioning-key flow keeps the original order.
+- **Version profile defaults:** `app_connector_group_override_version_profile` now defaults to `false` and `app_connector_group_version_profile_id` defaults to `""` (the module resolves the "Default" profile automatically). Existing configs relying on the old defaults may show a plan diff on upgrade.
 
 ### Implementation Notes
 
-The module uses `null_resource` with local-exec provisioners to:
-- SSH into each deployed App Connector VM
-- Extract the OAuth2 user code from `/etc/issue`
-- Pass the codes to the App Connector Group resource for enrollment
+For the OAuth2 flow, user codes are relayed through **AWS SSM Parameter Store** rather than SSH:
+- Each VM writes its user code (from `/etc/issue`) to a per-instance SSM parameter using its instance role
+- Terraform reads the parameters back and passes the codes to the App Connector Group for enrollment
 
-**For base_ac deployments**: SSH occurs through the bastion host
-**For ac deployments**: SSH occurs directly to VMs (requires public IP)
-**For ASG deployments**: OAuth2 enrollment requires additional automation (Lambda, SSM, or manual process)
+**For base_ac / ac deployments:** VMs publish to fixed, per-instance SSM parameters that Terraform reads directly.
+**For ASG deployments (`base_ac_asg` / `ac_asg`):** an `external` data source polls SSM for a user code from every desired ASG instance before enrollment.
 
 ### Upgrade Path
 
-Existing deployments using provisioning keys will continue to function, but **cannot** be managed by version 2.0.0+ of this module. To upgrade:
+Existing deployments continue to be managed by version 2.0.0+ — the provisioning key method is still supported. Choose the path that matches your setup:
 
-1. Destroy existing App Connector Group and VMs
-2. Update to module version 2.0.0+
-3. Re-deploy using the new OAuth2 flow
+- **Stay on provisioning keys:** Set `onboarding_method = "provisioning_key"` (or `byo_provisioning_key = true`) so the default change to OAuth2 does not affect your deployment, then upgrade the module version.
+- **Adopt OAuth2:** Leave `onboarding_method` at its default (`oauth`). Note that switching enrollment methods on an existing App Connector Group typically requires re-deploying the connectors.
 
-**Note**: This is a one-way migration. Once migrated to OAuth2, you cannot revert to provisioning keys.
+**Note:** You can switch between methods per deployment by changing `onboarding_method`; it is not a one-way migration at the module level.
 
 ## Description
 This repository contains various modules and deployment configurations that can be used to deploy Zscaler App Connector appliances to securely connect to workloads within Amazon Web Services (AWS) via the Zscaler Zero Trust Exchange. The examples directory contains complete automation scripts for both greenfield/POV and brownfield/production use.
