@@ -7,6 +7,7 @@ import (
 
 	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/terraform"
+	"github.com/stretchr/testify/require"
 	"github.com/zscaler/terraform-aws-zpa-app-connector-modules/internal/testhelpers"
 	"github.com/zscaler/terraform-modules-zscaler-tests-skeleton/pkg/testskeleton"
 )
@@ -72,6 +73,32 @@ func TestPlanImageSelection(t *testing.T) {
 			testhelpers.AssertImageSelection(t, plan, testhelpers.AppConnectorLaunchTemplate, tc.useZscalerAMI)
 		})
 	}
+}
+
+// TestPlanInstanceRefresh checks that instance refresh is off by default, rolls
+// the group when enabled with provisioning key onboarding, and is refused with
+// OAuth2 onboarding, where replaced instances would not be enrolled.
+func TestPlanInstanceRefresh(t *testing.T) {
+	t.Run("disabled", func(t *testing.T) {
+		plan := testhelpers.Plan(t, CreateTerraformOptions(t))
+		testhelpers.AssertInstanceRefresh(t, plan, false)
+	})
+
+	t.Run("provisioning_key", func(t *testing.T) {
+		opts := CreateTerraformOptions(t)
+		opts.Vars["onboarding_method"] = "provisioning_key"
+		opts.Vars["instance_refresh_enabled"] = true
+		plan := testhelpers.Plan(t, opts)
+		testhelpers.AssertInstanceRefresh(t, plan, true)
+	})
+
+	t.Run("oauth_rejected", func(t *testing.T) {
+		opts := CreateTerraformOptions(t)
+		opts.Vars["instance_refresh_enabled"] = true
+		err := testhelpers.PlanE(t, opts)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "instance_refresh_enabled requires provisioning key onboarding")
+	})
 }
 
 func TestApply(t *testing.T) {

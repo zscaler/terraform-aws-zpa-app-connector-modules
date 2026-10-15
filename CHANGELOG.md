@@ -2,7 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.0.2](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v2.0.1...v2.0.2) (2026-10-15)
+## [2.1.0](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v2.0.1...v2.1.0) (2026-10-15)
+
+### Features
+
+* add opt-in rolling instance refresh to the ASG module when the launch template changes ([#52](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/issues/52))
 
 ### Bug Fixes
 

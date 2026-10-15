@@ -4,6 +4,12 @@ This module creates a AWS Launch Template, Autoscaling Group, and Policy resourc
 
 **Note:** EBS volume size is inherited from the AMI and automatically meets Zscaler's minimum storage requirements. This follows the same pattern as the Cloud Connector modules.
 
+## Instance refresh
+
+By default, a launch template change (e.g. a new AMI or `user_data`) only applies to newly launched instances. Set `instance_refresh_enabled = true` to replace the running instances with a rolling instance refresh instead. The group then always uses the launch template's latest version, and `launch_template_version` is ignored. Terraform does not wait for the refresh to finish.
+
+Only enable it when new instances enroll themselves at boot, i.e. provisioning key onboarding. With OAuth2 onboarding, replacement instances are not enrolled until the next `terraform apply`. Set `instance_refresh_instance_warmup` longer than the bootstrap takes to install and enroll the App Connector, so the refresh does not replace the next instance too early.
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -47,7 +53,10 @@ No modules.
 | <a name="input_iam_instance_profile"></a> [iam\_instance\_profile](#input\_iam\_instance\_profile) | IAM instance profile ID assigned to App Connector | `list(string)` | n/a | yes |
 | <a name="input_imdsv2_enabled"></a> [imdsv2\_enabled](#input\_imdsv2\_enabled) | true/false whether to force IMDSv2 only for instance bring up. Default is true | `bool` | `true` | no |
 | <a name="input_instance_key"></a> [instance\_key](#input\_instance\_key) | SSH Key for instances | `string` | n/a | yes |
-| <a name="input_launch_template_version"></a> [launch\_template\_version](#input\_launch\_template\_version) | Launch template version. Can be version number, `$Latest` or `$Default` | `string` | `"$Latest"` | no |
+| <a name="input_instance_refresh_enabled"></a> [instance\_refresh\_enabled](#input\_instance\_refresh\_enabled) | If set to true, replace the Auto Scaling group instances with a rolling instance refresh whenever the launch template changes (e.g. AMI or user\_data). The group then always uses the launch template's latest version. Only enable it when new instances enroll themselves at boot (provisioning key onboarding); with OAuth2 onboarding, replaced instances are not enrolled until the next terraform apply | `bool` | `false` | no |
+| <a name="input_instance_refresh_instance_warmup"></a> [instance\_refresh\_instance\_warmup](#input\_instance\_refresh\_instance\_warmup) | Seconds until a replacement instance is considered ready during an instance refresh. Set it longer than the bootstrap takes to install and enroll the App Connector. Defaults to 'health\_check\_grace\_period'. Ignored when 'instance\_refresh\_enabled' is false | `number` | `null` | no |
+| <a name="input_instance_refresh_min_healthy_percentage"></a> [instance\_refresh\_min\_healthy\_percentage](#input\_instance\_refresh\_min\_healthy\_percentage) | Percentage of the desired capacity that must remain healthy during an instance refresh. Ignored when 'instance\_refresh\_enabled' is false | `number` | `90` | no |
+| <a name="input_launch_template_version"></a> [launch\_template\_version](#input\_launch\_template\_version) | Launch template version. Can be version number, `$Latest` or `$Default`. Ignored when 'instance\_refresh\_enabled' is true | `string` | `"$Latest"` | no |
 | <a name="input_max_size"></a> [max\_size](#input\_max\_size) | Maxinum number of App Connectors to maintain in Autoscaling group | `number` | `4` | no |
 | <a name="input_metadata_options"></a> [metadata\_options](#input\_metadata\_options) | Metadata options for the instance | `map(string)` | <pre>{<br/>  "http_endpoint": "enabled",<br/>  "http_put_response_hop_limit": 2,<br/>  "http_tokens": "required"<br/>}</pre> | no |
 | <a name="input_min_size"></a> [min\_size](#input\_min\_size) | Mininum number of App Connectors to maintain in Autoscaling group | `number` | `2` | no |

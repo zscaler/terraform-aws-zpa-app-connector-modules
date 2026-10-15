@@ -243,7 +243,14 @@ module "ac_asg" {
   target_cpu_util_value     = var.target_cpu_util_value
   health_check_grace_period = var.health_check_grace_period
   launch_template_version   = var.launch_template_version
-  target_tracking_metric    = var.target_tracking_metric
+
+  # Instance refresh replaces enrolled App Connectors after apply. With OAuth2
+  # onboarding the replacements are only enrolled by the next apply, so refuse
+  # the combination instead of rolling the group into an outage.
+  instance_refresh_enabled                = var.instance_refresh_enabled && !local.use_provisioning_key ? tobool("instance_refresh_enabled requires provisioning key onboarding (onboarding_method = \"provisioning_key\" or byo_provisioning_key = true)") : var.instance_refresh_enabled
+  instance_refresh_min_healthy_percentage = var.instance_refresh_min_healthy_percentage
+  instance_refresh_instance_warmup        = var.instance_refresh_instance_warmup
+  target_tracking_metric                  = var.target_tracking_metric
 
   warm_pool_enabled = var.warm_pool_enabled
   ### only utilzed if warm_pool_enabled set to true ###

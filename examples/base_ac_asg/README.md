@@ -10,6 +10,10 @@ We are leveraging the [Zscaler ZPA Provider](https://github.com/zscaler/terrafor
 
 By default the App Connectors deploy from the latest Zscaler App Connector Marketplace AMI. Set `use_zscaler_ami = false` to deploy the latest Red Hat Enterprise Linux 9 AMI instead; the App Connector is then installed from the Zscaler yum repository at boot. Set `ami_id` to keep an existing deployment on its current image. See [App Connector AMI and Secure Boot](../../README.md#app-connector-ami-and-secure-boot) for details.
 
+## Instance refresh
+
+By default, a launch template change (e.g. a new AMI or `user_data`) only applies to newly launched App Connectors. Set `instance_refresh_enabled = true` to replace the running App Connectors with a rolling instance refresh instead. This requires provisioning key onboarding (`onboarding_method = "provisioning_key"` or `byo_provisioning_key = true`); the plan fails if it is enabled with OAuth2, because replacement instances would not be enrolled until the next `terraform apply`.
+
 ## How to deploy:
 
 ### Option 1 (guided):
@@ -119,7 +123,10 @@ From base_ac_asg directory execute:
 | <a name="input_byo_provisioning_key_name"></a> [byo\_provisioning\_key\_name](#input\_byo\_provisioning\_key\_name) | Name of the existing App Connector provisioning key to use. Only required when byo\_provisioning\_key is true. | `string` | `null` | no |
 | <a name="input_byo_ssm_parameter_name"></a> [byo\_ssm\_parameter\_name](#input\_byo\_ssm\_parameter\_name) | Bring your own SSM Parameter Store base name for OAuth tokens. If specified, module will use existing parameters named '{value}-1', '{value}-2', etc. If empty, module creates new parameters. Default: '' (create new) | `string` | `""` | no |
 | <a name="input_health_check_grace_period"></a> [health\_check\_grace\_period](#input\_health\_check\_grace\_period) | The amount of time until EC2 Auto Scaling performs the first health check on new instances after they are put into service. Default is 5 minutes | `number` | `300` | no |
-| <a name="input_launch_template_version"></a> [launch\_template\_version](#input\_launch\_template\_version) | Launch template version. Can be version number, `$Latest` or `$Default` | `string` | `"$Latest"` | no |
+| <a name="input_instance_refresh_enabled"></a> [instance\_refresh\_enabled](#input\_instance\_refresh\_enabled) | If set to true, replace the App Connector instances with a rolling instance refresh whenever the launch template changes (e.g. AMI or user\_data). Requires provisioning key onboarding, because with OAuth2 replaced instances are not enrolled until the next terraform apply | `bool` | `false` | no |
+| <a name="input_instance_refresh_instance_warmup"></a> [instance\_refresh\_instance\_warmup](#input\_instance\_refresh\_instance\_warmup) | Seconds until a replacement instance is considered ready during an instance refresh. Defaults to health\_check\_grace\_period. Ignored when instance\_refresh\_enabled is false | `number` | `null` | no |
+| <a name="input_instance_refresh_min_healthy_percentage"></a> [instance\_refresh\_min\_healthy\_percentage](#input\_instance\_refresh\_min\_healthy\_percentage) | Percentage of the desired capacity that must remain healthy during an instance refresh. Ignored when instance\_refresh\_enabled is false | `number` | `90` | no |
+| <a name="input_launch_template_version"></a> [launch\_template\_version](#input\_launch\_template\_version) | Launch template version. Can be version number, `$Latest` or `$Default`. Ignored when instance\_refresh\_enabled is true | `string` | `"$Latest"` | no |
 | <a name="input_max_size"></a> [max\_size](#input\_max\_size) | Maxinum number of App Connectors to maintain in Autoscaling group | `number` | `4` | no |
 | <a name="input_min_size"></a> [min\_size](#input\_min\_size) | Mininum number of App Connectors to maintain in Autoscaling group | `number` | `2` | no |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | The name prefix for all your resources | `string` | `"zsdemo"` | no |

@@ -37,6 +37,9 @@ var (
 	}
 )
 
+// AppConnectorASG is the Auto Scaling group created by the ASG examples.
+const AppConnectorASG = "module.ac_asg.aws_autoscaling_group.ac_asg"
+
 const (
 	zscalerAMILookup   = "data.aws_ami.appconnector[0]"
 	rhel9AMILookup     = "data.aws_ami.rhel_9_latest[0]"
@@ -123,6 +126,43 @@ func AssertImageSelection(t *testing.T, plan *terraform.PlanStruct, target Targe
 	} else {
 		require.Truef(t, installsFromRepo, "RHEL AMI must run the RHEL bootstrap script (%s)", rhel9RepoURL)
 	}
+}
+
+// AssertInstanceRefresh checks the Auto Scaling group's instance refresh. When
+// enabled, the group must reference the launch template's latest version
+// number, which is unknown until apply; "$Latest" never starts a refresh.
+func AssertInstanceRefresh(t *testing.T, plan *terraform.PlanStruct, enabled bool) {
+	t.Helper()
+	attrs := PlannedAttributes(t, plan, AppConnectorASG)
+	refresh, _ := attrs["instance_refresh"].([]interface{})
+	if !enabled {
+		require.Empty(t, refresh, "instance_refresh block")
+		templates := attrs["launch_template"].([]interface{})
+		require.Equal(t, "$Latest", templates[0].(map[string]interface{})["version"], "launch template version")
+		return
+	}
+
+	require.Len(t, refresh, 1, "instance_refresh block")
+	block := refresh[0].(map[string]interface{})
+	require.Equal(t, "Rolling", block["strategy"], "instance refresh strategy")
+	prefs := block["preferences"].([]interface{})[0].(map[string]interface{})
+	require.EqualValues(t, 90, prefs["min_healthy_percentage"], "min_healthy_percentage")
+	require.Equal(t, true, prefs["skip_matching"], "skip_matching")
+
+	change, ok := plan.ResourceChangesMap[AppConnectorASG]
+	require.Truef(t, ok, "resource %s has no planned change", AppConnectorASG)
+	unknown, _ := change.Change.AfterUnknown.(map[string]interface{})
+	templates, _ := unknown["launch_template"].([]interface{})
+	require.NotEmpty(t, templates, "launch_template should reference the latest version number")
+	require.Equal(t, true, templates[0].(map[string]interface{})["version"],
+		"launch template version should be the latest version number, known after apply")
+}
+
+// PlanE runs init and plan and returns the error instead of failing the test.
+func PlanE(t *testing.T, opts *terraform.Options) error {
+	t.Helper()
+	_, err := terraform.InitAndPlanE(t, opts)
+	return err
 }
 
 func productCodes(attrs map[string]interface{}) []string {

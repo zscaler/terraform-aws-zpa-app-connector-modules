@@ -159,8 +159,30 @@ variable "reuse_on_scale_in" {
 
 variable "launch_template_version" {
   type        = string
-  description = "Launch template version. Can be version number, `$Latest` or `$Default`"
+  description = "Launch template version. Can be version number, `$Latest` or `$Default`. Ignored when 'instance_refresh_enabled' is true"
   default     = "$Latest"
+}
+
+variable "instance_refresh_enabled" {
+  type        = bool
+  description = "If set to true, replace the Auto Scaling group instances with a rolling instance refresh whenever the launch template changes (e.g. AMI or user_data). The group then always uses the launch template's latest version. Only enable it when new instances enroll themselves at boot (provisioning key onboarding); with OAuth2 onboarding, replaced instances are not enrolled until the next terraform apply"
+  default     = false
+}
+
+variable "instance_refresh_min_healthy_percentage" {
+  type        = number
+  description = "Percentage of the desired capacity that must remain healthy during an instance refresh. Ignored when 'instance_refresh_enabled' is false"
+  default     = 90
+  validation {
+    condition     = var.instance_refresh_min_healthy_percentage >= 0 && var.instance_refresh_min_healthy_percentage <= 100
+    error_message = "Input instance_refresh_min_healthy_percentage must be between 0 and 100."
+  }
+}
+
+variable "instance_refresh_instance_warmup" {
+  type        = number
+  description = "Seconds until a replacement instance is considered ready during an instance refresh. Set it longer than the bootstrap takes to install and enroll the App Connector. Defaults to 'health_check_grace_period'. Ignored when 'instance_refresh_enabled' is false"
+  default     = null
 }
 
 variable "target_tracking_metric" {

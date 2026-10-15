@@ -152,8 +152,26 @@ variable "reuse_on_scale_in" {
 
 variable "launch_template_version" {
   type        = string
-  description = "Launch template version. Can be version number, `$Latest` or `$Default`"
+  description = "Launch template version. Can be version number, `$Latest` or `$Default`. Ignored when instance_refresh_enabled is true"
   default     = "$Latest"
+}
+
+variable "instance_refresh_enabled" {
+  type        = bool
+  description = "If set to true, replace the App Connector instances with a rolling instance refresh whenever the launch template changes (e.g. AMI or user_data). Requires provisioning key onboarding, because with OAuth2 replaced instances are not enrolled until the next terraform apply"
+  default     = false
+}
+
+variable "instance_refresh_min_healthy_percentage" {
+  type        = number
+  description = "Percentage of the desired capacity that must remain healthy during an instance refresh. Ignored when instance_refresh_enabled is false"
+  default     = 90
+}
+
+variable "instance_refresh_instance_warmup" {
+  type        = number
+  description = "Seconds until a replacement instance is considered ready during an instance refresh. Defaults to health_check_grace_period. Ignored when instance_refresh_enabled is false"
+  default     = null
 }
 
 variable "target_tracking_metric" {
