@@ -114,17 +114,31 @@ done
 
 # UPDATE/CREATE the SSM parameter with the OAuth token
 if [ -n "$OAUTH_TOKEN" ]; then
-  /usr/bin/aws ssm put-parameter \
-    --name "$SSM_PARAMETER_NAME" \
-    --value "$OAUTH_TOKEN" \
-    --type "SecureString" \
-    --overwrite \
-    --region "$REGION" 2>&1 | tee -a /var/log/oauth-token-registration.log
+  # Instance profile credentials can take a moment to become available at boot,
+  # so retry before giving up. Terraform reads the parameter back after a fixed
+  # wait, which bounds the retry budget.
+  SSM_MAX_RETRIES=6
+  SSM_STORED=false
+  for SSM_ATTEMPT in $(seq 1 "$SSM_MAX_RETRIES"); do
+    if /usr/bin/aws ssm put-parameter \
+      --name "$SSM_PARAMETER_NAME" \
+      --value "$OAUTH_TOKEN" \
+      --type "SecureString" \
+      --overwrite \
+      --region "$REGION" >> /var/log/oauth-token-registration.log 2>&1; then
+      SSM_STORED=true
+      break
+    fi
+    echo "Failed to store OAuth token in SSM (attempt $SSM_ATTEMPT/$SSM_MAX_RETRIES)"
+    if [ "$SSM_ATTEMPT" -lt "$SSM_MAX_RETRIES" ]; then
+      sleep 10
+    fi
+  done
 
-  if [ $? -eq 0 ]; then
+  if [ "$SSM_STORED" = true ]; then
     echo "SUCCESS: OAuth token stored in SSM: $SSM_PARAMETER_NAME"
   else
-    echo "ERROR: Failed to store OAuth token in SSM"
+    echo "ERROR: Failed to store OAuth token in SSM, see /var/log/oauth-token-registration.log"
   fi
 else
   echo "ERROR: Failed to retrieve OAuth token after $MAX_RETRIES attempts"

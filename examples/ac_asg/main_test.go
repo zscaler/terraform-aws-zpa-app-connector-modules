@@ -7,6 +7,7 @@ import (
 
 	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/terraform"
+	"github.com/zscaler/terraform-aws-zpa-app-connector-modules/internal/testhelpers"
 	"github.com/zscaler/terraform-modules-zscaler-tests-skeleton/pkg/testskeleton"
 )
 
@@ -42,6 +43,27 @@ func TestValidate(t *testing.T) {
 func TestPlan(t *testing.T) {
 	testskeleton.PlanInfraCheckErrors(t, CreateTerraformOptions(t),
 		[]testskeleton.AssertExpression{}, "No errors are expected")
+}
+
+// TestPlanImageSelection checks that use_zscaler_ami selects both the AMI and
+// the matching bootstrap script. byo_ssm_parameter_name keeps the script known
+// at plan time; the default parameter name has a random suffix.
+func TestPlanImageSelection(t *testing.T) {
+	for _, tc := range []struct {
+		name          string
+		useZscalerAMI bool
+	}{
+		{name: "zscaler", useZscalerAMI: true},
+		{name: "rhel9", useZscalerAMI: false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			opts := CreateTerraformOptions(t)
+			opts.Vars["use_zscaler_ami"] = tc.useZscalerAMI
+			opts.Vars["byo_ssm_parameter_name"] = "/zpa/terratest"
+			plan := testhelpers.Plan(t, opts)
+			testhelpers.AssertImageSelection(t, plan, testhelpers.AppConnectorLaunchTemplate, tc.useZscalerAMI)
+		})
+	}
 }
 
 func TestApply(t *testing.T) {

@@ -80,7 +80,7 @@ variable "acvm_instance_type" {
       var.acvm_instance_type == "m5n.xlarge" ||
       var.acvm_instance_type == "m5n.2xlarge" ||
       var.acvm_instance_type == "m5n.4xlarge" ||
-      var.acvm_instance_type == "t2.micro" #This is only recommended for lab/testing purposes and only works with Amazon Linux 2 AMIs. Zscaler AMI does not support t2.micro
+      var.acvm_instance_type == "t2.micro" #This is only recommended for lab/testing purposes and only works with the RHEL 9 AMI (use_zscaler_ami = false). Zscaler AMI does not support t2.micro
     )
     error_message = "Input acvm_instance_type must be set to an approved vm instance type."
   }
