@@ -2,21 +2,6 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.1.0](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v2.0.1...v2.1.0) (2026-10-15)
-
-### Features
-
-* add opt-in rolling instance refresh to the ASG module when the launch template changes ([#52](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/issues/52))
-
-### Bug Fixes
-
-* fix `use_zscaler_ami = false` failing at plan: the pinned RHEL 9 AMI was deprecated, examples now use the latest RHEL 9 AMI
-* bootstrap scripts now detect and retry failed OAuth2 user code writes to SSM Parameter Store
-* replace stale "Amazon Linux 2" references with RHEL 9
-* update AWS provider to v6.69.x
-* document AMI selection and Secure Boot / NitroTPM support via custom AMI
-* add plan tests covering AMI and bootstrap script selection
-
 ## [2.0.1](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v2.0.0...v2.0.1) (2026-07-07)
 
 ### Bug Fixes
