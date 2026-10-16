@@ -363,13 +363,13 @@ if [[ "$oper" == "up" && "$dtype" != base && ! -e ./.zsacrc ]]; then
         done
     fi
 
-ami=$(select_menu "Select the AMI you would like to use:" 1 -- "zscaler" "al2")
+ami=$(select_menu "Select the AMI you would like to use:" 1 -- "zscaler" "rhel9")
     if [[ "$ami" == "zscaler" ]]; then
         echo "Deploying the Latest Zscaler App Connector AMI..."
         echo "export TF_VAR_use_zscaler_ami=true" >> .zsacrc
         use_zs_ami=true
     else
-        echo "Deploying the Latest Amazon Linux 2 AMI..."
+        echo "Deploying the Latest Red Hat Enterprise Linux 9 AMI..."
         echo "export TF_VAR_use_zscaler_ami=false" >> .zsacrc
         use_zs_ami=false
     fi
@@ -443,12 +443,12 @@ acvm_instance_type=${acvm_instance_type_input:-$acvm_instance_type_default}
     elif [[ "$use_zs_ami" == "false" ]]; then
         case $acvm_instance_type in
             t3.xlarge|m5a.xlarge)
-            echo "AC EC2 type: $acvm_instance_type to be deployed on Amazon Linux 2 AMI."
+            echo "AC EC2 type: $acvm_instance_type to be deployed on Red Hat Enterprise Linux 9 AMI."
             echo "export TF_VAR_acvm_instance_type='$acvm_instance_type'" >> .zsacrc
             break
             ;;
             t2.micro)
-            echo "AC EC2 type: $acvm_instance_type to be deployed on Amazon Linux 2 AMI. This is NOT intended for production use"
+            echo "AC EC2 type: $acvm_instance_type to be deployed on Red Hat Enterprise Linux 9 AMI. This is NOT intended for production use"
             echo "export TF_VAR_acvm_instance_type='$acvm_instance_type'" >> .zsacrc
             break
             ;;

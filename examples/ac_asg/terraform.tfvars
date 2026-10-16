@@ -88,7 +88,7 @@ app_connector_group_dns_query_type           = "IPV4_IPV6"
 
 #aws_region                                 = "us-west-2"
 
-## 5. By default, App Connector will deploy via the Zscaler Latest AMI. Setting this to false will deploy the latest Amazon Linux 2 AMI instead"
+## 5. By default, App Connector will deploy via the Zscaler Latest AMI. Setting this to false will deploy the latest Red Hat Enterprise Linux 9 AMI instead and install the App Connector from the Zscaler yum repository
 
 #use_zscaler_ami                                = false
 
@@ -200,6 +200,15 @@ max_size = 4
 ##     (Default: 50%)
 
 #target_cpu_util_value                      = 50
+
+## 22a. By default, changing the launch template (e.g. a new AMI or user_data) only affects newly launched instances.
+##      Uncomment instance_refresh_enabled to replace the running App Connectors with a rolling instance refresh instead.
+##      Requires provisioning key onboarding (onboarding_method = "provisioning_key" or byo_provisioning_key = true).
+##      Optionally tune how much capacity stays healthy and how long a replacement gets to enroll before the next one is replaced.
+
+#instance_refresh_enabled                       = true
+#instance_refresh_min_healthy_percentage        = 90
+#instance_refresh_instance_warmup               = 600
 
 ## 23. By default, terraform will always query the AWS Marketplace for the latest App Connector AMI available.
 ##     This variable is provided if a customer desires to override or retain an old ami for existing deployments rather than upgrading and forcing a replacement. 

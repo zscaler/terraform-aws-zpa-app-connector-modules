@@ -195,9 +195,16 @@ data "aws_ami" "rhel_9_latest" {
   most_recent = true
   owners      = ["309956199498"]
 
+  # Red Hat deprecates older images, which hides them from this lookup, so
+  # match the newest RHEL 9 release instead of pinning one image name.
   filter {
     name   = "name"
-    values = ["RHEL-9.4.0_HVM-20240423-x86_64-62-Hourly2-GP3"]
+    values = ["RHEL-9.*_HVM-*-x86_64-*-Hourly2-GP3"]
+  }
+
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
   }
 }
 
@@ -229,7 +236,14 @@ module "ac_asg" {
   target_cpu_util_value     = var.target_cpu_util_value
   health_check_grace_period = var.health_check_grace_period
   launch_template_version   = var.launch_template_version
-  target_tracking_metric    = var.target_tracking_metric
+
+  # Instance refresh replaces enrolled App Connectors after apply. With OAuth2
+  # onboarding the replacements are only enrolled by the next apply, so refuse
+  # the combination instead of rolling the group into an outage.
+  instance_refresh_enabled                = var.instance_refresh_enabled && !local.use_provisioning_key ? tobool("instance_refresh_enabled requires provisioning key onboarding (onboarding_method = \"provisioning_key\" or byo_provisioning_key = true)") : var.instance_refresh_enabled
+  instance_refresh_min_healthy_percentage = var.instance_refresh_min_healthy_percentage
+  instance_refresh_instance_warmup        = var.instance_refresh_instance_warmup
+  target_tracking_metric                  = var.target_tracking_metric
 
   warm_pool_enabled = var.warm_pool_enabled
   ### only utilzed if warm_pool_enabled set to true ###

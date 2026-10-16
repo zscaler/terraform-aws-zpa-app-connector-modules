@@ -74,19 +74,20 @@ These deployment templates are intended to be fully functional and self service 
 
 Our Deployment scripts are leveraging Terraform v1.1.9 that includes full binary and provider support for MacOS M1 chips, but any Terraform version 0.13.7 should be generally supported.
 
-- provider registry.terraform.io/hashicorp/aws v5.58.x
+- provider registry.terraform.io/hashicorp/aws v6.69.x
 - provider registry.terraform.io/hashicorp/random v3.6.x
 - provider registry.terraform.io/hashicorp/local v2.5.x
 - provider registry.terraform.io/hashicorp/null v3.2.x
+- provider registry.terraform.io/hashicorp/time v0.9.x
 - provider registry.terraform.io/providers/hashicorp/tls v4.0.x
-- provider registry.terraform.io/providers/zscaler/zpa v3.31.x
+- provider registry.terraform.io/providers/zscaler/zpa v4.4.x
 
 ### AWS requirements
 1. A valid AWS account
 2. AWS ACCESS KEY ID
 3. AWS SECRET ACCESS KEY
 4. AWS Region (E.g. us-west-2)
-5. Subscribe and accept terms of using Amazon Linux 2 AMI (for base deployments with workloads + bastion) at [this link](https://aws.amazon.com/marketplace/pp/prodview-zc4x2k7vt6rpu)
+5. No subscription is needed for the bastion host or the RHEL 9 option (`use_zscaler_ami = false`). The bastion uses the public Amazon Linux 2023 AMI, and the RHEL 9 AMI is Red Hat's pay-as-you-go image with the RHEL subscription included in the hourly EC2 price.
 6. Subscribe and accept terms of using Zscaler App Connector image at [this link](https://aws.amazon.com/marketplace/pp/prodview-epy3md7fcvk4g)
 
 ### Zscaler requirements
@@ -140,6 +141,26 @@ provider "zpa" {
 
 See: [Zscaler App Connector AWS Deployment Guide](https://help.zscaler.com/zpa/connector-deployment-guide-amazon-web-services) for additional prerequisite provisioning steps.
 
+
+## App Connector AMI and Secure Boot
+
+`use_zscaler_ami` selects both the AMI and the matching bootstrap script:
+
+| `use_zscaler_ami` | AMI | Bootstrap | Boot mode | NitroTPM |
+|---|---|---|---|---|
+| `true` (default) | Latest Zscaler App Connector Marketplace AMI | `scripts/user_data_zscaler.sh` | Legacy BIOS | No |
+| `false` | Latest Red Hat Enterprise Linux 9 AMI (Red Hat, pay-as-you-go) | `scripts/user_data_rhel9.sh`, installs the connector from the Zscaler yum repository | UEFI preferred | No |
+
+Both AMIs are looked up at plan time and always resolve to the newest image. When a newer image is published, the next apply replaces fixed App Connector VMs; Auto Scaling Groups get a new launch template version, which only newly launched instances use. To keep an existing deployment on its current image, set `ami_id` to the AMI ID(s) in use.
+
+~> **NOTE:** On AWS, UEFI Secure Boot and NitroTPM are properties of the AMI, set when the AMI is registered, not instance settings, so the modules have no Secure Boot or vTPM inputs. Neither AMI above supports them. If your compliance baseline requires them, build a custom AMI from the RHEL 9 image, register it with `--boot-mode uefi`, Secure Boot keys in its UEFI variable store (`--uefi-data`) and `--tpm-support v2.0`, and deploy it on a Nitro instance type:
+
+```hcl
+use_zscaler_ami = false                     # the custom AMI is RHEL based, so use the RHEL bootstrap script
+ami_id          = ["ami-0123456789abcdef0"] # your Secure Boot + NitroTPM enabled AMI
+```
+
+Set `use_zscaler_ami` to match the base OS of the custom AMI, because it still selects the bootstrap script. See the AWS documentation on [UEFI Secure Boot](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/uefi-secure-boot.html) and [NitroTPM](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/nitrotpm.html).
 
 ## How to deploy
 Provisioning templates are available for customer use/reference to successfully deploy fully operational App Connector appliances once the prerequisites have been completed. Please follow the instructions located in [examples](examples/README.md).

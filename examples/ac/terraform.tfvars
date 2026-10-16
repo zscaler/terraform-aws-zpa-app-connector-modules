@@ -71,7 +71,7 @@ app_connector_group_dns_query_type           = "IPV4_IPV6"
 
 #aws_region                                     = "us-west-2"
 
-## 6. By default, App Connector will deploy via the Zscaler Latest AMI. Setting this to false will deploy the latest Amazon Linux 2 AMI instead"
+## 6. By default, App Connector will deploy via the Zscaler Latest AMI. Setting this to false will deploy the latest Red Hat Enterprise Linux 9 AMI instead and install the App Connector from the Zscaler yum repository
 
 #use_zscaler_ami                                = false
 
