@@ -6,6 +6,14 @@ Additionally: Creates App Connector Autoscaling Group + Launch Template spanning
 
 We are leveraging the [Zscaler ZPA Provider](https://github.com/zscaler/terraform-provider-zpa) to connect to your ZPA Admin console and provision a new App Connector Group + Provisioning Key. You can still run this template if deploying to an existing App Connector Group rather than creating a new one, but using the conditional create functionality from variable byo_provisioning_key and supplying to name of your provisioning key to variable byo_provisioning_key_name. In either deployment, this is fed directly into the userdata for bootstrapping.<br>
 
+## Image selection
+
+By default the App Connectors deploy from the latest Zscaler App Connector Marketplace AMI. Set `use_zscaler_ami = false` to deploy the latest Red Hat Enterprise Linux 9 AMI instead; the App Connector is then installed from the Zscaler yum repository at boot. Set `ami_id` to keep an existing deployment on its current image. See [App Connector AMI and Secure Boot](../../README.md#app-connector-ami-and-secure-boot) for details.
+
+## Instance refresh
+
+By default, a launch template change (e.g. a new AMI or `user_data`) only applies to newly launched App Connectors. Set `instance_refresh_enabled = true` to replace the running App Connectors with a rolling instance refresh instead. This requires provisioning key onboarding (`onboarding_method = "provisioning_key"` or `byo_provisioning_key = true`); the plan fails if it is enabled with OAuth2, because replacement instances would not be enrolled until the next `terraform apply`.
+
 ## How to deploy:
 
 ### Option 1 (guided):
@@ -42,7 +50,7 @@ From base_ac_asg directory execute:
 | Name | Version |
 | ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.13.7, < 2.0.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.47.0 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 6.69.0 |
 | <a name="requirement_external"></a> [external](#requirement\_external) | ~> 2.3.0 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | ~> 2.5.0 |
 | <a name="requirement_null"></a> [null](#requirement\_null) | ~> 3.2.0 |
@@ -55,7 +63,7 @@ From base_ac_asg directory execute:
 
 | Name | Version |
 | ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.47.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | ~> 6.69.0 |
 | <a name="provider_external"></a> [external](#provider\_external) | ~> 2.3.0 |
 | <a name="provider_local"></a> [local](#provider\_local) | ~> 2.5.0 |
 | <a name="provider_random"></a> [random](#provider\_random) | ~> 3.6.0 |
@@ -115,7 +123,10 @@ From base_ac_asg directory execute:
 | <a name="input_byo_provisioning_key_name"></a> [byo\_provisioning\_key\_name](#input\_byo\_provisioning\_key\_name) | Name of the existing App Connector provisioning key to use. Only required when byo\_provisioning\_key is true. | `string` | `null` | no |
 | <a name="input_byo_ssm_parameter_name"></a> [byo\_ssm\_parameter\_name](#input\_byo\_ssm\_parameter\_name) | Bring your own SSM Parameter Store base name for OAuth tokens. If specified, module will use existing parameters named '{value}-1', '{value}-2', etc. If empty, module creates new parameters. Default: '' (create new) | `string` | `""` | no |
 | <a name="input_health_check_grace_period"></a> [health\_check\_grace\_period](#input\_health\_check\_grace\_period) | The amount of time until EC2 Auto Scaling performs the first health check on new instances after they are put into service. Default is 5 minutes | `number` | `300` | no |
-| <a name="input_launch_template_version"></a> [launch\_template\_version](#input\_launch\_template\_version) | Launch template version. Can be version number, `$Latest` or `$Default` | `string` | `"$Latest"` | no |
+| <a name="input_instance_refresh_enabled"></a> [instance\_refresh\_enabled](#input\_instance\_refresh\_enabled) | If set to true, replace the App Connector instances with a rolling instance refresh whenever the launch template changes (e.g. AMI or user\_data). Requires provisioning key onboarding, because with OAuth2 replaced instances are not enrolled until the next terraform apply | `bool` | `false` | no |
+| <a name="input_instance_refresh_instance_warmup"></a> [instance\_refresh\_instance\_warmup](#input\_instance\_refresh\_instance\_warmup) | Seconds until a replacement instance is considered ready during an instance refresh. Defaults to health\_check\_grace\_period. Ignored when instance\_refresh\_enabled is false | `number` | `null` | no |
+| <a name="input_instance_refresh_min_healthy_percentage"></a> [instance\_refresh\_min\_healthy\_percentage](#input\_instance\_refresh\_min\_healthy\_percentage) | Percentage of the desired capacity that must remain healthy during an instance refresh. Ignored when instance\_refresh\_enabled is false | `number` | `90` | no |
+| <a name="input_launch_template_version"></a> [launch\_template\_version](#input\_launch\_template\_version) | Launch template version. Can be version number, `$Latest` or `$Default`. Ignored when instance\_refresh\_enabled is true | `string` | `"$Latest"` | no |
 | <a name="input_max_size"></a> [max\_size](#input\_max\_size) | Maxinum number of App Connectors to maintain in Autoscaling group | `number` | `4` | no |
 | <a name="input_min_size"></a> [min\_size](#input\_min\_size) | Mininum number of App Connectors to maintain in Autoscaling group | `number` | `2` | no |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | The name prefix for all your resources | `string` | `"zsdemo"` | no |
@@ -130,7 +141,7 @@ From base_ac_asg directory execute:
 | <a name="input_target_cpu_util_value"></a> [target\_cpu\_util\_value](#input\_target\_cpu\_util\_value) | Target value number for autoscaling policy CPU utilization target tracking. ie: trigger a scale in/out to keep average CPU Utliization percentage across all instances at/under this number | `number` | `50` | no |
 | <a name="input_target_tracking_metric"></a> [target\_tracking\_metric](#input\_target\_tracking\_metric) | The AWS ASG pre-defined target tracking metric type. App Connector recommends ASGAverageCPUUtilization | `string` | `"ASGAverageCPUUtilization"` | no |
 | <a name="input_tls_key_algorithm"></a> [tls\_key\_algorithm](#input\_tls\_key\_algorithm) | algorithm for tls\_private\_key resource | `string` | `"RSA"` | no |
-| <a name="input_use_zscaler_ami"></a> [use\_zscaler\_ami](#input\_use\_zscaler\_ami) | By default, App Connector will deploy via the Zscaler Latest AMI. Setting this to false will deploy the latest Amazon Linux 2 AMI instead | `bool` | `true` | no |
+| <a name="input_use_zscaler_ami"></a> [use\_zscaler\_ami](#input\_use\_zscaler\_ami) | By default, App Connector will deploy via the Zscaler Latest AMI. Setting this to false will deploy the latest Red Hat Enterprise Linux 9 AMI instead and install the App Connector from the Zscaler yum repository | `bool` | `true` | no |
 | <a name="input_vpc_cidr"></a> [vpc\_cidr](#input\_vpc\_cidr) | VPC IP CIDR Range. All subnet resources that might get created (public / app connector) are derived from this /16 CIDR. If you require creating a VPC smaller than /16, you may need to explicitly define all other subnets via public\_subnets and ac\_subnets variables | `string` | `"10.1.0.0/16"` | no |
 | <a name="input_warm_pool_enabled"></a> [warm\_pool\_enabled](#input\_warm\_pool\_enabled) | If set to true, add a warm pool to the specified Auto Scaling group. See [warm\_pool](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/autoscaling_group#warm_pool). | `bool` | `"false"` | no |
 | <a name="input_warm_pool_max_group_prepared_capacity"></a> [warm\_pool\_max\_group\_prepared\_capacity](#input\_warm\_pool\_max\_group\_prepared\_capacity) | Specifies the total maximum number of instances that are allowed to be in the warm pool or in any state except Terminated for the Auto Scaling group. Ignored when 'warm\_pool\_enabled' is false | `number` | `null` | no |
