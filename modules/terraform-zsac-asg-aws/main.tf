@@ -70,9 +70,23 @@ resource "aws_autoscaling_group" "ac_asg" {
   health_check_type         = "EC2"
   health_check_grace_period = var.health_check_grace_period
 
+  # An instance refresh is not triggered when the version is "$Latest", so it
+  # has to reference the launch template's latest version number.
   launch_template {
     id      = aws_launch_template.ac_launch_template[0].id
-    version = var.launch_template_version
+    version = var.instance_refresh_enabled ? aws_launch_template.ac_launch_template[0].latest_version : var.launch_template_version
+  }
+
+  dynamic "instance_refresh" {
+    for_each = var.instance_refresh_enabled ? [1] : []
+    content {
+      strategy = "Rolling"
+      preferences {
+        min_healthy_percentage = var.instance_refresh_min_healthy_percentage
+        instance_warmup        = var.instance_refresh_instance_warmup
+        skip_matching          = true
+      }
+    }
   }
 
   enabled_metrics = [

@@ -9,7 +9,7 @@
 2. AWS ACCESS KEY ID
 3. AWS SECRET ACCESS KEY
 4. AWS Region (E.g. us-west-2)
-5. Subscribe and accept terms of using Amazon Linux 2 AMI (for base deployments with workloads + bastion) at [this link](https://aws.amazon.com/marketplace/pp/prodview-zc4x2k7vt6rpu)
+5. No subscription is needed for the bastion host or the RHEL 9 option (`use_zscaler_ami = false`). The bastion uses the public Amazon Linux 2023 AMI, and the RHEL 9 AMI is Red Hat's pay-as-you-go image with the RHEL subscription included in the hourly EC2 price.
 6. Subscribe and accept terms of using Zscaler App Connector image at [this link](https://aws.amazon.com/marketplace/pp/prodview-epy3md7fcvk4g)
 
 ### Zscaler requirements

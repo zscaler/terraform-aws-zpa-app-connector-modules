@@ -219,9 +219,16 @@ data "aws_ami" "rhel_9_latest" {
   most_recent = true
   owners      = ["309956199498"]
 
+  # Red Hat deprecates older images, which hides them from this lookup, so
+  # match the newest RHEL 9 release instead of pinning one image name.
   filter {
     name   = "name"
-    values = ["RHEL-9.4.0_HVM-20240423-x86_64-62-Hourly2-GP3"]
+    values = ["RHEL-9.*_HVM-*-x86_64-*-Hourly2-GP3"]
+  }
+
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
   }
 }
 
