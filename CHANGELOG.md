@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.0](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v2.0.1...v2.1.0) (2026-10-17)
+
+### Features
+
+* add opt-in rolling instance refresh to the ASG module ([#52](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/issues/52)) ([b06144d](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/b06144db32f651050458c4e98f7aa23b1b96377d)), closes [#55](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/issues/55)
+
+### Bug Fixes
+
+* restore RHEL 9 AMI path, harden OAuth2 bootstrap, and update AWS provider ([#55](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/issues/55)) ([306774a](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/306774a2c935730fffe76f2ccdc9499fdc93758d)), closes [#52](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/issues/52) [#52](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/issues/52)
+* wait for NAT routes before launching App Connectors and extend OAuth code wait ([c492d39](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/commit/c492d399f07d4d016e547b000153ba3f223557da))
+
 ## [2.0.1](https://github.com/zscaler/terraform-aws-zpa-app-connector-modules/compare/v2.0.0...v2.0.1) (2026-07-07)
 
 ### Bug Fixes
