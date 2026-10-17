@@ -260,6 +260,8 @@ module "ac_asg" {
   reuse_on_scale_in                     = var.reuse_on_scale_in
   ### only utilzed if warm_pool_enabled set to true ###
 
+  # Instances need the NAT routes in place to reach the ZPA cloud at boot.
+  depends_on = [module.network]
 }
 
 

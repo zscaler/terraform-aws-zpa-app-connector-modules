@@ -257,7 +257,8 @@ module "ac_vm" {
 
   depends_on = [
     aws_ssm_parameter.oauth_tokens,
-    module.zpa_provisioning_key
+    module.zpa_provisioning_key,
+    module.network
   ]
 }
 

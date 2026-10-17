@@ -93,8 +93,9 @@ SSM_PARAMETER_NAME="${ssm_parameter_name}"
 %{ endif ~}
 echo "SSM Parameter: $SSM_PARAMETER_NAME"
 
-# Wait for OAuth token to be generated (retry up to 30 times, 10 seconds each = 5 minutes)
-MAX_RETRIES=30
+# Wait for OAuth token to be generated (retry up to 90 times, 10 seconds each = 15 minutes).
+# Must stay below the Terraform ASG token poll window (20 minutes).
+MAX_RETRIES=90
 RETRY_COUNT=0
 OAUTH_TOKEN=""
 
